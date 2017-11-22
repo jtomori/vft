@@ -15,7 +15,7 @@ static float mandelbulb( float3 P ) {
     float dr = 1.0;
     float r = 0.0;
     
-    int Iterations = 7;
+    int Iterations = 11;
     int Bailout = 2;
     int Power = 5;
     
@@ -40,18 +40,10 @@ static float mandelbulb( float3 P ) {
     return 0.5 * log(r) * r/dr;
 }
 
-// scene - construction of the scene for raymarching
-static float scene( float3 P ) {
-    float dist;
-    //dist = sphere(P, 1.5);
-    dist = mandelbulb(P);
-    return dist;
-}
-
 //////////////////////////////////////////// data, math functions
 
 // export float attrib
-static void vstore1(float dataIn, i, global float* dataOut)
+static void vstore1(float dataIn, int i, global float* dataOut)
 {
     dataOut[i] = dataIn;
 }
@@ -154,6 +146,7 @@ static float16 ident()
                      0,0,0,1);
 }
 
+
 //////////////////////////////////////////// debug functions
 
 // print a mtx
@@ -184,5 +177,6 @@ static void printFloat(float a) {
         printf( "%2.8f\n", a );
     }
 }
+
 
 #endif

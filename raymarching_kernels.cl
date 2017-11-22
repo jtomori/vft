@@ -1,8 +1,17 @@
 #include "raymarching_funcs.h"
 
+//// scene setup
+
+static float scene( float3 P ) {
+    float dist;
+    dist = sphere(P, 1);
+    //dist = mandelbulb(P);
+    return dist;
+}
+
 //// main function
 
-kernel void march(
+kernel void marchPerspCam(
         int P_length, global float* P,
         int planeZ_length, global float* planeZ,
         int width_length, global float* width,
@@ -13,7 +22,7 @@ kernel void march(
         int N_length, global float* N,
         int iRel_length, global float* iRel,
         int Cd_length, global float* Cd
-)
+        )
 {
     // get current point id
     int idx = get_global_id(0);
@@ -86,7 +95,7 @@ kernel void march(
                        P_out - (float3)(0,e,0),
                        P_out + (float3)(0,0,e),
                        P_out - (float3)(0,0,e) };
- 
+    
     N_out = (float3)( scene( ePos[0] ) - scene( ePos[1] ),
                       scene( ePos[2] ) - scene( ePos[3] ),
                       scene( ePos[4] ) - scene( ePos[5] ) );
