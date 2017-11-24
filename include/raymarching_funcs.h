@@ -1,12 +1,41 @@
 #ifndef __RAYMARCHING_FUNCS_H__
 #define __RAYMARCHING_FUNCS_H__
 
-//////////////////////////////////////////// implicit shape functions
 
-// sphere
-static float sphere( float3 P, float rad ) {
-    float dist = length(P) - rad;
+//////////////////////////////////////////// shape functions
+
+// sphere: position, radius, center
+static float sphere( float3 P, float rad, float3 center ) {
+    float dist = length(P - center) - rad;
     return dist;
+}
+
+// box: position, size
+static float box( float3 P, float3 b )
+{
+  float3 d = fabs(P) - b;
+  return min( max( d.x, max(d.y, d.z) ), 0.0f) + length( max(d, 0.0f) );
+}
+
+// round box: position, size, roundness
+static float roundBox( float3 P, float3 b, float r )
+{
+  return length( max( fabs(P) - b, 0.0f ) )-r;
+}
+
+// torus: position, size (radius, thickness)
+static float torus( float3 P, float2 t )
+{
+  float2 q = (float2)(length(P.xz)-t.x,P.y);
+  return length(q)-t.y;
+}
+
+// infinite cone
+static float cone( float3 P, float2 c )
+{
+    c = normalize(c);
+    float q = length(P.xy);
+    return dot( c, (float2)(q, P.z) );
 }
 
 // mandelbulb
@@ -38,6 +67,30 @@ static float mandelbulb( float3 P ) {
             z += P;
     }
     return 0.5 * log(r) * r/dr;
+}
+
+//////////////////////////////////////////// shape operations
+
+// union
+static float sdfUnion( float a, float b ) {
+    return min(a, b);
+}
+
+// substraction
+static float sdfSubstract( float a, float b ) {
+    return max(-a, b);
+}
+
+// intersection
+static float sdfIntersect( float a, float b ) {
+    return max(a, b);
+}
+
+// infinitely repeat by a distance (c)
+static float3 sdfRep( float3 p, float3 c ){
+    p = fmod(p,c) - .5f*c  ;
+    return p;
+
 }
 
 //////////////////////////////////////////// data, math functions

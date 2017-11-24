@@ -4,8 +4,13 @@
 
 static float scene( float3 P ) {
     float dist;
-    dist = sphere(P, 1);
-    //dist = mandelbulb(P);
+
+    float3 P_rep = sdfRep( P, (float3)(8, 1, 1) );
+    P_rep.y = P.y;
+    P_rep.z = P.z;
+
+    float sphere1 = torus( P_rep, (float2)(2,.5) );
+    dist = sphere1;
     return dist;
 }
 
@@ -72,12 +77,12 @@ kernel void marchPerspCam(
     float stepSize = 0.5;
     float iso = 0.001;
     float t = planeZ[0];
-    float maxDist = 20;
+    float maxDist = 200;
 
     float sphereR = 1.5;
 
     // raymarch
-    for (i; i<max; i++) {
+    for (i=0; i<max; i++) {
         dist = scene(P_out);
         //if ( dist <= iso * (t/300) || t >= maxDist ) break;
         if ( dist <= iso || t >= maxDist ) break;
