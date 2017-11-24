@@ -38,8 +38,10 @@ static float cone( float3 P, float2 c )
     return dot( c, (float2)(q, P.z) );
 }
 
-// mandelbulb
-static float mandelbulb( float3 P ) {
+// mandelbulb, with size control: s
+static float mandelbulb( float3 P, float s ) {
+    P /= s;
+
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
@@ -66,7 +68,8 @@ static float mandelbulb( float3 P ) {
             z = zr * (float3)(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
             z += P;
     }
-    return 0.5 * log(r) * r/dr;
+    float out = 0.5 * log(r) * r/dr;
+    return out * s;
 }
 
 //////////////////////////////////////////// shape operations

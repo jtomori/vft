@@ -5,11 +5,11 @@
 static float scene( float3 P ) {
     float dist;
 
-    float3 P_rep = sdfRep( P, (float3)(8, 1, 1) );
+    float3 P_rep = sdfRep( P, (float3)(6, 1, 1) );
     P_rep.y = P.y;
     P_rep.z = P.z;
 
-    float sphere1 = torus( P_rep, (float2)(2,.5) );
+    float sphere1 = mandelbulb( P_rep, 2 );
     dist = sphere1;
     return dist;
 }
