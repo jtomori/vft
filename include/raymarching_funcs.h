@@ -49,12 +49,13 @@ static float mandelbulb( float3 P, float s )
     float r = 0.0;
     
     int Iterations = 12;
-    int Bailout = 2;
+    int Bailout = 3;
     int Power = 5;
     
-    for (int i = 0; i < Iterations ; i++) {
+    for (int i = 0; i < Iterations ; i++)
+    {
             r = length(z);
-            if (r>Bailout) break;
+            if (r > Bailout) break;
             
             // convert to polar coordinates
             float theta = acos(z.z/r);
@@ -73,6 +74,54 @@ static float mandelbulb( float3 P, float s )
     float out = 0.5 * log(r) * r/dr;
     return out * s;
 }
+
+static float mandelbox( float3 P, float scale)
+{
+    int Iterations = 20;
+    int Bailout = 10;
+    float3 P_orig = P;
+    float DEfactor = scale;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        //if (length(P) > Bailout) break;
+
+        float fixedRadius = 1.0;
+        float fR2 = fixedRadius * fixedRadius;
+        float minRadius = 0.5;
+        float mR2 = minRadius * minRadius;
+
+        if (P.x > 1.0) P.x = 2.0 - P.x;
+        else if (P.x < -1.0) P.x = -2.0 - P.x;
+
+        if (P.y > 1.0) P.y = 2.0 - P.y;
+        else if (P.y < -1.0) P.y = -2.0 - P.y;
+
+        if (P.z > 1.0) P.z = 2.0 - P.z;
+        else if (P.z < -1.0) P.z = -2.0 - P.z;
+
+        float r2 = P.x*P.x + P.y*P.y + P.z*P.z;
+
+        if (r2 < mR2)
+        {
+           P = P * fR2 / mR2;
+           DEfactor = DEfactor * fR2 / mR2;
+        }
+        else if (r2 < fR2)
+        {
+           P = P * fR2 / r2;
+           DEfactor *= fR2 / r2;
+        }
+
+        P = P * scale + P_orig;
+
+        DEfactor *= scale;
+    }
+
+    return length(P)/fabs(DEfactor);
+}
+
+
 
 //////////////////////////////////////////// shape operations
 

@@ -5,17 +5,20 @@
 static float scene( float3 P ) {
     float dist;
 
-    float3 P_rep = sdfRep( P, (float3)(6, 6, 6) );
+    float3 P_rep = sdfRep( P, (float3)(5, 8, 9) );
     
     P_rep.x = P.x;
     P_rep.y = P.y;
     P_rep.z = P.z;
 
-    float shape1 = mandelbulb( P_rep, 2 );
-    float shape2 = sphere(P_rep, 2, (float3)(0,0,0) );
+    float shape1 = mandelbox( P_rep, 2.3 );
+    float shape2 = mandelbulb( P_rep, 7 );
+    //float shape2 = sphere(P_rep, 2, (float3)(0,1,0) );
 
 
-    dist = sdfBlend(shape1, shape2, .03);
+    dist = sdfBlend(shape1, shape2, .5);
+    //dist = shape1;
+
     return dist;
 }
 
@@ -78,13 +81,11 @@ kernel void marchPerspCam(
     // raymarch settings
     float dist;
     int i = 0;
-    int max = 600;
-    float stepSize = 0.5;
-    float iso = 0.0001;
+    int max = 2000;
+    float stepSize = 0.4;
+    float iso = 0.005;
     float t = planeZ[0];
     float maxDist = 20000;
-
-    float sphereR = 1.5;
 
     // raymarch
     for (i=0; i<max; i++) {
