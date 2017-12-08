@@ -1,23 +1,24 @@
 #include "raymarching_funcs.h"
 
+// 
 //// scene setup
 
-static float scene( float3 P ) {
+static float scene( float3 P, float frame ) {
     float dist;
 
-    float3 P_rep = sdfRep( P, (float3)(5, 8, 9) );
+    float3 P_rep = sdfRep( P, (float3)(8, 22, 2) );
     
     P_rep.x = P.x;
     P_rep.y = P.y;
     P_rep.z = P.z;
 
-    float shape1 = mandelbox( P_rep, 2.3 );
-    float shape2 = mandelbulb( P_rep, 7 );
+    float shape1 = mandelbox( P_rep, -5 + frame*0.018f, 1 );
+    //float shape2 = mandelbulb( P_rep, 7, frame * 0.02f + 1 );
     //float shape2 = sphere(P_rep, 2, (float3)(0,1,0) );
 
 
-    dist = sdfBlend(shape1, shape2, .5);
-    //dist = shape1;
+    //dist = sdfBlend(shape1, shape2, .5);
+    dist = shape1;
 
     return dist;
 }
@@ -25,6 +26,7 @@ static float scene( float3 P ) {
 //// main function
 
 kernel void marchPerspCam(
+        float timeinc, float time, 
         int P_length, global float* P,
         int planeZ_length, global float* planeZ,
         int width_length, global float* width,
@@ -81,15 +83,17 @@ kernel void marchPerspCam(
     // raymarch settings
     float dist;
     int i = 0;
-    int max = 2000;
-    float stepSize = 0.4;
-    float iso = 0.005;
+    int max = 2500;
+    float stepSize = 0.3;
+    float iso = 0.0001;
     float t = planeZ[0];
     float maxDist = 20000;
 
+    float frame = time/timeinc + 1;
+
     // raymarch
     for (i=0; i<max; i++) {
-        dist = scene(P_out);
+        dist = scene(P_out, frame);
         //if ( dist <= iso * (t/300) || t >= maxDist ) break;
         if ( dist <= iso || t >= maxDist ) break;
         dist *= stepSize;
@@ -107,14 +111,15 @@ kernel void marchPerspCam(
                        P_out + (float3)(0,0,e),
                        P_out - (float3)(0,0,e) };
     
-    N_out = (float3)( scene( ePos[0] ) - scene( ePos[1] ),
-                      scene( ePos[2] ) - scene( ePos[3] ),
-                      scene( ePos[4] ) - scene( ePos[5] ) );
+    N_out = (float3)( scene( ePos[0], frame ) - scene( ePos[1], frame ),
+                      scene( ePos[2], frame ) - scene( ePos[3], frame ),
+                      scene( ePos[4], frame ) - scene( ePos[5], frame ) );
 
     N_out = normalize(N_out);
 
     // relative amount of steps
     float iRel_out = (float)(i)/(float)(max);
+    iRel_out = pow(iRel_out, 1.0f/2.0f);
 
     // remove missed
     if ( dist > iso ) {

@@ -39,18 +39,18 @@ static float cone( float3 P, float2 c )
     return dot( c, (float2)(q, P.z) );
 }
 
-// mandelbulb, with size control: s
-static float mandelbulb( float3 P, float s )
+// mandelbulb, size (s), power
+static float mandelbulb( float3 P, float Power, float size )
 {
-    P /= s;
+    P /= size;
 
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
     
-    int Iterations = 12;
-    int Bailout = 3;
-    int Power = 5;
+    int Iterations = 60; // increase to remove banding
+    int Bailout = 4;
+    //float Power = power; // animatable
     
     for (int i = 0; i < Iterations ; i++)
     {
@@ -60,6 +60,7 @@ static float mandelbulb( float3 P, float s )
             // convert to polar coordinates
             float theta = acos(z.z/r);
             float phi = atan2(z.y, z.x);
+
             dr =  pow(r, Power-1) * Power * dr + 1;
             
             // scale and rotate the point
@@ -72,20 +73,21 @@ static float mandelbulb( float3 P, float s )
             z += P;
     }
     float out = 0.5 * log(r) * r/dr;
-    return out * s;
+    return out * size;
 }
 
-static float mandelbox( float3 P, float scale)
+// mandelbox,
+static float mandelbox( float3 P, float scale, float size)
 {
-    int Iterations = 20;
-    int Bailout = 10;
+    P /= size;
+
+    int Iterations = 30;
+    int Bailout = 60;
     float3 P_orig = P;
     float DEfactor = scale;
 
     for (int i = 0; i < Iterations ; i++)
     {
-        //if (length(P) > Bailout) break;
-
         float fixedRadius = 1.0;
         float fR2 = fixedRadius * fixedRadius;
         float minRadius = 0.5;
@@ -118,7 +120,7 @@ static float mandelbox( float3 P, float scale)
         DEfactor *= scale;
     }
 
-    return length(P)/fabs(DEfactor);
+    return length(P)/fabs(DEfactor) * size;
 }
 
 
