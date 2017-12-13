@@ -1,6 +1,104 @@
 #include "raymarching_funcs.h"
 
-// 
+
+// testing new formulas
+
+// aux.r_dz = dr (DE factor or something)
+// aux.r = r (length of Z)
+// Classic Mandelbulb Power 2 fractal
+//static float mandelbulbPower2(float3 P, float size)
+//{
+//    P /= size;//
+//    float3 z = P;
+//    float dr = 1.0;
+//    float r = 0.0;
+//    int Iterations = 60; // increase to remove banding
+//    int Bailout = 6;//
+
+//    for (int i = 0; i < Iterations ; i++)
+//    {
+//        r = length(z);
+//        if (r > Bailout) break;//
+
+//        dr = dr * 2.0 * r;
+//        float x2 = z.x * z.x;
+//        float y2 = z.y * z.y;
+//        float z2 = z.z * z.z;
+//        float temp = 1.0 - z2 / (x2 + y2);
+//        float newx = (x2 - y2) * temp;
+//        float newy = 2.0 * z.x * z.y * temp;
+//        float newz = -2.0 * z.z * sqrt(x2 + y2);
+//        z.x = newx;
+//        z.y = newy;
+//        z.z = newz;//
+
+//        z += P;
+//    }//
+
+//    float out = 0.5 * log(r) * r/dr;
+//    return out * size;
+//}
+
+
+
+// amazing surf from M3D
+static float amazingSurf(float3 P, float size)
+{
+    //P /= size;
+    float3 z = P;
+    float dr = 1.0;
+    int Iterations = 10; // increase to remove banding
+    //int Bailout = 6;
+
+    float actualScale = 1.39;
+    float scaleVary = 0;
+    float2 fold = (float2)(1.076562, 1.05);
+    float minRad = 0.18;
+    float scaleInf = 1;
+    float auxScale = 1;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        //update aux.actualScale
+        //auxScale = actualScale + scaleVary * (fabs(actualScale) - 1.0);
+        actualScale = actualScale + scaleVary * (fabs(actualScale) - 1.0);
+    
+        //CVector4 c = aux.const_c;
+        z.x = fabs(z.x + fold.x) - fabs(z.x - fold.x) - z.x;
+        z.y = fabs(z.y + fold.y) - fabs(z.y - fold.y) - z.y;
+        // no z fold
+    
+        //float rr = dot(z, z);
+        float rr = z.x*z.x + z.y*z.y + z.z*z.z;
+        //if (fractal->transformCommon.functionEnabledFalse) // force cylinder fold
+        //    rr -= z.z * z.z;
+    
+        float sqrtMinR = sqrt(minRad);
+        float dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0f);
+        //float dividend;
+        //if (rr < sqrtMinR) dividend = sqrtMinR;
+        //else dividend = min(rr, 1.0f);
+    
+        // use aux.actualScale
+        //float m = auxScale / dividend;
+        float m = actualScale / dividend;
+    
+        z *= (m - 1.0f) * scaleInf + 1.0f;
+        dr = dr * fabs(m) + 1.0;
+    
+        //if (fractal->transformCommon.addCpixelEnabledFalse)
+        //    z += CVector4(c.y, c.x, c.z, c.w) * fractal->transformCommon.constantMultiplier111;
+    
+        //z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+        float16 rotMtx = mtxRotate( (float3)(8.414060, 3.340000, 18.125000) );
+        z = mtxPtMult(rotMtx, z);
+    }
+
+    //float out = 0.5 * log(r) * r/dr;
+    //return out * size;
+    return dr;
+}
+
 //// scene setup
 
 static float scene( float3 P, float frame ) {
@@ -12,16 +110,18 @@ static float scene( float3 P, float frame ) {
     P_rep.y = P.y;
     P_rep.z = P.z;
 
-    float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
-    float shape2 = mandelbulb( P_rep, 8, 1.1 );
+    //float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
+    float shape1 = mandelbulbPower2(P_rep, 1.4);
+    //float shape1 = amazingSurf(P_rep, 1);
+    //float shape2 = mandelbulb( P_rep, 8, 1.1 );
     //float shape2 = mandelbulb( P_rep, 4, 1.1 );
     //float shape2 = box(P_rep - (float3)(0,0.2,0), .8);
     //float shape2 = sphere(P_rep, 1.08, (float3)(0));
 
 
     //dist = sdfBlend(shape1, shape2, frame*.005);
-    dist = sdfUnionSmooth(shape1, shape2, 0.3);
-    //dist = shape1;
+    //dist = sdfUnionSmooth(shape1, shape2, 0.3);
+    dist = shape1;
 
     return dist;
 }
@@ -88,7 +188,7 @@ kernel void marchPerspCam(
     int i = 0;
     int max = 3000;
     float stepSize = 0.3;
-    float iso = 0.0004;
+    float iso = 0.0005;
     float t = planeZ[0];
     float maxDist = 20000;
 
@@ -139,4 +239,5 @@ kernel void marchPerspCam(
     vstore3(N_out, idx, N);
     vstore3(Cd_out, idx, Cd);
     vstore1(iRel_out, idx, iRel);
+
 }
