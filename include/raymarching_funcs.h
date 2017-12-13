@@ -123,6 +123,42 @@ static float mandelbox( float3 P, float scale, float size)
     return length(P)/fabs(DEfactor) * size;
 }
 
+// aux.r_dz = dr (DE factor or something)
+// aux.r = r (length of Z)
+// Classic Mandelbulb Power 2 fractal
+static float mandelbulbPower2(float3 P, float size)
+{
+    P /= size;
+
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 60; // increase to remove banding
+    int Bailout = 6;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        dr = dr * 2.0 * r;
+        float x2 = z.x * z.x;
+        float y2 = z.y * z.y;
+        float z2 = z.z * z.z;
+        float temp = 1.0 - z2 / (x2 + y2);
+        float newx = (x2 - y2) * temp;
+        float newy = 2.0 * z.x * z.y * temp;
+        float newz = -2.0 * z.z * sqrt(x2 + y2);
+        z.x = newx;
+        z.y = newy;
+        z.z = newz;
+
+        z += P;
+    }
+
+    float out = 0.5 * log(r) * r/dr;
+    return out * size;
+}
 
 
 //////////////////////////////////////////// shape operations
@@ -187,6 +223,15 @@ static void vstore1(float dataIn, int i, global float* dataOut)
     dataOut[i] = dataIn;
 }
 
+// identity 4x4 matrix
+static float16 ident()
+{
+    return (float16)(1,0,0,0,
+                     0,1,0,0,
+                     0,0,1,0,
+                     0,0,0,1);
+}
+
 // transpose a 4x4 matrix
 static float16 trans(float16 m)
 {
@@ -230,7 +275,7 @@ static float16 mtxMult(float16 a, float16 b)
     return xOut;
 }
 
-// generates a 4x4 matrix that in mtx multiplication will scale the other matrix by float3
+// generates a 4x4 scaling matrix
 static float16 mtxScale(float3 s)
 {
     float16 x;
@@ -240,6 +285,44 @@ static float16 mtxScale(float3 s)
                   0  ,   0,   0,   1);
     return x;
 }
+
+// generates a 4x4 rotation matrix in XYZ order, in degrees
+static float16 mtxRotate(float3 rot)
+{
+    rot = radians(-rot);
+
+    float16 x;
+    float cosx = cos(rot.x);
+    float sinx = sin(rot.x);
+    x = (float16)(1,            0,              0,              0,
+                  0,            cosx,           -sinx,          0,
+                  0,            sinx,          cosx,           0,
+                  0,            0,              0,              1 );
+
+    float16 y;
+    float cosy = cos(rot.y);
+    float siny = sin(rot.y);
+    y = (float16)(cosy,         0,              siny,           0,
+                  0,            1,              0,              0,
+                  -siny,        0,              cosy,           0,
+                  0,            0,              0,              1 );
+
+    float16 z;
+    float cosz = cos(rot.z);
+    float sinz = sin(rot.z);
+    z = (float16)(cosz,         -sinz,          0,              0,
+                  sinz,         cosz,           0,              0,
+                  0,            0,              1,              0,
+                  0,            0,              0,              1 );
+
+    float16 xform = ident();
+    xform = mtxMult(xform, x);
+    xform = mtxMult(xform, y);
+    xform = mtxMult(xform, z);
+
+    return xform;
+}
+
 
 // multiplciation of a 4x4 matrix and a point (homogeneous)
 static float3 mtxPtMult(float16 mtx, float3 vec)
@@ -274,15 +357,6 @@ static float3 mtxVecMult(float16 mtx, float3 vec)
     float3 x = (float3)( dot(v, m[0]), dot(v, m[1]), dot(v, m[2]) );
 
     return x;
-}
-
-// identity 4x4 matrix
-static float16 ident()
-{
-    return (float16)(1,0,0,0,
-                     0,1,0,0,
-                     0,0,1,0,
-                     0,0,0,1);
 }
 
 
