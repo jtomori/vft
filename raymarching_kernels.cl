@@ -2,52 +2,54 @@
 
 
 // testing new formulas
+/////
 
-// aux.r_dz = dr (DE factor or something)
-// aux.r = r (length of Z)
-// Classic Mandelbulb Power 2 fractal
-//static float mandelbulbPower2(float3 P, float size)
-//{
-//    P /= size;//
-//    float3 z = P;
-//    float dr = 1.0;
-//    float r = 0.0;
-//    int Iterations = 60; // increase to remove banding
-//    int Bailout = 6;//
+// xenodreambuie
+// produces only a weird sphere
+static float xenodreambuie(float3 P, float power, float alpha, float beta, float size)
+{
+    P /= size;
 
-//    for (int i = 0; i < Iterations ; i++)
-//    {
-//        r = length(z);
-//        if (r > Bailout) break;//
+    alpha = radians(alpha);
+    beta = radians(beta);
 
-//        dr = dr * 2.0 * r;
-//        float x2 = z.x * z.x;
-//        float y2 = z.y * z.y;
-//        float z2 = z.z * z.z;
-//        float temp = 1.0 - z2 / (x2 + y2);
-//        float newx = (x2 - y2) * temp;
-//        float newy = 2.0 * z.x * z.y * temp;
-//        float newz = -2.0 * z.z * sqrt(x2 + y2);
-//        z.x = newx;
-//        z.y = newy;
-//        z.z = newz;//
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 10;
+    int Bailout = 10;
 
-//        z += P;
-//    }//
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
 
-//    float out = 0.5 * log(r) * r/dr;
-//    return out * size;
-//}
+        float rp = pow(r, power - 1.0f);
+        dr = rp * dr * power + 1.0f;
+        rp *= r;
 
+        float th = atan2(z.y, z.x) + beta;
+        float ph = acos(z.z / r) + alpha;
 
+        if (fabs(ph) > 0.5f * M_PI) ph = sign(ph) * M_PI - ph;
+
+        z.x = rp * cos(th * power) * sin(ph * power);
+        z.y = rp * sin(th * power) * sin(ph * power);
+        z.z = rp * cos(ph * power);
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    return out * size;
+}
 
 // amazing surf from M3D
+// does nothing
 static float amazingSurf(float3 P, float size)
 {
     //P /= size;
     float3 z = P;
     float dr = 1.0;
-    int Iterations = 10; // increase to remove banding
+    int Iterations = 10;
     //int Bailout = 6;
 
     float actualScale = 1.39;
@@ -99,6 +101,37 @@ static float amazingSurf(float3 P, float size)
     return dr;
 }
 
+// quaternion fractals, kind of works, but not sure what to do with z.w component :)
+static float quaternion(float3 P, float size)
+{
+    P /= size;
+
+    float4 z = (float4)(P, 1);
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 50;
+    int Bailout = 40;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        dr = dr * 2.0f * r;
+        float newx = z.x * z.x - z.y * z.y - z.z * z.z - z.w * z.w;
+        float newy = 2.0f * z.x * z.y;
+        float newz = 2.0f * z.x * z.z;
+        float neww = 2.0f * z.x * z.w;
+        z.x = newx;
+        z.y = newy;
+        z.z = newz;
+        //z.w = neww;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    return out * size;
+}
+
 //// scene setup
 
 static float scene( float3 P, float frame ) {
@@ -111,16 +144,21 @@ static float scene( float3 P, float frame ) {
     P_rep.z = P.z;
 
     //float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
-    float shape1 = mandelbulbPower2(P_rep, 1.4);
+    //float shape1 = mandelbulbPower2(P_rep, 1.4);
+    //float shape2 = box(P_rep - (float3)(.2 + frame * 0.01, 0, 0), 3);
     //float shape1 = amazingSurf(P_rep, 1);
     //float shape2 = mandelbulb( P_rep, 8, 1.1 );
     //float shape2 = mandelbulb( P_rep, 4, 1.1 );
     //float shape2 = box(P_rep - (float3)(0,0.2,0), .8);
     //float shape2 = sphere(P_rep, 1.08, (float3)(0));
+    //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
+    //float shape1 = mengerSponge(P_rep, 1);
+    float shape1 = quaternion(P_rep, 1);
 
 
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
+    //dist = sdfSubtract(shape1, shape2);
     dist = shape1;
 
     return dist;
@@ -186,9 +224,9 @@ kernel void marchPerspCam(
     // raymarch settings
     float dist;
     int i = 0;
-    int max = 3000;
-    float stepSize = 0.3;
-    float iso = 0.0005;
+    int max = 10000;
+    float stepSize = 0.1;
+    float iso = 0.001;
     float t = planeZ[0];
     float maxDist = 20000;
 
