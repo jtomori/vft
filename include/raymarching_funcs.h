@@ -160,6 +160,42 @@ static float mandelbulbPower2(float3 P, float size)
     return out * size;
 }
 
+// mengerSponge
+static float mengerSponge(float3 P, float size)
+{
+    P /= size;
+
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 10;
+    int Bailout = 100;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        z.x = fabs(z.x);
+        z.y = fabs(z.y);
+        z.z = fabs(z.z);
+    
+        if (z.x - z.y < 0.0f) z.xy = z.yx;
+        if (z.x - z.z < 0.0f) z.xz = z.zx;
+        if (z.y - z.z < 0.0f) z.yz = z.zy;
+    
+        z *= 3.0f;
+    
+        z.x -= 2.0f;
+        z.y -= 2.0f;
+        if (z.z > 1.0f) z.z -= 2.0f;
+    
+        dr *= 3.0;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    return out * size;
+}
 
 //////////////////////////////////////////// shape operations
 
@@ -189,8 +225,8 @@ static float sdfUnionSmooth( float a, float b, float k )
     return sminPoly(a, b, k);
 }
 
-// substraction
-static float sdfSubstract( float a, float b )
+// subtraction
+static float sdfSubtract( float b, float a )
 {
     return max(-a, b);
 }
