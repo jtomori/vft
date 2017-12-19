@@ -191,6 +191,7 @@ static float mengerSponge(float3 P, float size)
         if (z.z > 1.0f) z.z -= 2.0f;
     
         dr *= 3.0;
+        //z += P; // julia mode
 
     }
 
@@ -220,7 +221,7 @@ static float bristorbrot(float3 P, float size)
         float newx = z.x * z.x - z.y * z.y - z.z * z.z;
         float newy = z.y * (2.0f * z.x - z.z);
         float newz = z.z * (2.0f * z.x + z.y);
-        z.x = newx;
+        z.x = newx; // change to += for julia mode and comment out "z + =P;"
         z.y = newy;
         z.z = newz;
 
