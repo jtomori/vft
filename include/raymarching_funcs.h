@@ -191,9 +191,123 @@ static float mengerSponge(float3 P, float size)
         if (z.z > 1.0f) z.z -= 2.0f;
     
         dr *= 3.0;
+
     }
 
     float out = 0.5f * log(r) * r/dr;
+    //float out = r / dr;
+    return out * size;
+}
+
+// bristorbrot
+// shape matches well, but normals are noisy, using log de function helps
+static float bristorbrot(float3 P, float size)
+{
+    P /= size;
+
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 25;
+    int Bailout = 100;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        dr = dr * 2.0f * r;
+        float newx = z.x * z.x - z.y * z.y - z.z * z.z;
+        float newy = z.y * (2.0f * z.x - z.z);
+        float newz = z.z * (2.0f * z.x + z.y);
+        z.x = newx;
+        z.y = newy;
+        z.z = newz;
+
+        z += P;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    //float out = r / dr;
+    return out * size;
+}
+
+// xenodreambuie
+static float xenodreambuie(float3 P, float power, float alpha, float beta, float size)
+{
+    P /= size;
+
+    alpha = radians(alpha);
+    beta = radians(beta);
+
+    float pi = 3.14159265359;
+
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 100;
+    int Bailout = 100;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        float rp = pow(r, power - 1.0f);
+        dr = rp * dr * power + 1.0f;
+        rp *= r;
+
+        float th = atan2(z.y, z.x) + beta;
+        float ph = acos(z.z / r) + alpha;
+
+        if (fabs(ph) > 0.5f * pi) ph = sign(ph) * pi - ph;
+
+        z.x = rp * cos(th * power) * sin(ph * power);
+        z.y = rp * sin(th * power) * sin(ph * power);
+        z.z = rp * cos(ph * power);
+
+        z += P;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    //float out = r / dr;
+    return out * size;
+}
+
+// Coastalbrot
+// looks weird, but seems to work fine
+static float coastalbrot(float3 P, float size)
+{
+    P /= size;
+
+    float3 z = P;
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 30;
+    int Bailout = 10;
+    float pi = 3.14159265359;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+        
+        float temp = r;
+        temp = pow(temp, 7.7f);
+        dr = temp * dr * 7.7f;
+        temp *= r;
+
+        z.x = sin(sin(sin(pi / 3.0f + z.x * pi)));
+        z.y = sin(sin(sin(pi / 3.0f + z.y * pi)));
+        z.z = sin(sin(sin(pi / 3.0f + z.z * pi)));
+
+        z *= temp;
+
+        z += P;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    //float out = r / dr;
     return out * size;
 }
 
