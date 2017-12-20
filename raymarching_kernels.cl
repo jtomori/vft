@@ -215,7 +215,8 @@ static float scene( float3 P, float frame ) {
     //float shape2 = sphere(P_rep, 1.08, (float3)(0));
     //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
     //float shape1 = mengerSponge(P_rep, 1);
-    float shape1 = bristorbrot(P_rep, 1);
+    //float shape1 = bristorbrot(P_rep, 1);
+    float shape1 = sierpinski3d(P_rep, 2, (float3)(1,1,1), (float3)(90,0,0), 1);
     //float shape1 = quaternion(P_rep, 1);
     //float shape1 = coastalbrot(P_rep, 1);
     //float shape1 = quaternion3d(P_rep, 1);
@@ -224,7 +225,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; ////////////////
+    dist = shape1; ////////////////////
 
     return dist;
 }
@@ -290,8 +291,8 @@ kernel void marchPerspCam(
     float dist;
     int i = 0;
     int max = 5000;
-    float stepSize = 0.2;
-    float iso = 0.0003;
+    float stepSize = 0.1;
+    float iso = 0.001;
     float t = planeZ[0];
     float maxDist = 200;
 
