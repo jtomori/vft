@@ -227,7 +227,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; ////////////////////
+    dist = shape1; /////////////////////
 
     return dist;
 }
