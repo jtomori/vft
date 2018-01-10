@@ -54,8 +54,8 @@ static float mandelbulb( float3 P, float Power, float size )
     float dr = 1.0;
     float r = 0.0;
     
-    int Iterations = 60; // increase to remove banding
-    int Bailout = 4;
+    const int Iterations = 60; // increase to remove banding
+    const int Bailout = 4;
     //float Power = power; // animatable
     
     for (int i = 0; i < Iterations ; i++)
@@ -87,8 +87,8 @@ static float mandelbox( float3 P, float scale, float size)
 {
     P /= size;
 
-    int Iterations = 30;
-    int Bailout = 60;
+    const int Iterations = 30;
+    const int Bailout = 60;
     float3 P_orig = P;
     float DEfactor = scale;
 
@@ -139,8 +139,8 @@ static float mandelbulbPower2(float3 P, float size)
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 60; // increase to remove banding
-    int Bailout = 6;
+    const int Iterations = 60; // increase to remove banding
+    const int Bailout = 6;
 
     for (int i = 0; i < Iterations ; i++)
     {
@@ -174,8 +174,8 @@ static float mengerSponge(float3 P, float size)
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 10;
-    int Bailout = 100;
+    const int Iterations = 10;
+    const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
     {
@@ -215,8 +215,8 @@ static float bristorbrot(float3 P, float size)
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 25;
-    int Bailout = 100;
+    const int Iterations = 25;
+    const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
     {
@@ -252,8 +252,8 @@ static float xenodreambuie(float3 P, float power, float alpha, float beta, float
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 100;
-    int Bailout = 100;
+    const int Iterations = 100;
+    const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
     {
@@ -290,8 +290,8 @@ static float coastalbrot(float3 P, float size)
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 30;
-    int Bailout = 10;
+    const int Iterations = 30;
+    const int Bailout = 10;
     float pi = 3.14159265359;
 
     for (int i = 0; i < Iterations ; i++)
@@ -326,8 +326,8 @@ static float sierpinski3d(float3 P, float scale, float3 offset, float3 rot, floa
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    int Iterations = 100;
-    int Bailout = 100;
+    const int Iterations = 100;
+    const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
     {
