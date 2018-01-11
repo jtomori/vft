@@ -63,6 +63,22 @@ static float16 mtxScale(float3 s)
     return x;
 }
 
+// generates a 4x4 translation matrix
+static float16 mtxTranslate(float3 t)
+{
+    float16 x;
+    x = (float16)(1,   0,   0,   t.x,
+                  0,   1,   0,   t.y,
+                  0,   0,   1,   t.z,
+                  0,   0,   0,   1);
+    x = trans(x);
+    /*x = (float16)(1,   0,   0,   0,
+                  0,   1,   0,   0,
+                  0,   0,   1,   0,
+                  t.x,   t.y,   t.z,   1);*/
+    return x;
+}
+
 // generates a 4x4 rotation matrix in XYZ order, in degrees
 static float16 mtxRotate(float3 rot)
 {
