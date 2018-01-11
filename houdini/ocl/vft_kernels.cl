@@ -274,7 +274,7 @@ kernel void marchPerspCam(
 
     // move to near img plane
     P_out.z = planeZ[0];
-    
+
     // compute scale of near img plane
     const  float16 scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1) );
     
@@ -287,16 +287,21 @@ kernel void marchPerspCam(
     // create a mtx to hold transformations
     float16 xform = ident();
 
-    // apply transformations
+    // apply transformations, also produce alternative matrix with scaled near plane
     xform = mtxMult(xform, scale);
+    float16 xform_nearScaled = mtxMult(xform, mtxScale( (float3)(100000) ) );
     xform = mtxMult(xform, cam);
+    xform_nearScaled = mtxMult(xform_nearScaled, cam);
+
+    // create a scaled near plane position for more accurate rayDir calculation
+    float3 P_out_nearScaled = mtxPtMult(xform_nearScaled, P_out);
 
     // transform points into near img plane
-    P_out = mtxPtMult(xform, P_out);    
+    P_out = mtxPtMult(xform, P_out);
 
     // get camera world space position and compute ray direction vector
     const float3 camP = (float3)(camPos[0], camPos[1], camPos[2]);
-    const float3 rayDir = normalize(P_out - camP);
+    const float3 rayDir = normalize(P_out_nearScaled - camP);
 
     //// raymarching
 
