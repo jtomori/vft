@@ -13,7 +13,7 @@ static float16 ident()
 }
 
 // transpose a 4x4 matrix
-static float16 trans(float16 m)
+static float16 mtxTranspose(float16 m)
 {
     float16 x;
     x = (float16)( m.s0,m.s4,m.s8,m.sc,
@@ -67,15 +67,10 @@ static float16 mtxScale(float3 s)
 static float16 mtxTranslate(float3 t)
 {
     float16 x;
-    x = (float16)(1,   0,   0,   t.x,
-                  0,   1,   0,   t.y,
-                  0,   0,   1,   t.z,
-                  0,   0,   0,   1);
-    x = trans(x);
-    /*x = (float16)(1,   0,   0,   0,
+    x = (float16)(1,   0,   0,   0,
                   0,   1,   0,   0,
                   0,   0,   1,   0,
-                  t.x,   t.y,   t.z,   1);*/
+                  t.x, t.y, t.z, 1);
     return x;
 }
 
@@ -123,11 +118,10 @@ static float3 mtxPtMult(float16 mtx, float3 vec)
                           (float4)(mtx.s37bf) };
 
     const float4 v = (float4)(vec.x, vec.y, vec.z, 1);
-    const float w = 1 / ( dot(v, m[3]) );
-    float3 x = (float3)( dot(v, m[0]), dot(v, m[1]), dot(v, m[2]) );    
-    x *= w;
+    float4 x = (float4)( dot(v, m[0]), dot(v, m[1]), dot(v, m[2]), dot(v, m[3]) );
+    x = x/x.w;
 
-    return x;
+    return (float3)(x.xyz);
 }
 
 // multiplciation of a 4x4 matrix and a directional vector, assumes affine matrix

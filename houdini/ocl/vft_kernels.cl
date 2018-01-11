@@ -210,22 +210,23 @@ static float scene( float3 P, float frame ) {
     //float3 P_test = (float3)(0, 0, 1);
 
     float16 xform = ident();
-    //xform = mtxMult( xform, mtxTranslate( (float3)(0,0,0) ) );
-    //xform = mtxMult( xform, mtxScale( (float3)(1,1,1) ) );
-    //xform = mtxMult( xform, mtxRotate( (float3)(0,0,0) ) );
+    //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
+    xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
+    xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
     //printMtx(xform);
     //printVec(P_rep);
-    //P_rep = mtxPtMult(xform, P_rep);
+    P_rep = mtxPtMult(xform, P_rep);
     //printVec(P_rep);
 
     //float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
+    //float shape1 = mandelbox( P_rep, 3, .2 );    
     //float shape1 = mandelbulbPower2(P_rep, 1.4);
     //float shape2 = box(P_rep - (float3)(.2 + frame * 0.01, 0, 0), 3);
     //float shape1 = amazingSurf(P_rep, 1);
     //float shape2 = mandelbulb( P_rep, 8, 1.1 );
-    //float shape2 = mandelbulb( P_rep, 4, 1.1 );
-    float shape1 = box(P_rep, 10);
-    //float shape1 = sphere(P_rep, 1, (float3)(0,1,0));
+    //float shape1 = mandelbulb( P_rep, 4, 1.1 );
+    //float shape1 = box(P_rep, 1);
+    float shape1 = sphere(P_rep, 1, (float3)(0,0,0));
     //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
     //float shape1 = mengerSponge(P_rep, 1);
     //float shape1 = bristorbrot(P_rep, 1);
@@ -238,7 +239,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; //////////////////////////////////////////////////
+    dist = shape1; /////////////////////////////////////////////////////////////////////
 
     return dist;
 }
@@ -308,10 +309,10 @@ kernel void marchPerspCam(
     // raymarch settings
     float dist;
     int i = 0;
-    float stepSize = 0.6;
-    float iso = 0.0001;
-    float t = planeZ[0];    
-    const int max = 600;    
+    float stepSize = 0.3;
+    float iso = 0.00001;
+    float t = planeZ[0];
+    const int max = 5000;
     const float maxDist = 400;
 
     const float frame = time/timeinc + 1;
