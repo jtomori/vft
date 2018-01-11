@@ -174,7 +174,7 @@ static float mengerSponge(float3 P, float size)
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    const int Iterations = 10;
+    const int Iterations = 30;
     const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
@@ -201,8 +201,8 @@ static float mengerSponge(float3 P, float size)
 
     }
 
-    float out = 0.5f * log(r) * r/dr;
-    //float out = r / dr;
+    //float out = 0.5f * log(r) * r/dr;
+    float out = r / dr;
     return out * size;
 }
 
@@ -326,7 +326,7 @@ static float sierpinski3d(float3 P, float scale, float3 offset, float3 rot, floa
     float3 z = P;
     float dr = 1.0;
     float r = 0.0;
-    const int Iterations = 100;
+    const int Iterations = 30;
     const int Bailout = 100;
 
     for (int i = 0; i < Iterations ; i++)
