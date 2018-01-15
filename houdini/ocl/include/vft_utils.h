@@ -97,7 +97,7 @@ static void printFloat(float a)
 {
     int idx = get_global_id(0);
     if (idx == 0) {
-        printf( "%2.8f\n", a );
+        printf( "%2.15f\n", a );
     }
 }
 

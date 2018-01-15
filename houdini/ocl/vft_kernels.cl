@@ -215,7 +215,7 @@ static float scene( float3 P, float frame ) {
     xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
     //printMtx(xform);
     //printVec(P_rep);
-    P_rep = mtxPtMult(xform, P_rep);
+    //P_rep = mtxPtMult(xform, P_rep);
     //printVec(P_rep);
 
     //float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
@@ -223,12 +223,12 @@ static float scene( float3 P, float frame ) {
     //float shape1 = mandelbulbPower2(P_rep, 1.4);
     //float shape2 = box(P_rep - (float3)(.2 + frame * 0.01, 0, 0), 3);
     //float shape1 = amazingSurf(P_rep, 1);
-    //float shape2 = mandelbulb( P_rep, 8, 1.1 );
+    //float shape1 = mandelbulb( P_rep, 8, 1.1 );
     //float shape1 = mandelbulb( P_rep, 4, 1.1 );
     //float shape1 = box(P_rep, 1);
-    float shape1 = sphere(P_rep, 1, (float3)(0,0,0));
+    //float shape1 = sphere(P_rep, 1, (float3)(0,0,0));
     //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
-    //float shape1 = mengerSponge(P_rep, 1);
+    float shape1 = mengerSponge(P_rep, 10);
     //float shape1 = bristorbrot(P_rep, 1);
     //float shape1 = sierpinski3d(P_rep, 2, (float3)(1,1,1), (float3)(0,0,0), 1);
     //float shape1 = quaternion(P_rep, 1);
@@ -239,7 +239,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; /////////////////////////////////////////////////////////////////////
+    dist = shape1; //////////////////////////////////////////////////////////////////////
 
     return dist;
 }
@@ -268,97 +268,111 @@ kernel void marchPerspCam(
         return;
 
     // read in P attrib
-    const float3 P_in = vload3(idx, P);
-    float3 P_out = P_in;
+    const float3 pixel_P_origin = vload3(idx, P);
+    float3 pixel_P_world = pixel_P_origin;
+
+
 
     //// transforming to near img plane
 
     // move to near img plane
-    P_out.z = planeZ[0];
+    pixel_P_world.z = planeZ[0];
 
     // compute scale of near img plane
-    const  float16 scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1) );
+    const float16 near_plane_scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1) );
     
     // read in cam world matrix
-    const float16 cam = (float16)(camXform[0],camXform[1],camXform[2],camXform[3],
+    const float16 cam_xform_world = (float16)(camXform[0],camXform[1],camXform[2],camXform[3],
                                   camXform[4],camXform[5],camXform[6],camXform[7],
                                   camXform[8],camXform[9],camXform[10],camXform[11],
                                   camXform[12],camXform[13],camXform[14],camXform[15] );
 
     // create a mtx to hold transformations
-    float16 xform = ident();
+    float16 near_plane_xform = ident();
 
     // apply transformations, also produce alternative matrix with scaled near plane
-    xform = mtxMult(xform, scale);
-    float16 xform_nearScaled = mtxMult(xform, mtxScale( (float3)(100000) ) );
-    xform = mtxMult(xform, cam);
-    xform_nearScaled = mtxMult(xform_nearScaled, cam);
+    near_plane_xform = mtxMult(near_plane_xform, near_plane_scale);
+    float16 near_plane_xform_scaled = mtxMult(near_plane_xform, mtxScale( (float3)(100000) ) );
+    near_plane_xform = mtxMult(near_plane_xform, cam_xform_world);
+    near_plane_xform_scaled = mtxMult(near_plane_xform_scaled, cam_xform_world);
 
-    // create a scaled near plane position for more accurate rayDir calculation
-    float3 P_out_nearScaled = mtxPtMult(xform_nearScaled, P_out);
+    // create a scaled near plane position for more accurate ray_dir calculation
+    float3 pixel_P_world_scaled = mtxPtMult(near_plane_xform_scaled, pixel_P_world);
 
-    // transform points into near img plane
-    P_out = mtxPtMult(xform, P_out);
+    // transform pixels into near img plane
+    pixel_P_world = mtxPtMult(near_plane_xform, pixel_P_world);
 
     // get camera world space position and compute ray direction vector
-    const float3 camP = (float3)(camPos[0], camPos[1], camPos[2]);
-    const float3 rayDir = normalize(P_out_nearScaled - camP);
+    const float3 cam_P_world = (float3)(camPos[0], camPos[1], camPos[2]);
+    const float3 ray_dir = normalize(pixel_P_world_scaled - cam_P_world);
 
     //// raymarching
 
     // raymarch settings
-    float dist;
-    int i = 0;
-    float stepSize = 0.3;
-    float iso = 0.00001;
-    float t = planeZ[0];
-    const int max = 5000;
-    const float maxDist = 400;
-
     const float frame = time/timeinc + 1;
+    float3 ray_P_world = pixel_P_world;
+    float cam_dist = scene(cam_P_world, frame);
+    float de = 0;
+    int i = 0;
+    float step_size = 0.8;
+    float iso_limit_mult = 5;
+    float ray_dist = planeZ[0];
+    const int max_steps = 4000;
+    const float max_dist = 40000;
+
+    float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  
 
     // raymarch
-    for (i=0; i<max; i++) {
-        dist = scene(P_out, frame);
-        //if ( dist <= iso * (t/300) || t >= maxDist ) break;
-        if ( dist <= iso || t >= maxDist ) break;
-        dist *= stepSize;
-        t += dist;
-        P_out += rayDir * dist;
+    for (i=0; i<max_steps; i++) {
+        de = scene(ray_P_world, frame) * step_size;
+        //if ( de <= iso_limit * (ray_dist/300) || ray_dist >= max_dist ) break;
+        if ( de <= iso_limit || ray_dist >= max_dist ) break;
+        ray_dist += de;
+        ray_P_world += ray_dir * de;
     }
 
     // compute N
-    const float e = iso;
-    float3 N_out = (float3)(0);
-    float3 ePos[6] = { P_out + (float3)(e,0,0),
-                       P_out - (float3)(e,0,0),
-                       P_out + (float3)(0,e,0),
-                       P_out - (float3)(0,e,0),
-                       P_out + (float3)(0,0,e),
-                       P_out - (float3)(0,0,e) };
+    const float e = iso_limit;
+    float3 N_grad = (float3)(0);
+    float3 e_offset[6] = { ray_P_world + (float3)(e,0,0),
+                           ray_P_world - (float3)(e,0,0),
+                           ray_P_world + (float3)(0,e,0),
+                           ray_P_world - (float3)(0,e,0),
+                           ray_P_world + (float3)(0,0,e),
+                           ray_P_world - (float3)(0,0,e) };
     
-    N_out = (float3)( scene( ePos[0], frame ) - scene( ePos[1], frame ),
-                      scene( ePos[2], frame ) - scene( ePos[3], frame ),
-                      scene( ePos[4], frame ) - scene( ePos[5], frame ) );
+    N_grad = (float3)( scene( e_offset[0], frame ) - scene( e_offset[1], frame ),
+                       scene( e_offset[2], frame ) - scene( e_offset[3], frame ),
+                       scene( e_offset[4], frame ) - scene( e_offset[5], frame ) );
 
-    N_out = normalize(N_out);
+    N_grad = normalize(N_grad);
 
     // relative amount of steps
-    float iRel_out = (float)(i)/(float)(max);
-    iRel_out = pow(iRel_out, 1.0f/2.0f);
+    float i_rel = (float)(i)/(float)(max_steps);
+    i_rel = 1-pow(i_rel, 1.0f/3.0f);
 
     // remove missed
-    if ( dist > iso ) {
-        iRel_out = -1;
+    if ( de > iso_limit ) {
+        i_rel = -1;
     }
 
     // Cd for viz
-    float3 Cd_out = fabs(N_out);
-    Cd_out *= (1 - iRel_out);
+    const float3 sun_dir = normalize( (float3)(0.5,1,0.2) );
+    float3 Cd_out;
+    //Cd_out = fabs(N_grad);
+    //Cd_out *= (1 - i_rel);
+    Cd_out = clamp( dot(sun_dir, N_grad), 0.0f, 1.0f) ;
+    //Cd_out = dot(sun_dir, N_grad) * 0.5f + 0.5f;    
+    //Cd_out = pow(Cd_out, 6.0f);
+    //Cd_out = (float3)(i_rel);
+    Cd_out *= i_rel;
+    //Cd_out += 0.01f;
+
+    Cd_out = clamp( Cd_out, 0.0f, 1.0f );
 
     // export attribs
-    vstore3(P_out, idx, P);
-    vstore3(N_out, idx, N);
+    vstore3(ray_P_world, idx, P);
+    vstore3(N_grad, idx, N);
     vstore3(Cd_out, idx, Cd);
-    vstore1(iRel_out, idx, iRel);
+    vstore1(i_rel, idx, iRel);
 }
