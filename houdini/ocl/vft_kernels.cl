@@ -196,16 +196,6 @@ static float quaternion3d(float3 P, float size)
     return out * size;
 }
 
-// repeat by a distance (c) and by a fixed number (limit)
-static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
-{
-    limit *= c-1;
-    p = min(-limit, p) + limit
-        + fmod(max(min(p, limit), -limit), c) - .5f*c
-        + max(p, limit) - limit;
-    return p;
-}
-
 //// scene setup
 
 static float scene( float3 P, float frame ) {
