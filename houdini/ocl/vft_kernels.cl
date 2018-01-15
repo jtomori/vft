@@ -212,12 +212,13 @@ static float scene( float3 P, float frame ) {
 
     //float3 P_test = (float3)(0, 0, 1);
 
-    float16 xform = ident();
+    //float16 xform = mtxIdent();
     //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
     //xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
     //xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
     //printMtx(xform);
     //printVec(P_rep);
+    //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
     //printVec(P_rep);
 
@@ -231,7 +232,7 @@ static float scene( float3 P, float frame ) {
     //float shape1 = box(P_rep, 1);
     //float shape1 = sphere(P_rep, 1, (float3)(0,0,0));
     //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
-    float shape1 = mengerSponge(P_rep, 10);
+    float shape1 = mengerSponge(P_rep, 1);
     //float shape1 = bristorbrot(P_rep, 1);
     //float shape1 = sierpinski3d(P_rep, 2, (float3)(1,1,1), (float3)(0,0,0), 1);
     //float shape1 = quaternion(P_rep, 1);
@@ -242,7 +243,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; /////////////////////////////////////////////////////////////////////////
+    dist = shape1; ///////////////////////////////////////////////////////////////////////////
 
     return dist;
 }
@@ -291,7 +292,7 @@ kernel void marchPerspCam(
                                   camXform[12],camXform[13],camXform[14],camXform[15] );
 
     // create a mtx to hold transformations
-    float16 near_plane_xform = ident();
+    float16 near_plane_xform = mtxIdent();
 
     // apply transformations, also produce alternative matrix with scaled near plane
     near_plane_xform = mtxMult(near_plane_xform, near_plane_scale);

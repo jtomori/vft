@@ -4,7 +4,7 @@
 
 
 // identity 4x4 matrix
-static float16 ident()
+static float16 mtxIdent()
 {
     return (float16)(1,0,0,0,
                      0,1,0,0,
@@ -100,7 +100,7 @@ static float16 mtxRotate(float3 rot)
                                 0,            0,              1,              0,
                                 0,            0,              0,              1 );
 
-    float16 xform = ident();
+    float16 xform = mtxIdent();
     xform = mtxMult(xform, x);
     xform = mtxMult(xform, y);
     xform = mtxMult(xform, z);
@@ -137,7 +137,51 @@ static float3 mtxDirMult(float16 mtx, float3 vec)
     return x;
 }
 
+// inverts a 4x4 matrix, returns identiy matrix if input matrix has zero determinant
+static float16 mtxInvert(float16 me)
+{
+    float16 te;
 
+    float   
+    n11 = me.s0, n21 = me.s1, n31 = me.s2, n41 = me.s3,
+    n12 = me.s4, n22 = me.s5, n32 = me.s6, n42 = me.s7,
+    n13 = me.s8, n23 = me.s9, n33 = me.sa, n43 = me.sb,
+    n14 = me.sc, n24 = me.sd, n34 = me.se, n44 = me.sf,
+
+    t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44,
+    t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44,
+    t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44,
+    t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+    
+    float det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
+
+    if ( det == 0 ) return mtxIdent();
+
+    float detInv = 1 / det;
+
+    te.s0 = t11 * detInv;
+    te.s1 = ( n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44 ) * detInv;
+    te.s2 = ( n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44 ) * detInv;
+    te.s3 = ( n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43 ) * detInv;
+
+    te.s4 = t12 * detInv;
+    te.s5 = ( n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44 ) * detInv;
+    te.s6 = ( n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44 ) * detInv;
+    te.s7 = ( n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43 ) * detInv;
+
+    te.s8 = t13 * detInv;
+    te.s9 = ( n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44 ) * detInv;
+    te.sa = ( n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44 ) * detInv;
+    te.sb = ( n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43 ) * detInv;
+
+    te.sc = t14 * detInv;
+    te.sd = ( n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34 ) * detInv;
+    te.se = ( n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34 ) * detInv;
+    te.sf = ( n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33 ) * detInv;
+
+    return te;
+
+}
 
 
 #endif
