@@ -9,3 +9,10 @@ Add *houdini* folder from this repo into your *HOUDINI_PATH* environment variabl
 ```
 HOUDINI_PATH = &:/path/to/this/repo/houdini
 ```
+
+Other
+-----
+To compute on CPU instead of GPU set this environment variable:
+```
+HOUDINI_OCL_DEVICETYPE=CPU
+```
