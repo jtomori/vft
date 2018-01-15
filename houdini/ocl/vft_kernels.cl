@@ -196,23 +196,36 @@ static float quaternion3d(float3 P, float size)
     return out * size;
 }
 
+// repeat by a distance (c) and by a fixed number (limit)
+static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
+{
+    limit *= c-1;
+    p = min(-limit, p) + limit
+        + fmod(max(min(p, limit), -limit), c) - .5f*c
+        + max(p, limit) - limit;
+    return p;
+}
+
 //// scene setup
 
 static float scene( float3 P, float frame ) {
     float dist;
 
-    float3 P_rep = sdfRep( P, (float3)(8, 22, 2) );
-    
+    float3 P_rep = spaceRep( P, (float3)(25, 22, 25) );
+    //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
+
     P_rep.x = P.x;
     P_rep.y = P.y;
     P_rep.z = P.z;
+
+    //P_rep = spaceClip(P_rep);
 
     //float3 P_test = (float3)(0, 0, 1);
 
     float16 xform = ident();
     //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
-    xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
-    xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
+    //xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
+    //xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
     //printMtx(xform);
     //printVec(P_rep);
     //P_rep = mtxPtMult(xform, P_rep);
@@ -239,7 +252,7 @@ static float scene( float3 P, float frame ) {
     //dist = sdfBlend(shape1, shape2, frame*.005);
     //dist = sdfUnionSmooth(shape1, shape2, 0.3);
     //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; //////////////////////////////////////////////////////////////////////
+    dist = shape1; /////////////////////////////////////////////////////////////////////////
 
     return dist;
 }

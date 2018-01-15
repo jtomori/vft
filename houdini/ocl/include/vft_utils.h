@@ -58,12 +58,29 @@ static float sdfBlend(float d1, float d2, float a)
 }
 
 // infinitely repeat by a distance (c)
-static float3 sdfRep( float3 p, float3 c )
+static float3 spaceRep( float3 p, float3 c )
 {
     p = fmod(p,c) - .5f*c  ;
     return p;
 
 }
+
+// repeat by a distance (c) and by a fixed number of copies (limit)
+static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
+{
+    limit *= c-1;
+    p = min(-limit, p) + limit
+        + fmod(max(min(p, limit), -limit), c) - .5f*c
+        + max(p, limit) - limit;
+    return p;
+}
+
+// clip space
+//static float3 spaceClip( float3 p/*, float3 min, float3 max */)
+//{
+//    p.x = min(p.x, -10.0f);
+//    return p;
+//}
 
 
 ////////////// debug
