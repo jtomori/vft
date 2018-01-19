@@ -196,10 +196,40 @@ static float quaternion3d(float3 P, float size)
     return out * size;
 }
 
+
+// dr -> de
+// r -> distance
+// Bailout -> max_distance
+// Iterations -> max_iterations
+static float hybrid(float3 P_in, const int max_iterations, const int max_distance, const float size, const bool de_mode)
+{
+    P_in /= size;
+    float3 Z = P_in;
+    float de = 1.0;
+    float distance;
+    float out_de;
+
+    for (int i = 0; i < max_iterations; i++)
+    {
+        distance = length(Z);
+        if (distance > max_distance) break;
+        
+        mandelbulbPower2Iter(&Z, &de, 0, &P_in);
+        mengerSpongeIter(&Z, &de, 0, &P_in);
+
+    }
+
+    if (de_mode) out_de = 0.5 * log(distance) * distance/de;
+    else out_de = distance / de;
+
+    return out_de * size;
+}
+
+
 //// scene setup
 
 static float scene( float3 P, float frame ) {
-    float dist;
+    float dist_out;
 
     float3 P_rep = spaceRep( P, (float3)(25, 22, 25) );
     //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
@@ -208,44 +238,17 @@ static float scene( float3 P, float frame ) {
     P_rep.y = P.y;
     P_rep.z = P.z;
 
-    //P_rep = spaceClip(P_rep);
-
-    //float3 P_test = (float3)(0, 0, 1);
-
     //float16 xform = mtxIdent();
     //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
     //xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
     //xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
-    //printMtx(xform);
-    //printVec(P_rep);
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
-    //printVec(P_rep);
 
-    //float shape1 = mandelbox( P_rep - (float3)( -3 + frame*0.03 ,0.2,0), 3, .2 );
-    //float shape1 = mandelbox( P_rep, 3, .2 );    
-    //float shape1 = mandelbulbPower2(P_rep, 1.4);
-    //float shape2 = box(P_rep - (float3)(.2 + frame * 0.01, 0, 0), 3);
-    //float shape1 = amazingSurf(P_rep, 1);
-    //float shape1 = mandelbulb( P_rep, 8, 1.1 );
-    //float shape1 = mandelbulb( P_rep, 4, 1.1 );
-    //float shape1 = box(P_rep, 1);
-    //float shape1 = sphere(P_rep, 1, (float3)(0,0,0));
-    //float shape1 = xenodreambuie(P_rep, 3.0, 0, 0, 1);
-    float shape1 = mengerSponge(P_rep, 1);
-    //float shape1 = bristorbrot(P_rep, 1);
-    //float shape1 = sierpinski3d(P_rep, 2, (float3)(1,1,1), (float3)(0,0,0), 1);
-    //float shape1 = quaternion(P_rep, 1);
-    //float shape1 = coastalbrot(P_rep, 1);
-    //float shape1 = quaternion3d(P_rep, 1);
+    float shape1 = hybrid(P_rep, 250, 100, 1.0, 1);    
 
-
-    //dist = sdfBlend(shape1, shape2, frame*.005);
-    //dist = sdfUnionSmooth(shape1, shape2, 0.3);
-    //dist = sdfSubtract(shape1, shape2);
-    dist = shape1; ///////////////////////////////////////////////////////////////////////////
-
-    return dist;
+    dist_out = shape1; /////
+    return dist_out;
 }
 
 //// main function
@@ -318,10 +321,10 @@ kernel void marchPerspCam(
     float cam_dist = scene(cam_P_world, frame);
     float de = 0;
     int i = 0;
-    float step_size = 0.8;
-    float iso_limit_mult = 5;
+    float step_size = 0.4;
+    float iso_limit_mult = 1;
     float ray_dist = planeZ[0];
-    const int max_steps = 4000;
+    const int max_steps = 1000;
     const float max_dist = 40000;
 
     float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  

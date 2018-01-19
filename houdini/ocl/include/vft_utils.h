@@ -118,6 +118,14 @@ static void printFloat(float a)
     }
 }
 
-
+// print n new lines
+static void printNewLines(int n)
+{
+    int idx = get_global_id(0);
+    if (idx == 0) {
+        for (int i = 0; i < n; i++)
+            printf( "\n" );
+    }
+}
 
 #endif

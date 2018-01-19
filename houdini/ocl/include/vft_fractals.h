@@ -45,7 +45,6 @@ static float cone( float3 P, float2 c )
 ////////////// fractals
 
 
-// mandelbulb, size (s), power
 static float mandelbulb( float3 P, float Power, float size )
 {
     P /= size;
@@ -82,7 +81,6 @@ static float mandelbulb( float3 P, float Power, float size )
     return out * size;
 }
 
-// mandelbox,
 static float mandelbox( float3 P, float scale, float size)
 {
     P /= size;
@@ -129,9 +127,31 @@ static float mandelbox( float3 P, float scale, float size)
     return length(P)/fabs(DEfactor) * size;
 }
 
-// aux.r_dz = dr (DE factor or something)
-// aux.r = r (length of Z)
-// Classic Mandelbulb Power 2 fractal
+static void mandelbulbPower2Iter(float3* Z, float* de, const bool julia, const float3* P_in) {
+    float distance = length(*Z);
+
+    *de = *de * 2.0f * distance;
+    float x2 = Z->x * Z->x;
+    float y2 = Z->y * Z->y;
+    float z2 = Z->z * Z->z;
+    float temp = 1.0 - z2 / (x2 + y2);
+    float newx = (x2 - y2) * temp;
+    float newy = 2.0 * Z->x * Z->y * temp;
+    float newz = -2.0 * Z->z * sqrt(x2 + y2);
+    Z->x = newx;
+    Z->y = newy;
+    Z->z = newz;
+
+    *Z += *P_in;
+}
+
+// aux.r_dz -> dr (DE factor or something)
+// aux.r -> r (length of Z)
+// dr -> de
+// r -> distance
+// Bailout -> max_distance
+// Iterations -> max_iterations
+
 static float mandelbulbPower2(float3 P, float size)
 {
     P /= size;
@@ -166,7 +186,28 @@ static float mandelbulbPower2(float3 P, float size)
     return out * size;
 }
 
-// mengerSponge
+static void mengerSpongeIter(float3* Z, float* de, const bool julia, const float3* P_in) {
+    float distance = length(*Z);
+
+    Z->x = fabs(Z->x);
+    Z->y = fabs(Z->y);
+    Z->z = fabs(Z->z);
+
+    if (Z->x - Z->y < 0.0f) Z->xy = Z->yx;
+    if (Z->x - Z->z < 0.0f) Z->xz = Z->zx;
+    if (Z->y - Z->z < 0.0f) Z->yz = Z->zy;
+
+    *Z *= 3.0f;
+
+    Z->x -= 2.0f;
+    Z->y -= 2.0f;
+    if (Z->z > 1.0f) Z->z -= 2.0f;
+
+    *de *= 3.0;
+
+    if (julia) *Z += *P_in; // julia mode
+}
+
 static float mengerSponge(float3 P, float size)
 {
     P /= size;
