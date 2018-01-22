@@ -214,15 +214,14 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         distance = length(Z);
         if (distance > max_distance) break;
         
-        //mandelbulbIter(&Z, &de, 0, &P_in, 8);
-        //mandelboxIter(&Z, &de, 0, &P_in, 3.0);
-        //mandelbulbPower2Iter(&Z, &de, 0, &P_in);
-        //mengerSpongeIter(&Z, &de, 0, &P_in);
-        //bristorbrotIter(&Z, &de, 0, &P_in);
-        //xenodreambuieIter(&Z, &de, 0, &P_in, 3, 0, 0);
-        //coastalbrotIter(&Z, &de, 0, &P_in);
-        sierpinski3dIter(&Z, &de, 0, &P_in, 2.0, (float3)(1,1,1), (float3)(0,0,0) );
-
+        //mandelbulbIter(&Z, &de, &P_in, (float4)(1,0,1,1), 8);
+        //mandelboxIter(&Z, &de, &P_in, (float4)(0,0,6,4), 3.0);
+        mandelbulbPower2Iter(&Z, &de, &P_in, (float4)(1,0.3,0.4,0.4));
+        //mengerSpongeIter(&Z, &de, &P_in, (float4)(0,0,1,0));
+        //bristorbrotIter(&Z, &de, &P_in, (float4)(1,0,1,0));
+        //xenodreambuieIter(&Z, &de, &P_in, (float4)(1,0,1,0), 8, 0, 0);
+        //coastalbrotIter(&Z, &de, &P_in, (float4)(1,0,1,0));
+        //sierpinski3dIter(&Z, &de, &P_in, (float4)(0,0,0,1), 2.0, (float3)(1,1,1), (float3)(0,0,0) );
     }
 
     if (de_mode) out_de = 0.5 * log(distance) * distance/de;
@@ -248,9 +247,9 @@ static float scene( float3 P, float frame ) {
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
 
-    float shape1 = hybrid(P_rep, 250, 100, 1.0, 0);
+    float shape1 = hybrid(P_rep, 250, 100, 1.0, 1);
 
-    dist_out = shape1; /////////////////////////////////////
+    dist_out = shape1; ///////////////////////////////////////
     return dist_out;
 }
 
@@ -274,14 +273,11 @@ kernel void marchPerspCam(
     const int idx = get_global_id(0);
 
     // if current point is not valid, then end
-    if ( idx >= P_length )
-        return;
+    if ( idx >= P_length ) return;
 
     // read in P attrib
     const float3 pixel_P_origin = vload3(idx, P);
     float3 pixel_P_world = pixel_P_origin;
-
-
 
     //// transforming to near img plane
 
@@ -333,7 +329,8 @@ kernel void marchPerspCam(
     float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  
 
     // raymarch
-    for (i=0; i<max_steps; i++) {
+    for (i=0; i<max_steps; i++)
+    {
         de = scene(ray_P_world, frame) * step_size;
         //if ( de <= iso_limit * (ray_dist/300) || ray_dist >= max_dist ) break;
         if ( de <= iso_limit || ray_dist >= max_dist ) break;
@@ -362,7 +359,8 @@ kernel void marchPerspCam(
     i_rel = 1-pow(i_rel, 1.0f/3.0f);
 
     // remove missed
-    if ( de > iso_limit ) {
+    if ( de > iso_limit )
+    {
         i_rel = -1;
     }
 
