@@ -214,8 +214,14 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         distance = length(Z);
         if (distance > max_distance) break;
         
-        mandelbulbPower2Iter(&Z, &de, 0, &P_in);
-        mengerSpongeIter(&Z, &de, 0, &P_in);
+        //mandelbulbIter(&Z, &de, 0, &P_in, 8);
+        //mandelboxIter(&Z, &de, 0, &P_in, 3.0);
+        //mandelbulbPower2Iter(&Z, &de, 0, &P_in);
+        //mengerSpongeIter(&Z, &de, 0, &P_in);
+        //bristorbrotIter(&Z, &de, 0, &P_in);
+        //xenodreambuieIter(&Z, &de, 0, &P_in, 3, 0, 0);
+        //coastalbrotIter(&Z, &de, 0, &P_in);
+        sierpinski3dIter(&Z, &de, 0, &P_in, 2.0, (float3)(1,1,1), (float3)(0,0,0) );
 
     }
 
@@ -231,12 +237,9 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
 static float scene( float3 P, float frame ) {
     float dist_out;
 
-    float3 P_rep = spaceRep( P, (float3)(25, 22, 25) );
-    //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
+    float3 P_rep = P;
 
-    P_rep.x = P.x;
-    P_rep.y = P.y;
-    P_rep.z = P.z;
+    //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
 
     //float16 xform = mtxIdent();
     //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
@@ -245,9 +248,9 @@ static float scene( float3 P, float frame ) {
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
 
-    float shape1 = hybrid(P_rep, 250, 100, 1.0, 1);    
+    float shape1 = hybrid(P_rep, 250, 100, 1.0, 0);
 
-    dist_out = shape1; /////
+    dist_out = shape1; /////////////////////////////////////
     return dist_out;
 }
 
@@ -321,7 +324,7 @@ kernel void marchPerspCam(
     float cam_dist = scene(cam_P_world, frame);
     float de = 0;
     int i = 0;
-    float step_size = 0.4;
+    float step_size = .4;
     float iso_limit_mult = 1;
     float ray_dist = planeZ[0];
     const int max_steps = 1000;
