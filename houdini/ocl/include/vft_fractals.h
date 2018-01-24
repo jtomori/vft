@@ -50,8 +50,11 @@ static float cone( float3 P, float2 c )
 // Bailout -> max_distance
 // Iterations -> max_iterations
 
-static void mandelbulbIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float power)
+static void mandelbulbIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float power)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     // convert to polar coordinates
@@ -75,10 +78,16 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, const float
     else {
         *Z = newZ + julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void mandelboxIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float scale)
+static void mandelboxIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float scale)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     float fixedRadius = 1.0;
@@ -118,10 +127,16 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, const float4
     {
         *Z = *Z * scale + julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, const float4 julia) 
+static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia) 
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     *de = *de * 2.0f * distance;
@@ -142,10 +157,16 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, const
     {
         *Z = new + julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const float4 julia)
+static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     Z->x = fabs(Z->x);
@@ -168,10 +189,16 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const flo
     {
         *Z += julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float weight)
+static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     float3 new;
@@ -179,27 +206,30 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const floa
     new.y = Z->y * (2.0f * Z->x - Z->z);
     new.z = Z->z * (2.0f * Z->x + Z->y);
     
-    //*de = *de * 2.0f * distance;
-    *de = mix(*de, *de * 2.0f * distance, weight);    
-    //*Z = new;
-    *Z = mix(*Z, new, weight);
+    *de = *de * 2.0f * distance;
+    *Z = new;
 
     if (julia.x == 0)
     {
-        //*Z += *P_in;
-        *Z = mix(*Z, *Z + *P_in, weight);
+        *Z += *P_in;
     }
     else {
         *Z += julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float power, float alpha, float beta)
+static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float power, float alpha, float beta)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
     alpha = radians(alpha);
     beta = radians(beta);
-
-    float distance = length(*Z);
 
     float rp = pow(distance, power - 1.0f);
     *de = rp * (*de) * power + 1.0f;
@@ -221,10 +251,16 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, const fl
     else {
         *Z += julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void coastalbrotIter(float3* Z, float* de, const float3* P_in, const float4 julia)
+static void coastalbrotIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     float temp = distance;
@@ -246,10 +282,16 @@ static void coastalbrotIter(float3* Z, float* de, const float3* P_in, const floa
     {
         *Z += julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
-static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float scale, const float3 offset, const float3 rot)
+static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float scale, const float3 offset, const float3 rot)
 {
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
     float distance = length(*Z);
 
     float3 temp = *Z;
@@ -287,6 +329,9 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, const flo
     {
         *Z += julia.yzw;
     }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
 }
 
 
