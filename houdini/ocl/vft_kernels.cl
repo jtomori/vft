@@ -214,13 +214,13 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         distance = length(Z);
         if (distance > max_distance) break;
         
-        mandelbulbIter(&Z, &de, &P_in, 1.0f, (float4)(0,1,1,0), 6); // log
-        //mandelboxIter(&Z, &de, &P_in, 1.0f, (float4)(0,0,2,2), 3.0); // log
-        //mandelbulbPower2Iter(&Z, &de, &P_in, 1.0f, (float4)(1,0.7,0.2,0.4)); // log
-        //bristorbrotIter(&Z, &de, &P_in, 1.0f, (float4)(0,1,1,0)); // log
-        //xenodreambuieIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,1,0), 5, 0, 0); // log
-        //mengerSpongeIter(&Z, &de, &P_in, 1.0f, (float4)(0,0,1.5,0)); // lin
-        //sierpinski3dIter(&Z, &de, &P_in, 0.5f, (float4)(0,1,1,0), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
+        //mandelbulbIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,3,0), 4); // log
+        //mandelbulbPower2Iter(&Z, &de, &P_in, 1.0f, (float4)(1,0.3,0.5,0.2)); // log
+        //bristorbrotIter(&Z, &de, &P_in, 1.0f, (float4)(1,1.3,3.3,0)); // log
+        //xenodreambuieIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
+        //mandelboxIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,3,4), 3.0); // lin
+        //mengerSpongeIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,1.0,0)); // lin
+        sierpinski3dIter(&Z, &de, &P_in, 1.0f, (float4)(1,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
         //coastalbrotIter(&Z, &de, &P_in, 1.0f, (float4)(1,0,1,0));
     }
 
@@ -247,7 +247,7 @@ static float scene( float3 P, float frame ) {
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
 
-    float shape1 = hybrid(P_rep, 250, 100, 1.0, 1);
+    float shape1 = hybrid(P_rep, 250, 100, 1.0, 0);
 
     dist_out = shape1; ///////////////////////////////////////////////////
     return dist_out;
@@ -323,7 +323,7 @@ kernel void marchPerspCam(
     float step_size = .4;
     float iso_limit_mult = 1;
     float ray_dist = planeZ[0];
-    const int max_steps = 600;
+    const int max_steps = 1000;
     const float max_dist = 40000;
 
     float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  
@@ -340,19 +340,6 @@ kernel void marchPerspCam(
 
     // compute N
     float3 N_grad;
-    /*const float e = iso_limit;
-    float3 e_offset[6] = { ray_P_world + (float3)(e,0,0),
-                           ray_P_world - (float3)(e,0,0),
-                           ray_P_world + (float3)(0,e,0),
-                           ray_P_world - (float3)(0,e,0),
-                           ray_P_world + (float3)(0,0,e),
-                           ray_P_world - (float3)(0,0,e) };
-    
-    N_grad = (float3)( scene( e_offset[0], frame ) - scene( e_offset[1], frame ),
-                       scene( e_offset[2], frame ) - scene( e_offset[3], frame ),
-                       scene( e_offset[4], frame ) - scene( e_offset[5], frame ) );
-    */
-    // faster N computation
     float2 e2 = (float2)(1.0,-1.0) * iso_limit * 0.1f;
     N_grad = normalize( e2.xyy * scene( ray_P_world + e2.xyy, frame) + 
 					    e2.yyx * scene( ray_P_world + e2.yyx, frame) + 
@@ -373,7 +360,7 @@ kernel void marchPerspCam(
     }
 
     // Cd
-    float N_Cd_mix = 0.7f;
+    float N_Cd_mix = 0.6f;
 
     float3 Cd_out;
     Cd_out = fabs(N_grad);
@@ -392,7 +379,8 @@ kernel void marchPerspCam(
         AO_sca *= 0.95f;
     }
     
-    AO = clamp( 1.0f - 3.0f * AO_occ, 0.0f, 1.0f );
+    AO = clamp( 1.2f - 3.0f * AO_occ, 0.0f, 1.0f );
+    AO = pow(AO, 2.0f);
 
     Cd_out = mix(AO, AO * Cd_out, N_Cd_mix);
 
