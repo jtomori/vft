@@ -214,14 +214,14 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         distance = length(Z);
         if (distance > max_distance) break;
         
-        //mandelbulbIter(&Z, &de, &P_in, (float4)(1,0,1,1), 8);
-        //mandelboxIter(&Z, &de, &P_in, (float4)(0,0,6,4), 3.0);
-        mandelbulbPower2Iter(&Z, &de, &P_in, (float4)(1,0.3,0.4,0.4));
-        //mengerSpongeIter(&Z, &de, &P_in, (float4)(0,0,1,0));
-        //bristorbrotIter(&Z, &de, &P_in, (float4)(1,0,1,0));
-        //xenodreambuieIter(&Z, &de, &P_in, (float4)(1,0,1,0), 8, 0, 0);
+        //mandelbulbIter(&Z, &de, &P_in, (float4)(0,1,1,0), 6); // log
+        //mandelboxIter(&Z, &de, &P_in, (float4)(1,0,2,2), 3.0); // log
+        //mandelbulbPower2Iter(&Z, &de, &P_in, (float4)(1,0.7,0.2,0.4)); // log
+        //bristorbrotIter(&Z, &de, &P_in, (float4)(0,1,1,0), 1.0f); // log
+        //xenodreambuieIter(&Z, &de, &P_in, (float4)(1,1,1,0), 5, 0, 0); // log
+        mengerSpongeIter(&Z, &de, &P_in, (float4)(0,0,1.5,0)); // lin
+        sierpinski3dIter(&Z, &de, &P_in, (float4)(0,1,1,0), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
         //coastalbrotIter(&Z, &de, &P_in, (float4)(1,0,1,0));
-        //sierpinski3dIter(&Z, &de, &P_in, (float4)(0,0,0,1), 2.0, (float3)(1,1,1), (float3)(0,0,0) );
     }
 
     if (de_mode) out_de = 0.5 * log(distance) * distance/de;
@@ -249,7 +249,7 @@ static float scene( float3 P, float frame ) {
 
     float shape1 = hybrid(P_rep, 250, 100, 1.0, 1);
 
-    dist_out = shape1; ///////////////////////////////////////
+    dist_out = shape1; ////////////////////////////////////////////////
     return dist_out;
 }
 
@@ -286,7 +286,7 @@ kernel void marchPerspCam(
 
     // compute scale of near img plane
     const float16 near_plane_scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1) );
-    
+
     // read in cam world matrix
     const float16 cam_xform_world = (float16)(camXform[0],camXform[1],camXform[2],camXform[3],
                                   camXform[4],camXform[5],camXform[6],camXform[7],

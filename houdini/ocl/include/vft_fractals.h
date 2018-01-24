@@ -170,21 +170,24 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const flo
     }
 }
 
-static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const float4 julia)
+static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const float4 julia, const float weight)
 {
     float distance = length(*Z);
 
-    *de = *de * 2.0f * distance;
     float3 new;
     new.x = Z->x * Z->x - Z->y * Z->y - Z->z * Z->z;
     new.y = Z->y * (2.0f * Z->x - Z->z);
     new.z = Z->z * (2.0f * Z->x + Z->y);
     
-    *Z = new;
+    //*de = *de * 2.0f * distance;
+    *de = mix(*de, *de * 2.0f * distance, weight);    
+    //*Z = new;
+    *Z = mix(*Z, new, weight);
 
     if (julia.x == 0)
     {
-        *Z += *P_in;
+        //*Z += *P_in;
+        *Z = mix(*Z, *Z + *P_in, weight);
     }
     else {
         *Z += julia.yzw;
