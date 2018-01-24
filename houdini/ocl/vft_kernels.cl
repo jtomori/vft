@@ -372,19 +372,29 @@ kernel void marchPerspCam(
         i_rel = -1;
     }
 
-    // Cd for viz
-    const float3 sun_dir = normalize( (float3)(0.5,1,0.2) );
+    // Cd
+    float N_Cd_mix = 0.7f;
+
     float3 Cd_out;
     Cd_out = fabs(N_grad);
-    //Cd_out *= (1 - i_rel);
-    //Cd_out = clamp( dot(sun_dir, N_grad), 0.0f, 1.0f) ;
-    //Cd_out = dot(sun_dir, N_grad) * 0.5f + 0.5f;    
-    //Cd_out = pow(Cd_out, 6.0f);
-    //Cd_out = (float3)(i_rel);
-    //Cd_out *= i_rel;
-    //Cd_out += 0.01f;
 
-    Cd_out = clamp( Cd_out, 0.0f, 1.0f );
+    // AO
+    float AO;
+    float AO_occ = 0.0f;
+    float AO_sca = 1.0f;
+
+    for(int j=0; j<5; j++)
+    {
+        float AO_hr = 0.01f + 0.12f * (float)(j)/4.0f;
+        float3 AO_pos =  N_grad * AO_hr + ray_P_world;
+        float AO_dd = scene(AO_pos, frame);
+        AO_occ += -(AO_dd-AO_hr)*AO_sca;
+        AO_sca *= 0.95f;
+    }
+    
+    AO = clamp( 1.0f - 3.0f * AO_occ, 0.0f, 1.0f );
+
+    Cd_out = mix(AO, AO * Cd_out, N_Cd_mix);
 
     // export attribs
     vstore3(ray_P_world, idx, P);
