@@ -2,6 +2,26 @@
 #define _VFT_MATH
 
 
+// length2
+static float length2(float3 vec)
+{
+    return (float)(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+}
+
+// distance of point to plane
+static float distPointPlane(float3 point, float3 plane_n, float3 plane_point)
+{
+    float sb, sn, sd;
+    float3 point_proj;
+
+    sn = -dot( plane_n, (point - plane_point));
+    sd = dot(plane_n, plane_n);
+    sb = sn / sd;
+
+    point_proj = point + sb * plane_n;
+    
+    return length(point - point_proj);
+}
 
 // identity 4x4 matrix
 static float16 mtxIdent()
