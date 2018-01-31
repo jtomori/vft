@@ -49,8 +49,9 @@ static float cone( float3 P, float2 c )
 // r -> distance
 // Bailout -> max_distance
 // Iterations -> max_iterations
+// positive log_lin -> log, negative -> lin
 
-static void mandelbulbIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float power)
+static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -81,9 +82,10 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, const float
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
 }
 
-static void mandelboxIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float scale)
+static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -130,9 +132,10 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, const float 
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
 }
 
-static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia) 
+static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia) 
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -160,9 +163,10 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, const
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
 }
 
-static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
+static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -192,9 +196,10 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, const flo
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
 }
 
-static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
+static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -219,9 +224,10 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, const floa
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
 }
 
-static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float power, float alpha, float beta)
+static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power, float alpha, float beta)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -254,40 +260,10 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, const fl
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
 }
 
-static void coastalbrotIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia)
-{
-    float3 Z_orig = *Z;
-    float de_orig = *de;
-    
-    float distance = length(*Z);
-
-    float temp = distance;
-    temp = pow(temp, 7.7f);
-    *de = temp * (*de) * 7.7f;
-    temp *= distance;
-
-    Z->x = sin(sin(sin(M_PI_F / 3.0f + Z->x * M_PI_F)));
-    Z->y = sin(sin(sin(M_PI_F / 3.0f + Z->y * M_PI_F)));
-    Z->z = sin(sin(sin(M_PI_F / 3.0f + Z->z * M_PI_F)));
-
-    *Z *= temp;
-
-    if (julia.x == 0)
-    {
-        *Z += *P_in;
-    }
-    else
-    {
-        *Z += julia.yzw;
-    }
-
-    *Z = mix(Z_orig, *Z, weight);
-    *de = mix(de_orig, *de, weight);
-}
-
-static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, const float weight, const float4 julia, const float scale, const float3 offset, const float3 rot)
+static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale, const float3 offset, const float3 rot)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -332,6 +308,7 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, const flo
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
 }
 
 

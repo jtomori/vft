@@ -7,15 +7,14 @@
 // r -> distance
 // Bailout -> max_distance
 // Iterations -> max_iterations
-static float hybrid(float3 P_in, const int max_iterations, const int max_distance, const float size, const bool de_mode, float* orbit_colors/*, float16* color_out*/)
+static float hybrid(float3 P_in, const int max_iterations, const int max_distance, const float size, float* orbit_colors)
 {
     P_in /= size;
     float3 Z = P_in;
     float de = 1.0;
     float distance;
     float out_de;
-
-    float4 color = (float4)(1);
+    int log_lin = 0; // positive is log, negative is lin
 
     float3 orbit_pt = (float3)(0,0,0);
     float orbit_pt_dist = 1e20f;
@@ -29,14 +28,13 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         distance = length(Z);
         if (distance > max_distance) break;
         
-        //mandelbulbIter(&Z, &de, &P_in, 1.0f, (float4)(0,1,0,0), 8); // log
-        //mandelbulbPower2Iter(&Z, &de, &P_in, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
-        //bristorbrotIter(&Z, &de, &P_in, 1.0f, (float4)(0,1.3,3.3,0)); // log
-        //xenodreambuieIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
-        //mandelboxIter(&Z, &de, &P_in, 1.0f, (float4)(1,1,3,4), 3.0); // lin
-        mengerSpongeIter(&Z, &de, &P_in, 1.0f, (float4)(0,1,1.0,0)); // lin
-        //sierpinski3dIter(&Z, &de, &P_in, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
-        //coastalbrotIter(&Z, &de, &P_in, 1.0f, (float4)(1,0,1,0));
+        //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
+        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1.3,3.3,0)); // log
+        //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
+        mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
+        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 8); // log
+        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,0,1.0,0)); // lin
+        //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
 
         orbit_pt_dist = min(orbit_pt_dist, length2(Z - orbit_pt));
         orbit_plane_dist.x = min(orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
@@ -49,13 +47,7 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
     orbit_colors[2] = orbit_plane_dist.y;
     orbit_colors[3] = orbit_plane_dist.z;
 
-    color.x = sqrt(orbit_pt_dist);
-    color.yzw = orbit_plane_dist;
-    //*color_out = color.x * color.yzw;    
-    //color_out->xyz = color.x * color.yzw;
-    //*color_out = color.yzw;
-
-    if (de_mode) out_de = 0.5 * log(distance) * distance/de;
+    if (log_lin >= 0) out_de = 0.5 * log(distance) * distance/de;
     else out_de = distance / de;
 
     return out_de * size;
@@ -66,8 +58,7 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
 
 static float scene( float3 P, float frame, float* orbit_colors ) {
     float dist_out;
-    //float16 color = (float3)(1);
-    float16 color = (float16)(1);    
+
     float3 P_rep = P;
 
     //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
@@ -79,12 +70,10 @@ static float scene( float3 P, float frame, float* orbit_colors ) {
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
 
-    float shape1 = hybrid(P_rep, 250, 100, 1.0, 0, orbit_colors/*, &color*/);
+    float shape1 = hybrid(P_rep, 250, 100, 1.0, orbit_colors);
 
-    dist_out = shape1; ///
+    dist_out = shape1; ////////
 
-    //return (float16)(dist_out, color);
-    //return (float16)(dist_out, color.s0123456789abcde);
     return dist_out;
 }
 
@@ -151,14 +140,13 @@ kernel void marchPerspCam(
 
     // raymarch settings
     float3 color = (float3)(0,0,0);    
-    //float16 color = (float16)(0);
     float orbit_colors[9];
     float orbit_colors_null[9];    
 
     const float frame = time/timeinc + 1;
 
     float3 ray_P_world = pixel_P_world;
-    float cam_dist = scene(cam_P_world, frame, orbit_colors_null)/*.x*/;
+    float cam_dist = scene(cam_P_world, frame, orbit_colors_null);
     float de = 0;
     int i = 0;
     float step_size = 0.6f;
@@ -175,14 +163,10 @@ kernel void marchPerspCam(
     // raymarch
     for (i=0; i<max_steps; i++)
     {
-        //scene_tmp = scene(ray_P_world, frame/*, orbit_colors*/);
         de = scene(ray_P_world, frame, orbit_colors) * step_size;
-        //de = scene_tmp.x * step_size;        
 
         if ( de <= iso_limit || ray_dist >= max_dist )
         {
-            //color = scene_tmp.yzw;
-            //color.s0123456789abcde = scene_tmp.s123456789abcdef;
             break;
         }
 
@@ -207,15 +191,15 @@ kernel void marchPerspCam(
     {
         // compute N
         float2 e2 = (float2)(1.0,-1.0) * iso_limit * 0.01f;
-        N_grad = normalize( e2.xyy * scene( ray_P_world + e2.xyy, frame, orbit_colors_null)/*.x*/ + 
-                            e2.yyx * scene( ray_P_world + e2.yyx, frame, orbit_colors_null)/*.x*/ + 
-                            e2.yxy * scene( ray_P_world + e2.yxy, frame, orbit_colors_null)/*.x*/ + 
-                            e2.xxx * scene( ray_P_world + e2.xxx, frame, orbit_colors_null)/*.x*/ );
+        N_grad = normalize( e2.xyy * scene( ray_P_world + e2.xyy, frame, orbit_colors_null) + 
+                            e2.yyx * scene( ray_P_world + e2.yyx, frame, orbit_colors_null) + 
+                            e2.yxy * scene( ray_P_world + e2.yxy, frame, orbit_colors_null) + 
+                            e2.xxx * scene( ray_P_world + e2.xxx, frame, orbit_colors_null) );
         
         // Coloring
         float Cd_mix_N = 0.0f;
-        float Cd_mix_orbit = 1.0f;
-        float Cd_mix_AO = 0.0f;
+        float Cd_mix_orbit = 0.0f;
+        float Cd_mix_AO = 1.0f;
 
         // AO
         float AO;
@@ -226,7 +210,7 @@ kernel void marchPerspCam(
         {
             float AO_hr = 0.01f + 0.12f * (float)(j)/4.0f;
             float3 AO_pos =  N_grad * AO_hr + ray_P_world;
-            float AO_dd = scene(AO_pos, frame, orbit_colors_null)/*.x*/;
+            float AO_dd = scene(AO_pos, frame, orbit_colors_null);
             AO_occ += -(AO_dd-AO_hr)*AO_sca;
             AO_sca *= 0.95f;
         }
@@ -240,15 +224,10 @@ kernel void marchPerspCam(
         color *= orbit_colors[0];
 
         color = fmod(color, (float3)(1));
-        //color = fmod(color, (float16)(1));    
 
         Cd_out = mix(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
         Cd_out = mix(Cd_out, color, Cd_mix_orbit);
-        //Cd_out = mix(Cd_out, color.xyz, Cd_mix_orbit);
         Cd_out = mix(Cd_out, Cd_out * AO, Cd_mix_AO);
-
-        //Cd_out = AO;
-
     }
 
     // export attribs
