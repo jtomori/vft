@@ -2,6 +2,7 @@
 #include "vft_math.h"
 #include "vft_fractals.h"
 
+#define ORBITS_ARRAY_LENGTH    9
 
 // dr -> de
 // r -> distance
@@ -23,6 +24,8 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
     float3 orbit_plane_origin = (float3)(0);
     float3 orbit_plane_dist = (float3)(1e20f);
 
+    float orbit_coord_dist = 1e20f;    
+
     for (int i = 0; i < max_iterations; i++)
     {
         distance = length(Z);
@@ -31,21 +34,23 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
         //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1.3,3.3,0)); // log
         //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
-        mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
-        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 8); // log
+        //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
+        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1,0,0), 8); // log
         //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,0,1.0,0)); // lin
         //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
 
         orbit_pt_dist = min(orbit_pt_dist, length2(Z - orbit_pt));
-        orbit_plane_dist.x = min(orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
-        orbit_plane_dist.y = min(orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
-        orbit_plane_dist.z = min(orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );        
+        orbit_plane_dist.x = min( orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
+        orbit_plane_dist.y = min( orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
+        orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
+        orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
     }
 
-    orbit_colors[0] = sqrt(orbit_pt_dist);
-    orbit_colors[1] = orbit_plane_dist.x;
-    orbit_colors[2] = orbit_plane_dist.y;
-    orbit_colors[3] = orbit_plane_dist.z;
+    orbit_colors[0] = sqrt(orbit_pt_dist); // point at specified coordinates
+    orbit_colors[1] = orbit_plane_dist.x; // YZ plane
+    orbit_colors[2] = orbit_plane_dist.y; // XZ plane
+    orbit_colors[3] = orbit_plane_dist.z; // XY plane
+    orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
 
     if (log_lin >= 0) out_de = 0.5 * log(distance) * distance/de;
     else out_de = distance / de;
@@ -90,7 +95,8 @@ kernel void marchPerspCam(
         int camPos_length, global float* camPos,
         int N_length, global float* N,
         int iRel_length, global float* iRel,
-        int Cd_length, global float* Cd
+        int Cd_length, global float* Cd,
+        int orbits_length, global int* orbits_index, global float* orbits
         )
 {
     // get current point id
@@ -140,8 +146,8 @@ kernel void marchPerspCam(
 
     // raymarch settings
     float3 color = (float3)(0,0,0);    
-    float orbit_colors[9];
-    float orbit_colors_null[9];    
+    float orbit_colors[ORBITS_ARRAY_LENGTH];
+    float orbit_colors_null[ORBITS_ARRAY_LENGTH];
 
     const float frame = time/timeinc + 1;
 
@@ -198,8 +204,8 @@ kernel void marchPerspCam(
         
         // Coloring
         float Cd_mix_N = 0.0f;
-        float Cd_mix_orbit = 0.0f;
-        float Cd_mix_AO = 1.0f;
+        float Cd_mix_orbit = 1.0f;
+        float Cd_mix_AO = 0.8f;
 
         // AO
         float AO;
@@ -228,13 +234,22 @@ kernel void marchPerspCam(
         Cd_out = mix(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
         Cd_out = mix(Cd_out, color, Cd_mix_orbit);
         Cd_out = mix(Cd_out, Cd_out * AO, Cd_mix_AO);
-    }
 
-    // export attribs
-    vstore3(ray_P_world, idx, P);
-    vstore3(N_grad, idx, N);
-    vstore3(Cd_out, idx, Cd);
+        // export attribs
+        vstore3(ray_P_world, idx, P);
+        vstore3(N_grad, idx, N);
+        vstore3(Cd_out, idx, Cd);
+
+        int orbits_idx_start = orbits_index[idx];
+        int orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
+        for (int j=orbits_idx_start; j<orbits_idx_end; j++)
+        {
+            orbits[j] = orbit_colors[j-orbits_idx_start];
+        }
+    }
+    
     vstore1(i_rel, idx, iRel);
+
 }
 
 
