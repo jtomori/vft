@@ -17,20 +17,23 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
     float out_de;
     int log_lin = 0; // positive is log, negative is lin
 
+    // init orbit traps variables
     float3 orbit_pt = (float3)(0,0,0);
     float orbit_pt_dist = 1e20f;
-
     float2 orbit_plane = (float2)(1,0);
     float3 orbit_plane_origin = (float3)(0);
     float3 orbit_plane_dist = (float3)(1e20f);
+    float orbit_coord_dist = 1e20f;
+    float orbit_sphere_rad = 1.0f;
+    float orbit_sphere_dist = 1e20f;
 
-    float orbit_coord_dist = 1e20f;    
-
+    // fractal loop
     for (int i = 0; i < max_iterations; i++)
     {
         distance = length(Z);
         if (distance > max_distance) break;
         
+        // fractals stack
         //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
         //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1.3,3.3,0)); // log
         //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
@@ -39,19 +42,24 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,0,1.0,0)); // lin
         //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
 
+        // orbit traps calculations
         orbit_pt_dist = min(orbit_pt_dist, length2(Z - orbit_pt));
         orbit_plane_dist.x = min( orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
         orbit_plane_dist.y = min( orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
         orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
         orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
+        orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - normalize(Z)*orbit_sphere_rad) );        
     }
 
-    orbit_colors[0] = sqrt(orbit_pt_dist); // point at specified coordinates
-    orbit_colors[1] = orbit_plane_dist.x; // YZ plane
-    orbit_colors[2] = orbit_plane_dist.y; // XZ plane
-    orbit_colors[3] = orbit_plane_dist.z; // XY plane
+    // outputting orbit traps
+    orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
+    orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
+    orbit_colors[2] = orbit_plane_dist.y; // distance to XZ plane
+    orbit_colors[3] = orbit_plane_dist.z; // distance to XY plane
     orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
+    orbit_colors[5] = sqrt(orbit_sphere_dist); // distance to sphere
 
+    // automatic determining DE mode based on log_lin value
     if (log_lin >= 0) out_de = 0.5 * log(distance) * distance/de;
     else out_de = distance / de;
 
