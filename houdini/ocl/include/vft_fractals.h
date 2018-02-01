@@ -1,10 +1,22 @@
 #ifndef _VFT_FRACTALS
 #define _VFT_FRACTALS
 
+// mapping of variables
+// aux.r_dz -> dr
+// aux.r -> r
+// dr -> de
+// r -> distance
+// Bailout -> max_distance
+// Iterations -> max_iterations
+// positive log_lin -> log, negative -> lin
 
+// fractal formula sources:
+// [M2] - Mandelbulber v2
+// [M3D] - Mandelbulb 3D
+// [WEB] - From the web
 
 ////////////// primitives
-
+// [WEB] - http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
 // sphere: position, radius, center
 static float sphere( float3 P, float rad, float3 center )
@@ -43,14 +55,8 @@ static float cone( float3 P, float2 c )
 
 
 ////////////// fractals
-// aux.r_dz -> dr
-// aux.r -> r
-// dr -> de
-// r -> distance
-// Bailout -> max_distance
-// Iterations -> max_iterations
-// positive log_lin -> log, negative -> lin
 
+// [WEB] - http://blog.hvidtfeldts.net/index.php/2011/09/
 static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power)
 {
     float3 Z_orig = *Z;
@@ -85,6 +91,7 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     (*log_lin)++;
 }
 
+// [WEB] - http://www.fractalforums.com/index.php?topic=2785.msg14893#msg14893
 static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale)
 {
     float3 Z_orig = *Z;
@@ -135,6 +142,7 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
     (*log_lin)--;
 }
 
+// [M2] - Classic Mandelbulb Power 2 fractal - MandelbulbPower2Iteration
 static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia) 
 {
     float3 Z_orig = *Z;
@@ -166,6 +174,7 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     (*log_lin)++;
 }
 
+// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
 static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
@@ -199,6 +208,7 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
     (*log_lin)--;
 }
 
+// [M2] - Bristorbrot formula - BristorbrotIteration
 static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
@@ -227,6 +237,7 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_l
     (*log_lin)++;
 }
 
+// [M2] - Xenodreambuie - XenodreambuieIteration
 static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power, float alpha, float beta)
 {
     float3 Z_orig = *Z;
@@ -263,6 +274,7 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     (*log_lin)++;
 }
 
+// [M2] - Sierpinski3D. made from Darkbeam's Sierpinski code from M3D - Sierpinski3dIteration
 static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale, const float3 offset, const float3 rot)
 {
     float3 Z_orig = *Z;

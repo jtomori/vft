@@ -4,10 +4,12 @@
 
 #define ORBITS_ARRAY_LENGTH    9
 
+// mapping of variables
 // dr -> de
 // r -> distance
 // Bailout -> max_distance
 // Iterations -> max_iterations
+// positive log_lin -> log, negative -> lin
 static float hybrid(float3 P_in, const int max_iterations, const int max_distance, const float size, float* orbit_colors)
 {
     P_in /= size;
@@ -37,8 +39,8 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
         //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1.3,3.3,0)); // log
         //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
-        //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
-        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1,0,0), 8); // log
+        mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
+        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1,0,0), 8); // log
         //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,0,1.0,0)); // lin
         //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
 
@@ -61,7 +63,7 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
 
     // automatic determining DE mode based on log_lin value
     if (log_lin >= 0) out_de = 0.5 * log(distance) * distance/de;
-    else out_de = distance / de;
+    else out_de = distance / fabs(de);
 
     return out_de * size;
 }
@@ -169,12 +171,9 @@ kernel void marchPerspCam(
     const int max_steps = 1000;
     const float max_dist = 1000;
 
-    //float4 scene_tmp;
-    float16 scene_tmp;    
-
     float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  
 
-    // raymarch
+    // raymarching loop
     for (i=0; i<max_steps; i++)
     {
         de = scene(ray_P_world, frame, orbit_colors) * step_size;
@@ -204,6 +203,7 @@ kernel void marchPerspCam(
     else
     {
         // compute N
+        // based on "Modeling with distance functions" article from Inigo Quilez
         float2 e2 = (float2)(1.0,-1.0) * iso_limit * 0.01f;
         N_grad = normalize( e2.xyy * scene( ray_P_world + e2.xyy, frame, orbit_colors_null) + 
                             e2.yyx * scene( ray_P_world + e2.yyx, frame, orbit_colors_null) + 
@@ -216,6 +216,7 @@ kernel void marchPerspCam(
         float Cd_mix_AO = 0.8f;
 
         // AO
+        // based on "Modeling with distance functions" article from Inigo Quilez
         float AO;
         float AO_occ = 0.0f;
         float AO_sca = 1.0f;

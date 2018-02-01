@@ -1,6 +1,9 @@
 #ifndef _VFT_UTILS
 #define _VFT_UTILS
 
+// some of the functions here are ported/derived from those sources:
+// http://iquilezles.org/www/
+// http://woo4.me/woofractal/
 
 
 // export float attrib

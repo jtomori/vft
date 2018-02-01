@@ -1,6 +1,8 @@
 #ifndef _VFT_MATH
 #define _VFT_MATH
 
+// some of the functions here are ported/derived from Three.js library for WebGL:
+// https://github.com/mrdoob/three.js/tree/master/src/math
 
 // length2
 static float length2(float3 vec)
@@ -8,7 +10,7 @@ static float length2(float3 vec)
     return (float)(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
 }
 
-// distance of point to plane
+// point to plane distance
 static float distPointPlane(float3 point, float3 plane_n, float3 plane_point)
 {
     float sb, sn, sd;
@@ -157,7 +159,7 @@ static float3 mtxDirMult(float16 mtx, float3 vec)
     return x;
 }
 
-// inverts a 4x4 matrix, returns identiy matrix if input matrix has zero determinant
+// inverts a 4x4 matrix
 static float16 mtxInvert(float16 me)
 {
     float16 te;
@@ -175,7 +177,7 @@ static float16 mtxInvert(float16 me)
     
     float det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
 
-    if ( det == 0 ) return mtxIdent();
+    //if ( det == 0 ) return mtxIdent(); // assuming invertible matrices only
 
     float detInv = 1 / det;
 
