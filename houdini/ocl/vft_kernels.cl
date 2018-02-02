@@ -28,6 +28,7 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
     float orbit_coord_dist = 1e20f;
     float orbit_sphere_rad = 1.0f;
     float orbit_sphere_dist = 1e20f;
+    float3 orbit_axis_dist = 1e20f;
 
     // fractal loop
     for (int i = 0; i < max_iterations; i++)
@@ -53,6 +54,9 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
             orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
             orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
             orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - normalize(Z)*orbit_sphere_rad) );
+            orbit_axis_dist.x = min(orbit_axis_dist.x, Z.y*Z.y + Z.z*Z.z);
+            orbit_axis_dist.y = min(orbit_axis_dist.y, Z.x*Z.x + Z.z*Z.z);
+            orbit_axis_dist.z = min(orbit_axis_dist.z, Z.x*Z.x + Z.y*Z.y);
         }
     }
 
@@ -65,6 +69,9 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         orbit_colors[3] = orbit_plane_dist.z; // distance to XY plane
         orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
         orbit_colors[5] = sqrt(orbit_sphere_dist); // distance to sphere
+        orbit_colors[6] = sqrt(orbit_axis_dist.x); // distance to X axis
+        orbit_colors[7] = sqrt(orbit_axis_dist.y); // distance to Y axis
+        orbit_colors[8] = sqrt(orbit_axis_dist.z); // distance to Z axis
     }
 
     // automatic determining DE mode based on log_lin value
