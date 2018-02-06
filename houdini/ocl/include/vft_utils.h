@@ -19,8 +19,8 @@ static void vstore1(float dataIn, int i, global float* dataOut)
 // polynomial smooth min
 static float sminPoly( float a, float b, float k )
 {
-    float h = clamp( 0.5 + 0.5 * (b - a) / k, 0.0, 1.0 );
-    return mix( b, a, h ) - k * h * (1.0 - h);
+    float h = clamp( 0.5f + 0.5f * (b - a) / k, 0.0f, 1.0f );
+    return mix( b, a, h ) - k * h * (1.0f - h);
 }
 
 // exponential smooth min
@@ -63,7 +63,7 @@ static float sdfBlend(float d1, float d2, float a)
 // infinitely repeat by a distance (c)
 static float3 spaceRep( float3 p, float3 c )
 {
-    p = fmod(p,c) - .5f*c  ;
+    p = fmod(p,c) - 0.5f*c  ;
     return p;
 
 }
@@ -73,7 +73,7 @@ static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
 {
     limit *= c-1;
     p = min(-limit, p) + limit
-        + fmod(max(min(p, limit), -limit), c) - .5f*c
+        + fmod(max(min(p, limit), -limit), c) - 0.5f*c
         + max(p, limit) - limit;
     return p;
 }

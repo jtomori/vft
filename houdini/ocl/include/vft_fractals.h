@@ -68,7 +68,7 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     float theta = acos(Z->z/distance);
     float phi = atan2(Z->y, Z->x);
 
-    *de =  pow(distance, power-1) * power * (*de) + 1;
+    *de =  pow(distance, power-1) * power * (*de) + 1.0f;
     
     // scale and rotate the point
     float zr = pow(distance, power);
@@ -78,7 +78,7 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     // convert back to cartesian coordinates
     float3 newZ = zr * (float3)( sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta) );
 
-    if (julia.x == 0)
+    if (julia.x == 0.0f)
     {
         *Z = newZ + *P_in;
     }
@@ -99,19 +99,19 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
     
     float distance = length(*Z);
 
-    float fixedRadius = 1.0;
+    float fixedRadius = 1.0f;
     float fR2 = fixedRadius * fixedRadius;
-    float minRadius = 0.5;
+    float minRadius = 0.5f;
     float mR2 = minRadius * minRadius;
 
-    if (Z->x > 1.0) Z->x = 2.0 - Z->x;
-    else if (Z->x < -1.0) Z->x = -2.0 - Z->x;
+    if (Z->x > 1.0f) Z->x = 2.0f - Z->x;
+    else if (Z->x < -1.0f) Z->x = -2.0f - Z->x;
 
-    if (Z->y > 1.0) Z->y = 2.0 - Z->y;
-    else if (Z->y < -1.0) Z->y = -2.0 - Z->y;
+    if (Z->y > 1.0f) Z->y = 2.0f - Z->y;
+    else if (Z->y < -1.0f) Z->y = -2.0f - Z->y;
 
-    if (Z->z > 1.0) Z->z = 2.0 - Z->z;
-    else if (Z->z < -1.0) Z->z = -2.0 - Z->z;
+    if (Z->z > 1.0f) Z->z = 2.0f - Z->z;
+    else if (Z->z < -1.0f) Z->z = -2.0f - Z->z;
 
     float r2 = Z->x*Z->x + Z->y*Z->y + Z->z*Z->z;
 
@@ -128,7 +128,7 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
 
     *de *= scale;
 
-    if (julia.x == 0)
+    if (julia.x == 0.0f)
     {
         *Z = *Z * scale + *P_in;
     }
@@ -154,13 +154,13 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     float x2 = Z->x * Z->x;
     float y2 = Z->y * Z->y;
     float z2 = Z->z * Z->z;
-    float temp = 1.0 - z2 / (x2 + y2);
+    float temp = 1.0f - z2 / (x2 + y2);
     float3 new;
     new.x = (x2 - y2) * temp;
-    new.y = 2.0 * Z->x * Z->y * temp;
-    new.z = -2.0 * Z->z * sqrt(x2 + y2);
+    new.y = 2.0f * Z->x * Z->y * temp;
+    new.z = -2.0f * Z->z * sqrt(x2 + y2);
 
-    if (julia.x == 0)
+    if (julia.x == 0.0f)
     {
         *Z = new + *P_in;
     }
@@ -196,9 +196,9 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
     Z->y -= 2.0f;
     if (Z->z > 1.0f) Z->z -= 2.0f;
 
-    *de *= 3.0;
+    *de *= 3.0f;
 
-    if (julia.x == 1)
+    if (julia.x == 1.0f)
     {
         *Z += julia.yzw;
     }
@@ -224,7 +224,7 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_l
     *de = *de * 2.0f * distance;
     *Z = new;
 
-    if (julia.x == 0)
+    if (julia.x == 0.0f)
     {
         *Z += *P_in;
     }
@@ -261,7 +261,7 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     Z->y = rp * sin(th * power) * sin(ph * power);
     Z->z = rp * cos(ph * power);
 
-    if (julia.x == 0)
+    if (julia.x == 0.0f)
     {
         *Z += *P_in;
     }
@@ -313,7 +313,7 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
 
     *Z = mtxPtMult( mtxRotate(rot) , *Z );
 
-    if (julia.x == 1)
+    if (julia.x == 1.0f)
     {
         *Z += julia.yzw;
     }

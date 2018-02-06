@@ -10,20 +10,20 @@
 // Bailout -> max_distance
 // Iterations -> max_iterations
 // positive log_lin -> log, negative -> lin
-static float hybrid(float3 P_in, const int max_iterations, const int max_distance, const float size, const int calculate_orbits, float* orbit_colors)
+static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int calculate_orbits, float* orbit_colors)
 {
     P_in /= size;
     float3 Z = P_in;
-    float de = 1.0;
+    float de = 1.0f;
     float distance;
     float out_de;
     int log_lin = 0; // positive is log, negative is lin
 
     // init orbit traps variables
-    float3 orbit_pt = (float3)(0,0,0);
+    float3 orbit_pt = (float3)(0.0f,0.0f,0.0f);
     float orbit_pt_dist = 1e20f;
-    float2 orbit_plane = (float2)(1,0);
-    float3 orbit_plane_origin = (float3)(0);
+    float2 orbit_plane = (float2)(1.0f,0.0f);
+    float3 orbit_plane_origin = (float3)(0.0f);
     float3 orbit_plane_dist = (float3)(1e20f);
     float orbit_coord_dist = 1e20f;
     float orbit_sphere_rad = 1.0f;
@@ -37,13 +37,13 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
         if (distance > max_distance) break;
         
         // fractals stack
-        //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0.3,0.5,0.2)); // log
-        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1.3,3.3,0)); // log
-        //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,0,0), 9, 0, 0); // log
-        mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,1,3,4), 3.0); // lin
-        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,1,0,0), 8); // log
-        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1,0,1.0,0)); // lin
-        //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0,0,0,0.5), 2.0, (float3)(1,1,1), (float3)(0,0,0) ); // lin
+        //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
+        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+        //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
+        //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
+        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
+        sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
 
         // orbit traps calculations
         if (calculate_orbits == 1)
@@ -75,8 +75,8 @@ static float hybrid(float3 P_in, const int max_iterations, const int max_distanc
     }
 
     // automatic determining DE mode based on log_lin value
-    if (log_lin >= 0) out_de = 0.5 * log(distance) * distance/de;
-    else out_de = distance / fabs(de);
+    if (log_lin >= 0) out_de = 0.5f * log(distance) * distance/de;
+    else out_de = (distance) / fabs(de);
 
     return out_de * size;
 }
@@ -89,18 +89,18 @@ static float scene( float3 P, float frame, const int calculate_orbits, float* or
 
     float3 P_rep = P;
 
-    //float3 P_rep = spaceRepFixed( P, (float3)(21), (float3)(2,3,4) );
+    //float3 P_rep = spaceRepFixed( P, (float3)(21.0f), (float3)(2.0f, 3.0f, 4.0f) );
 
     //float16 xform = mtxIdent();
-    //xform = mtxMult( xform, mtxScale( (float3)(1/2.0,1,1) ) );
-    //xform = mtxMult( xform, mtxRotate( (float3)(0,0,90) ) );
-    //xform = mtxMult( xform, mtxTranslate( (float3)(0,-4,0) ) );
+    //xform = mtxMult( xform, mtxScale( (float3)(1/2.0f, 1.0f, 1.0f) ) );
+    //xform = mtxMult( xform, mtxRotate( (float3)(0.0f, 0.0f, 90.0f) ) );
+    //xform = mtxMult( xform, mtxTranslate( (float3)(0.0f, -4.0f, 0.0f) ) );
     //xform = mtxInvert(xform);
     //P_rep = mtxPtMult(xform, P_rep);
 
-    float shape1 = hybrid(P_rep, 250, 100, 1.0, calculate_orbits, orbit_colors);
+    float shape1 = hybrid(P_rep, 250, 100.0f, 1.0f, calculate_orbits, orbit_colors);
 
-    dist_out = shape1; /////////
+    dist_out = shape1; ////////////
 
     return dist_out;
 }
@@ -138,7 +138,7 @@ kernel void marchPerspCam(
     pixel_P_world.z = planeZ[0];
 
     // compute scale of near img plane
-    const float16 near_plane_scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1) );
+    const float16 near_plane_scale = mtxScale( (float3)(width[0]-px[0], height[0]-px[0], 1.0f) );
 
     // read in cam world matrix
     const float16 cam_xform_world = (float16)(camXform[0],camXform[1],camXform[2],camXform[3],
@@ -151,7 +151,7 @@ kernel void marchPerspCam(
 
     // apply transformations, also produce alternative matrix with scaled near plane
     near_plane_xform = mtxMult(near_plane_xform, near_plane_scale);
-    float16 near_plane_xform_scaled = mtxMult(near_plane_xform, mtxScale( (float3)(100000) ) );
+    float16 near_plane_xform_scaled = mtxMult(near_plane_xform, mtxScale( (float3)(100000.0f) ) );
     near_plane_xform = mtxMult(near_plane_xform, cam_xform_world);
     near_plane_xform_scaled = mtxMult(near_plane_xform_scaled, cam_xform_world);
 
@@ -168,22 +168,22 @@ kernel void marchPerspCam(
     //// raymarching
 
     // raymarch settings
-    float3 color = (float3)(0,0,0);    
+    float3 color = (float3)(0.0f, 0.0f, 0.0f);    
     float orbit_colors[ORBITS_ARRAY_LENGTH];
 
-    const float frame = time/timeinc + 1;
+    const float frame = time/timeinc + 1.0f;
 
     float3 ray_P_world = pixel_P_world;
     float cam_dist = scene(cam_P_world, frame, 0, orbit_colors);
-    float de = 0;
+    float de = 0.0f;
     int i = 0;
     float step_size = 0.6f;
     float iso_limit_mult = 2.0f;
     float ray_dist = planeZ[0];
     const int max_steps = 1000;
-    const float max_dist = 1000;
+    const float max_dist = 1000.0f;
 
-    float iso_limit = cam_dist * 0.0001 * iso_limit_mult;  
+    float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
 
     // raymarching loop
     for (i=0; i<max_steps; i++)
@@ -202,22 +202,22 @@ kernel void marchPerspCam(
 
     // relative amount of steps
     float i_rel = (float)(i)/(float)(max_steps);
-    i_rel = 1-pow(i_rel, 1.0f/3.0f);
+    i_rel = 1.0f-pow(i_rel, 1.0f/3.0f);
 
     // initialize variables
-    float3 Cd_out = (float3)(1);
+    float3 Cd_out = (float3)(1.0f);
     float3 N_grad;
 
     // remove missed
     if ( de > iso_limit )
     {
-        i_rel = -1;
+        i_rel = -1.0f;
     }
     else
     {
         // compute N
         // based on "Modeling with distance functions" article from Inigo Quilez
-        float2 e2 = (float2)(1.0,-1.0) * iso_limit * 0.01f;
+        float2 e2 = (float2)(1.0f, -1.0f) * iso_limit * 0.01f;
         N_grad = normalize( e2.xyy * scene( ray_P_world + e2.xyy, frame, 0, orbit_colors) + 
                             e2.yyx * scene( ray_P_world + e2.yyx, frame, 0, orbit_colors) + 
                             e2.yxy * scene( ray_P_world + e2.yxy, frame, 0, orbit_colors) + 
@@ -234,6 +234,7 @@ kernel void marchPerspCam(
         float AO_occ = 0.0f;
         float AO_sca = 1.0f;
 
+        #pragma unroll
         for(int j=0; j<5; j++)
         {
             float AO_hr = 0.01f + 0.12f * (float)(j)/4.0f;
@@ -251,7 +252,7 @@ kernel void marchPerspCam(
         color.z = orbit_colors[3];
         color *= orbit_colors[0];
 
-        color = fmod(color, (float3)(1));
+        color = fmod(color, (float3)(1.0f));
 
         Cd_out = mix(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
         Cd_out = mix(Cd_out, color, Cd_mix_orbit);

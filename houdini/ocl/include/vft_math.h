@@ -153,7 +153,7 @@ static float3 mtxDirMult(float16 mtx, float3 vec)
                           (float4)(mtx.s159d),
                           (float4)(mtx.s26ae) };
 
-    const float4 v = (float4)(vec.x, vec.y, vec.z, 1);
+    const float4 v = (float4)(vec.x, vec.y, vec.z, 1.0f);
     float3 x = (float3)( dot(v, m[0]), dot(v, m[1]), dot(v, m[2]) );
 
     return x;
@@ -179,7 +179,7 @@ static float16 mtxInvert(float16 me)
 
     //if ( det == 0 ) return mtxIdent(); // assuming invertible matrices only
 
-    float detInv = 1 / det;
+    float detInv = 1.0f / det;
 
     te.s0 = t11 * detInv;
     te.s1 = ( n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44 ) * detInv;
