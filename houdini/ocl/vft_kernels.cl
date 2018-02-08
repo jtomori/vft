@@ -11,6 +11,19 @@
 // Bailout -> max_distance
 // Iterations -> max_iterations
 // positive log_lin -> log, negative -> lin
+
+static float fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin)
+{
+    //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
+    //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+    //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
+    //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
+    //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+    mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
+    //sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
+}
+
+
 static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int calculate_orbits, float* orbit_colors, float3* N)
 {
     P_in /= size;
@@ -38,14 +51,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         distance = length(Z);
         if (distance > max_distance) break;
         
-        // fractals stack
-        //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
-        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
-        //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
-        //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
-        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
-        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
-        //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
+        fractal_stack(&Z, &de, &P_in, &log_lin);
 
         // orbit traps calculations
         if (calculate_orbits == 1)
@@ -82,22 +88,25 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
     float delta = 0.000005f;
 
     Z = P_in + (float3)(delta, 0.0f, 0.0f);
-    for (int j=0; j<i; j++) {
-        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
     }
     float rx = length(Z);
     float drx = (distance - rx) / delta;
 
     Z = P_in + (float3)(0.0f, delta, 0.0f);
-    for (int j=0; j<i; j++) {
-        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
     }
     float ry = length(Z);
     float dry = (distance - ry) / delta;
 
     Z = P_in + (float3)(0.0f, 0.0f, delta);
-    for (int j=0; j<i; j++) {
-        mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
     }
     float rz = length(Z);
     float drz = (distance - rz) / delta;
