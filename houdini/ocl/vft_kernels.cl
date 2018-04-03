@@ -3,10 +3,10 @@
 #include "vft_fractals.h"
 
 #define LARGE_NUMBER            10e10
-#define ORBITS_OFFSET           0.006f    //0.006f
+#define ORBITS_OFFSET           0.006f
 
 #define ORBITS_ARRAY_LENGTH     9
-#define ENABLE_DELTA_DE         0
+#define ENABLE_DELTA_DE         1
 
 // mapping of variables
 // dr -> de
@@ -15,12 +15,12 @@
 // Iterations -> max_iterations
 // positive log_lin -> log, negative -> lin
 
-static float fractals_stack(float3* Z, float* de, const float3* P_in, int* log_lin)
+static float fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin)
 {
     mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
     //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
     //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
-    //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
+    //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
     //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
     //mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
     //sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
@@ -54,7 +54,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         distance = length(Z);
         if (distance > max_distance) break;
         
-        fractals_stack(&Z, &de, &P_in, &log_lin);
+        fractal_stack(&Z, &de, &P_in, &log_lin);
 
         // orbit traps calculations
         if (final == 1)
@@ -82,7 +82,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractals_stack(&Z, &de, &P_in, &log_lin);
+            fractal_stack(&Z, &de, &P_in, &log_lin);
         }
         float rx = length(Z);
         float drx = (distance - rx) / delta;
@@ -92,7 +92,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractals_stack(&Z, &de, &P_in, &log_lin);
+            fractal_stack(&Z, &de, &P_in, &log_lin);
         }
         float ry = length(Z);
         float dry = (distance - ry) / delta;
@@ -102,7 +102,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractals_stack(&Z, &de, &P_in, &log_lin);
+            fractal_stack(&Z, &de, &P_in, &log_lin);
         }
         float rz = length(Z);
         float drz = (distance - rz) / delta;
@@ -156,7 +156,7 @@ static float scene( float3 P, float frame, const int final, float* orbit_colors,
 
     //float shape1 = hybrid(P_rep, 250, 100.0f, 1.0f, final, orbit_colors, N);
 
-    float shape1 = hybrid(P, 3, 2.0f, 1.0f, final, &orbit_closest, orbit_colors, N);
+    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N);
     //float shape2 = primitive(P, final, &orbit_closest, orbit_colors, N);
     //float shape3 = hybrid_(P_offset, 15, 100.0f, 1.0f, final, &orbit_closest, orbit_colors, N);    
 
