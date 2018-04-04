@@ -129,7 +129,9 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
         *Z += julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    //*Z = mix(Z_orig, *Z, weight); // this line does not work
+    *Z = mix3(Z_orig, *Z, weight); // this line surprisingly works
+
     *de = mix(de_orig, *de, weight);
     (*log_lin)--;
 }
@@ -158,7 +160,9 @@ void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, con
         *Z += julia.yzw;
     }
 
-    *Z = mix(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight); // this line surprisingly works (opposite case as in the mengerSpongeIter())
+    //*Z = mix3(Z_orig, *Z, weight); // this line does not work
+
     *de = mix(de_orig, *de, weight);
     (*log_lin)++;
 }
@@ -190,8 +194,9 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         if (distance > max_distance) break;
         
         // fractals stack
-        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
-        mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
+        // select one of the following functions
+        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f)); // lin
+        bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f)); // log
 
         // orbit traps calculations
         if (calculate_orbits == 1)
