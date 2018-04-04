@@ -251,7 +251,7 @@
 
 
 
-// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
+/*// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
 static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
@@ -282,6 +282,47 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
 
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
+}*/
+
+// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
+static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_new = *Z;
+    float de_new = *de;
+    
+    float distance = length(*Z);
+
+    Z_new.x = fabs(Z_new.x);
+    Z_new.y = fabs(Z_new.y);
+    Z_new.z = fabs(Z_new.z);
+
+    if (Z_new.x - Z_new.y < 0.0f) Z_new.xy = Z_new.yx;
+    if (Z_new.x - Z_new.z < 0.0f) Z_new.xz = Z_new.zx;
+    if (Z_new.y - Z_new.z < 0.0f) Z_new.yz = Z_new.zy;
+
+    Z_new *= 3.0f;
+
+    Z_new.x -= 2.0f;
+    Z_new.y -= 2.0f;
+    if (Z_new.z > 1.0f) Z_new.z -= 2.0f;
+
+    de_new *= 3.0f;
+
+    if (julia.x == 1.0f)
+    {
+        Z_new += julia.yzw;
+    }
+
+    //*Z = mix(Z_orig, *Z, weight);
+    //*de = mix(de_orig, *de, weight);
+    
+    Z_new = mix(*Z, Z_new, weight);
+    de_new = mix(*de, de_new, weight);    
+
+    *Z = Z_new;
+    *de = de_new;
+
     (*log_lin)--;
 }
 
@@ -350,11 +391,11 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         
         // fractals stack
         //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
-        bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+        //bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
         //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
         //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
         //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
-        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
+        mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
         //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
 
         // orbit traps calculations
