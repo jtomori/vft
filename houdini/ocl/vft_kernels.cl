@@ -2,6 +2,8 @@
 #include "vft_math.h"
 #include "vft_fractals.h"
 
+#define NULL                    0
+
 #define LARGE_NUMBER            10e10
 #define ORBITS_OFFSET           0.006f
 
@@ -15,18 +17,18 @@
 // Iterations -> max_iterations
 // positive log_lin -> log, negative -> lin
 
-static float fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin)
+/*static float fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin)
 {
     mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
     //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
     //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
     //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
     //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
-    mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
+    //mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 1.0f, 0.0f)); // lin
     //sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
-}
+}*/
 
-static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_colors, float3* N)
+/*static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_colors, float3* N)
 {
     P_in /= size;
     float3 Z = P_in;
@@ -71,8 +73,8 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         }
     }
     distance = length(Z);
-
-    #if ENABLE_DELTA_DE    
+*/
+ /*   #if ENABLE_DELTA_DE    
         // delta DE method
         // based on Makin/Buddhi 4-point Delta-DE formula
 
@@ -110,13 +112,13 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         float3 dist_grad = (float3)(drx, dry, drz);
         de = length(dist_grad);
     #endif
-
-    // automatic determining DE mode based on log_lin value
+*/
+/*    // automatic determining DE mode based on log_lin value
     if (log_lin >= 0) out_distance = 0.5f * log(distance) * distance/de;
     else out_distance = distance / fabs(de);
 
-    // outputting orbit traps
-    if (final == 1)
+*/    // outputting orbit traps
+/*    if (final == 1)
     {
         orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
         orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
@@ -133,9 +135,280 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
             *N = normalize(dist_grad);
         #endif
     }
-
-    return out_distance * size;
+*/
+/*    return out_distance * size;
 }
+*/
+
+
+
+
+
+
+
+
+
+
+/*static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int calculate_orbits, float* orbit_colors, float3* N)
+{
+    P_in /= size;
+    float3 Z = P_in;
+    float de = 1.0f;
+    float distance;
+    float out_de;
+    int log_lin = 0; // positive is log, negative is lin
+
+    // init orbit traps variables
+    float3 orbit_pt = (float3)(0.0f,0.0f,0.0f);
+    float orbit_pt_dist = 1e20f;
+    float2 orbit_plane = (float2)(1.0f,0.0f);
+    float3 orbit_plane_origin = (float3)(0.0f);
+    float3 orbit_plane_dist = (float3)(1e20f);
+    float orbit_coord_dist = 1e20f;
+    float orbit_sphere_rad = 1.0f;
+    float orbit_sphere_dist = 1e20f;
+    float3 orbit_axis_dist = 1e20f;
+
+    // fractal loop
+    int i = 0;
+    for (i = 0; i < max_iterations; i++)
+    {
+        distance = length(Z);
+        if (distance > max_distance) break;
+        
+        fractal_stack(&Z, &de, &P_in, &log_lin);
+
+        // orbit traps calculations
+        if (calculate_orbits == 1)
+        {
+            orbit_pt_dist = min(orbit_pt_dist, length2(Z - orbit_pt));
+            orbit_plane_dist.x = min( orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
+            orbit_plane_dist.y = min( orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
+            orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
+            orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
+            orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - normalize(Z)*orbit_sphere_rad) );
+            orbit_axis_dist.x = min(orbit_axis_dist.x, Z.y*Z.y + Z.z*Z.z);
+            orbit_axis_dist.y = min(orbit_axis_dist.y, Z.x*Z.x + Z.z*Z.z);
+            orbit_axis_dist.z = min(orbit_axis_dist.z, Z.x*Z.x + Z.y*Z.y);
+        }
+    }
+    distance = length(Z);
+
+    // outputting orbit traps
+    if (calculate_orbits == 1)
+    {
+        orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
+        orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
+        orbit_colors[2] = orbit_plane_dist.y; // distance to XZ plane
+        orbit_colors[3] = orbit_plane_dist.z; // distance to XY plane
+        orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
+        orbit_colors[5] = sqrt(orbit_sphere_dist); // distance to sphere
+        orbit_colors[6] = sqrt(orbit_axis_dist.x); // distance to X axis
+        orbit_colors[7] = sqrt(orbit_axis_dist.y); // distance to Y axis
+        orbit_colors[8] = sqrt(orbit_axis_dist.z); // distance to Z axis
+    }
+
+#if ENABLE_DELTA_DE    
+    // delta DE method
+    float delta = 0.000005f;
+
+    Z = P_in + (float3)(delta, 0.0f, 0.0f);
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
+    }
+    float rx = length(Z);
+    float drx = (distance - rx) / delta;
+
+    Z = P_in + (float3)(0.0f, delta, 0.0f);
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
+    }
+    float ry = length(Z);
+    float dry = (distance - ry) / delta;
+
+    Z = P_in + (float3)(0.0f, 0.0f, delta);
+    for (int j=0; j<i; j++)
+    {
+        fractal_stack(&Z, &de, &P_in, &log_lin);
+    }
+    float rz = length(Z);
+    float drz = (distance - rz) / delta;
+
+    float3 dist_grad = (float3)(drx, dry, drz);
+    de = length(dist_grad);
+
+    *N = normalize(dist_grad);
+#endif
+
+    // automatic determining DE mode based on log_lin value
+    if (log_lin >= 0) out_de = 0.5f * log(distance) * distance/de;
+    else out_de = distance / fabs(de);
+
+    return out_de * size;
+}*/
+
+
+
+// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
+static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+    Z->x = fabs(Z->x);
+    Z->y = fabs(Z->y);
+    Z->z = fabs(Z->z);
+
+    if (Z->x - Z->y < 0.0f) Z->xy = Z->yx;
+    if (Z->x - Z->z < 0.0f) Z->xz = Z->zx;
+    if (Z->y - Z->z < 0.0f) Z->yz = Z->zy;
+
+    *Z *= 3.0f;
+
+    Z->x -= 2.0f;
+    Z->y -= 2.0f;
+    if (Z->z > 1.0f) Z->z -= 2.0f;
+
+    *de *= 3.0f;
+
+    if (julia.x == 1.0f)
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
+}
+
+
+// [M2] - Bristorbrot formula - BristorbrotIteration
+void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+    float3 new;
+    new.x = Z->x * Z->x - Z->y * Z->y - Z->z * Z->z;
+    new.y = Z->y * (2.0f * Z->x - Z->z);
+    new.z = Z->z * (2.0f * Z->x + Z->y);
+    
+    *de = *de * 2.0f * distance;
+    *Z = new;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
+
+// mapping of variables
+// dr -> de
+// r -> distance
+// Bailout -> max_distance
+// Iterations -> max_iterations
+// positive log_lin -> log, negative -> lin
+static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int calculate_orbits, float* orbit_colors)
+{
+    P_in /= size;
+    float3 Z = P_in;
+    float de = 1.0f;
+    float distance;
+    float out_de;
+    int log_lin = 0; // positive is log, negative is lin
+
+    // init orbit traps variables
+    float3 orbit_pt = (float3)(0.0f,0.0f,0.0f);
+    float orbit_pt_dist = 1e20f;
+    float2 orbit_plane = (float2)(1.0f,0.0f);
+    float3 orbit_plane_origin = (float3)(0.0f);
+    float3 orbit_plane_dist = (float3)(1e20f);
+    float orbit_coord_dist = 1e20f;
+    float orbit_sphere_rad = 1.0f;
+    float orbit_sphere_dist = 1e20f;
+    float3 orbit_axis_dist = 1e20f;
+
+    // fractal loop
+    for (int i = 0; i < max_iterations; i++)
+    {
+        distance = length(Z);
+        if (distance > max_distance) break;
+        
+        // fractals stack
+        //mandelbulbPower2Iter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.3f, 0.5f, 0.2f)); // log
+        bristorbrotIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+        //xenodreambuieIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
+        //mandelboxIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(1.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
+        //mandelbulbIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+        //mengerSpongeIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
+        //sierpinski3dIter(&Z, &de, &P_in, &log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
+
+        // orbit traps calculations
+        if (calculate_orbits == 1)
+        {
+            orbit_pt_dist = min(orbit_pt_dist, length2(Z - orbit_pt));
+            orbit_plane_dist.x = min( orbit_plane_dist.x, distPointPlane(Z, orbit_plane.xyy, orbit_plane_origin) );
+            orbit_plane_dist.y = min( orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
+            orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
+            orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
+            orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - normalize(Z)*orbit_sphere_rad) );
+            orbit_axis_dist.x = min(orbit_axis_dist.x, Z.y*Z.y + Z.z*Z.z);
+            orbit_axis_dist.y = min(orbit_axis_dist.y, Z.x*Z.x + Z.z*Z.z);
+            orbit_axis_dist.z = min(orbit_axis_dist.z, Z.x*Z.x + Z.y*Z.y);
+        }
+    }
+
+    // outputting orbit traps
+    if (calculate_orbits == 1)
+    {
+        orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
+        orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
+        orbit_colors[2] = orbit_plane_dist.y; // distance to XZ plane
+        orbit_colors[3] = orbit_plane_dist.z; // distance to XY plane
+        orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
+        orbit_colors[5] = sqrt(orbit_sphere_dist); // distance to sphere
+        orbit_colors[6] = sqrt(orbit_axis_dist.x); // distance to X axis
+        orbit_colors[7] = sqrt(orbit_axis_dist.y); // distance to Y axis
+        orbit_colors[8] = sqrt(orbit_axis_dist.z); // distance to Z axis
+    }
+
+    // automatic determining DE mode based on log_lin value
+    if (log_lin >= 0) out_de = 0.5f * log(distance) * distance/de;
+    else out_de = (distance) / fabs(de);
+
+    return out_de * size;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // scene setup
 static float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
@@ -154,7 +427,8 @@ static float scene( float3 P, const int final, float* orbit_colors, float3* N ) 
 
     //float shape1 = hybrid(P_rep, 250, 100.0f, 1.0f, final, orbit_colors, N);
 
-    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, orbit_colors, N);
+    //float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, orbit_colors, N);
+    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, orbit_colors);    
     //float shape2 = primitive(P, final, orbit_colors, N);
     //float shape3 = hybrid_(P_offset, 15, 100.0f, 1.0f, final, orbit_colors, N);    
 
@@ -182,7 +456,7 @@ static float3 compute_N(const float* iso_limit, const float3* ray_P_world)
     return N_grad;
 }
 
-static float primitive(float3 P, const int final, float* orbit_colors, float3* N)
+/*static float primitive(float3 P, const int final, float* orbit_colors, float3* N)
 {
     float out_distance;
 
@@ -204,7 +478,7 @@ static float primitive(float3 P, const int final, float* orbit_colors, float3* N
     }
 
     return out_distance;
-}
+}*/
 
 //// main function
 kernel void marchPerspCam(
@@ -320,7 +594,7 @@ kernel void marchPerspCam(
     {
 
     #if !ENABLE_DELTA_DE
-        N_grad = compute_N(&iso_limit, &ray_P_world);
+//        N_grad = compute_N(&iso_limit, &ray_P_world);
     #endif
 
     // AO
@@ -328,7 +602,7 @@ kernel void marchPerspCam(
     float AO = 1.0f;
     float AO_occ = 0.0f;
     float AO_sca = 1.0f;
-
+/*
     #if !ENABLE_DELTA_DE
         #pragma unroll
         for(int j=0; j<5; j++)
@@ -343,7 +617,7 @@ kernel void marchPerspCam(
         AO = clamp( 1.0f - 3.4f * AO_occ, 0.0f, 1.0f );
         AO = pow(AO, 0.8f);
     #endif
-
+*/
     color.x = orbit_colors[1];
     color.y = orbit_colors[2];
     color.z = orbit_colors[3];
@@ -351,9 +625,9 @@ kernel void marchPerspCam(
 
     //color = fmod(color, (float3)(1.0f));
 
-    Cd_out = mix(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
-    Cd_out = mix(Cd_out, color, Cd_mix_orbit);
-    Cd_out = mix(Cd_out, Cd_out * AO, Cd_mix_AO);
+    Cd_out = mix3(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
+    Cd_out = mix3(Cd_out, color, Cd_mix_orbit);
+    Cd_out = mix3(Cd_out, Cd_out * AO, Cd_mix_AO);
     }
 
     // export attribs
