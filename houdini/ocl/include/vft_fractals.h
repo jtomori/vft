@@ -325,4 +325,197 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
 
 
 
+// testing new formulas
+
+// amazing surf from M3D
+// does nothing
+static float amazingSurf(float3 P, float size)
+{
+//void AmazingSurfIteration(CVector4 &z, const sFractal *fractal, sExtendedAux &aux)
+//{
+//    // update aux.actualScale
+//    aux.actualScale =
+//        fractal->mandelbox.scale + fractal->mandelboxVary4D.scaleVary * (fabs(aux.actualScale) - 1.0);
+
+//    CVector4 c = aux.const_c;
+//    z.x = fabs(z.x + fractal->transformCommon.additionConstant111.x)
+//                - fabs(z.x - fractal->transformCommon.additionConstant111.x) - z.x;
+//    z.y = fabs(z.y + fractal->transformCommon.additionConstant111.y)
+//                - fabs(z.y - fractal->transformCommon.additionConstant111.y) - z.y;
+//    // no z fold
+
+//    double rr = z.Dot(z);
+//    if (fractal->transformCommon.functionEnabledFalse) // force cylinder fold
+//        rr -= z.z * z.z;
+
+//    double sqrtMinR = sqrt(fractal->transformCommon.minR05);
+//    double dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0);
+
+//    // use aux.actualScale
+//    double m = aux.actualScale / dividend;
+
+//    z *= (m - 1.0) * fractal->transformCommon.scale1 + 1.0;
+//    // z *= m * fractal->transformCommon.scale1 + 1.0 * (1.0 - fractal->transformCommon.scale1);
+//    aux.DE = aux.DE * fabs(m) + 1.0;
+
+//    if (fractal->transformCommon.addCpixelEnabledFalse)
+//        z += CVector4(c.y, c.x, c.z, c.w) * fractal->transformCommon.constantMultiplier111;
+
+//    z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+//}
+    //P /= size;
+    float3 z = P;
+    float dr = 1.0;
+    int Iterations = 10;
+    //int Bailout = 6;
+
+    float actualScale = 1.39;
+    float scaleVary = 0;
+    float2 fold = (float2)(1.076562, 1.05);
+    float minRad = 0.18;
+    float scaleInf = 1;
+    float auxScale = 1;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        //update aux.actualScale
+        actualScale = actualScale + scaleVary * (fabs(actualScale) - 1.0f);
+    
+        //CVector4 c = aux.const_c;
+        z.x = fabs(z.x + fold.x) - fabs(z.x - fold.x) - z.x;
+        z.y = fabs(z.y + fold.y) - fabs(z.y - fold.y) - z.y;
+        // no z fold
+    
+        float rr = z.x*z.x + z.y*z.y + z.z*z.z;
+        //if (fractal->transformCommon.functionEnabledFalse) // force cylinder fold
+        //    rr -= z.z * z.z;
+    
+        float sqrtMinR = sqrt(minRad);
+        float dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0f);
+    
+        // use aux.actualScale
+        //float m = auxScale / dividend;
+        float m = actualScale / dividend;
+    
+        z *= (m - 1.0f) * scaleInf + 1.0f;
+        dr = dr * fabs(m) + 1.0;
+    
+        //if (fractal->transformCommon.addCpixelEnabledFalse)
+        //    z += CVector4(c.y, c.x, c.z, c.w) * fractal->transformCommon.constantMultiplier111;
+    
+        //z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+        float16 rotMtx = mtxRotate( (float3)(8.414060, 3.340000, 18.125000) );
+        //z = mtxPtMult(rotMtx, z);
+
+        z += P;
+    }
+
+    //float out = 0.5 * log(r) * r/dr;
+    //return out * size;
+    return dr;
+}
+
+// quaternion fractals, kind of works, but not sure what to do with z.w component :)
+static float quaternion(float3 P, float size)
+{
+//void QuaternionIteration(CVector4 &z, const sFractal *fractal, sExtendedAux &aux)
+//{
+//    Q_UNUSED(fractal);
+
+//    aux.r_dz = aux.r_dz * 2.0 * aux.r;
+//    double newx = z.x * z.x - z.y * z.y - z.z * z.z - z.w * z.w;
+//    double newy = 2.0 * z.x * z.y;
+//    double newz = 2.0 * z.x * z.z;
+//    double neww = 2.0 * z.x * z.w;
+//    z.x = newx;
+//    z.y = newy;
+//    z.z = newz;
+//    z.w = neww;
+//}
+    P /= size;
+
+    float4 z = (float4)(P, 1);
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 50;
+    int Bailout = 40;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+
+        dr = dr * 2.0f * r;
+        float newx = z.x * z.x - z.y * z.y - z.z * z.z - z.w * z.w;
+        float newy = 2.0f * z.x * z.y;
+        float newz = 2.0f * z.x * z.z;
+        float neww = 2.0f * z.x * z.w;
+        z.x = newx;
+        z.y = newy;
+        z.z = newz;
+        //z.w = neww;
+    }
+
+    float out = 0.5f * log(r) * r/dr;
+    return out * size;
+}
+
+// quaternion3d
+// kind of works, but does not exactly match M2 visual, but parameters deform it in a similar manner, I hardcoded some of the parameters into values, there are some buggy areas, missing parts, noisy normals etc.
+static float quaternion3d(float3 P, float size)
+{
+//void Quaternion3dIteration(CVector4 &z, const sFractal *fractal, sExtendedAux &aux)
+//{
+//
+//    aux.r_dz = aux.r_dz * 2.0 * aux.r;
+//    z = CVector4(z.x * z.x - z.y * z.y - z.z * z.z, z.x * z.y, z.x * z.z, z.w);
+//
+//    double tempL = z.Length();
+//    z *= fractal->transformCommon.constantMultiplier122;
+//    // if (tempL < 1e-21) tempL = 1e-21;
+//    CVector4 tempAvgScale = CVector4(z.x, z.y / 2.0, z.z / 2.0, z.w);
+//    double avgScale = tempAvgScale.Length() / tempL;
+//    double tempAux = aux.r_dz * avgScale;
+//    aux.r_dz = aux.r_dz + (tempAux - aux.r_dz) * fractal->transformCommon.scaleA1;
+//
+//    if (fractal->transformCommon.rotationEnabled)
+//        z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+//
+//    z += fractal->transformCommon.additionConstant000;
+//}
+    P /= size;
+
+    float4 z = (float4)(P, 1);
+    float dr = 1.0;
+    float r = 0.0;
+    int Iterations = 250;
+    int Bailout = 20;
+
+    for (int i = 0; i < Iterations ; i++)
+    {
+        r = length(z);
+        if (r > Bailout) break;
+        
+        dr = dr * 2.0 * r;
+        z = (float4)(z.x * z.x - z.y * z.y - z.z * z.z, z.x * z.y, z.x * z.z, z.w);
+
+        float tempL = r;
+        z *= (float4)(1,1,1,1);
+
+        float4 tempAvgScale = (float4)(z.x, z.y / 2.0, z.z / 2.0, z.w);
+        float avgScale = length(tempAvgScale) / tempL;
+        float tempAux = dr * avgScale;
+        dr = dr + (tempAux - dr) * 1.0f;
+
+        //if (fractal->transformCommon.rotationEnabled)
+        //    z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+
+        z += (float4)(0,0,0,0);
+    }
+
+    //float out = 0.5f * log(r) * r/dr;
+    float out = r / dr;
+    return out * size;
+}
+
 #endif
