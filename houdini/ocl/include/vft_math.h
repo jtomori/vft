@@ -205,5 +205,4 @@ static float16 mtxInvert(float16 me)
 
 }
 
-
 #endif

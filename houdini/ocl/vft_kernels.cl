@@ -7,12 +7,36 @@
 #define LARGE_NUMBER            10e10
 
 #define ORBITS_ARRAY_LENGTH     9
-#define ENABLE_DELTA_DE         0
+#define ENABLE_DELTA_DE         1
 
 // forward func declarations
 float3 compute_N(const float*, const float3*);
 float compute_AO(const float3*, const float3*);
+float primitive(float3, const float, const int, float*, float*, const float3, float3*, const int);
 float hybrid(float3, const int, const float, const float, const int, float*, float*, float3*, const int);
+
+// contains primitives
+float primitive_stack(float3 P, const int stack)
+{
+    float out_distance;
+    switch (stack)
+    {
+        case 0:
+        {
+            out_distance = sphere(P, 1.0f);
+
+            break;
+        }
+        case 1:
+        {
+            out_distance = torus(P, (float2)(1.0f, 0.5f));
+
+            break;
+        }
+    }
+
+    return out_distance;
+}
 
 // contains fractal combinations for all shapes
 void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const int stack)
@@ -23,8 +47,7 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
         {
             //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
             bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
-            //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.
-// because of missing func pointers in ocl I have to do it the ugly way0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
+            //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
             //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.1f); // lin
             //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
             //mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
@@ -58,7 +81,10 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float shape2 = hybrid(P - (float3)(2.0f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 1);
     float shape3 = hybrid(P + (float3)(2.0f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
 
-    dist_out = sdfUnion( sdfUnion(shape1, shape2) , shape3 );
+    float shape4 = primitive(P - (float3)(2.0f, 0.0f, 0.0f), 0.3f,      final, &orbit_closest, orbit_colors, (float3)(1.0f,0.0f,1.0f),  N, 0);
+    float shape5 = primitive(P - (float3)(-2.0f, 0.0f, 0.0f), 0.6f,     final, &orbit_closest, orbit_colors, (float3)(1.0f,1.0f,0.0f), N, 1);
+
+    dist_out = sdfUnion( sdfUnion( sdfUnion( sdfUnion(shape1, shape2) , shape3 ) , shape4 ) , shape5 );
 
     return dist_out;
 }
@@ -250,32 +276,33 @@ float compute_AO(const float3* N, const float3* ray_P_world)
     return AO;
 }
 
-// primitive shape function
-/*float primitive(float3 P, const int final, float* orbit_colors, float3* N)
+// primitive shape function - calls respective parto of primitive_stack(), in case of DELTA DE mode also outputs N
+float primitive(float3 P, const float size, const int final, float* orbit_closest, float* orbit_colors, const float3 color, float3* N, const int stack)
 {
-    float out_distance;
+    P /= size;
+    float out_distance = primitive_stack(P, stack);
 
-    out_distance = sphere(P, 1, (float3)(1.5f, 0.0f, 0.0f));
-
-    if (final == 1)
+    if (final == 1 && out_distance <= *orbit_closest)
     {
         #pragma unroll
         for (int i=0; i<ORBITS_ARRAY_LENGTH; i++)
         {
             orbit_colors[i] = 1.0f;
         }
+        orbit_colors[1] = color.x;
+        orbit_colors[2] = color.y;
+        orbit_colors[3] = color.z;
 
-        // delta DE mode does not work well with multiple fractal objects
         #if ENABLE_DELTA_DE
             float iso_limit = 0.0001f;
             *N = compute_N(&iso_limit, &P);
         #endif
     }
 
-    return out_distance;
-}*/
+    return out_distance * size;
+}
 
-// hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode this also outputs N
+// hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode also outputs N
 float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack)
 {
     P_in /= size;
@@ -379,7 +406,6 @@ float hybrid(float3 P_in, const int max_iterations, const float max_distance, co
         orbit_colors[7] = sqrt(orbit_axis_dist.y); // distance to Y axis
         orbit_colors[8] = sqrt(orbit_axis_dist.z); // distance to Z axis
 
-        // delta DE mode does not work well with multiple fractal objects    
         #if ENABLE_DELTA_DE
             *N = dist_grad;
         #endif

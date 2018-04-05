@@ -19,9 +19,9 @@
 // [WEB] - http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
 // sphere: position, radius, center
-static float sphere( float3 P, float rad, float3 center )
+static float sphere( float3 P, float rad )
 {
-    float dist = length(P - center) - rad;
+    float dist = length(P) - rad;
     return dist;
 }
 
