@@ -12,39 +12,53 @@
 // forward func declarations
 float3 compute_N(const float*, const float3*);
 float compute_AO(const float3*, const float3*);
-float hybrid(float3, const int, const float, const float, const int, float*, float3*, const int);
+float hybrid(float3, const int, const float, const float, const int, float*, float*, float3*, const int);
 
-// contains fractal combinations
+// contains fractal combinations for all shapes
 void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const int stack)
 {
-    if (stack == 0)
+    switch (stack)
     {
-        //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
-        //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
-        //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
-        //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.0f); // lin
-        //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
-        mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
-        //sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
-    }
-    if (stack == 1)
-    {
-        sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin        
-    }
-    if (stack == 2)
-    {
+        case 0:
+        {
+            //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
+            bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+            //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.
+// because of missing func pointers in ocl I have to do it the ugly way0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
+            //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.1f); // lin
+            //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
+            //mengerSpongeIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 1.0f, 0.0f)); // lin
+            //sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
 
+            break;
+        }
+
+        case 1:
+        {
+            sierpinski3dIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.5f), 2.0f, (float3)(1.0f, 1.0f, 1.0f), (float3)(0.0f, 0.0f, 0.0f) ); // lin
+
+            break;
+        }
+
+        case 2:
+        {
+            mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
+
+            break;
+        }
     }
 }
 
 // scene setup - setting of coordinates and shapes in them
 float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
+    float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, orbit_colors, N, 0);
-    float shape2 = hybrid(P - (float3)(2.0f), 10, 10.0f, 1.0f, final, orbit_colors, N, 1);
+    float shape1 = hybrid(P,                  10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
+    float shape2 = hybrid(P - (float3)(2.0f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 1);
+    float shape3 = hybrid(P + (float3)(2.0f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
 
-    dist_out = sdfUnion(shape1, shape2);
+    dist_out = sdfUnion( sdfUnion(shape1, shape2) , shape3 );
 
     return dist_out;
 }
@@ -262,7 +276,7 @@ float compute_AO(const float3* N, const float3* ray_P_world)
 }*/
 
 // hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode this also outputs N
-float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_colors, float3* N, const int stack)
+float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack)
 {
     P_in /= size;
     float3 Z = P_in;
@@ -352,8 +366,8 @@ float hybrid(float3 P_in, const int max_iterations, const float max_distance, co
     if (log_lin >= 0) out_distance = 0.5f * log(distance) * distance/de;
     else out_distance = distance / fabs(de);
 
-    // outputting orbit traps and N in case of DELTA DE mode
-    if (final == 1)
+    // outputting orbit traps (and N in case of DELTA DE mode) to the closest shape
+    if (final == 1 && out_distance <= *orbit_closest)
     {
         orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
         orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
@@ -371,5 +385,9 @@ float hybrid(float3 P_in, const int max_iterations, const float max_distance, co
         #endif
     }
 
+    // change orbit_closest, if the evaluated point is closer to this shape
+    *orbit_closest = min(*orbit_closest, out_distance * size);
+
+    // output distance estimate, take shape's size into consideration
     return out_distance * size;
 }
