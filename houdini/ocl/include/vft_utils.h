@@ -78,13 +78,6 @@ static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
     return p;
 }
 
-// clip space
-//static float3 spaceClip( float3 p/*, float3 min, float3 max */)
-//{
-//    p.x = min(p.x, -10.0f);
-//    return p;
-//}
-
 
 ////////////// debug
 
