@@ -8,7 +8,7 @@
 #define ORBITS_OFFSET           0.006f // is used to hide colored seams in sdf subtracting
 
 #define ORBITS_ARRAY_LENGTH     9
-#define ENABLE_DELTA_DE         1
+#define ENABLE_DELTA_DE         0
 
 // forward func declarations
 float3 compute_N(const float*, const float3*);
@@ -112,13 +112,9 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P,                  10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
-    float shape2 = hybrid(P - (float3)(0.4f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 1);
-    //float shape3 = hybrid(P - (float3)(-0.5f, 0.0f, 0.5f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
+    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
 
-    float shape4 = primitive(P - (float3)(0.7f, 0.0f, 0.0f), 1.0f,      final, &orbit_closest, orbit_colors, (float3)(1.0f,0.0f,1.0f),  N, 0);
-
-    dist_out = sdfSubtract( sdfUnion(shape1, shape2) , shape4 );
+    dist_out = shape1;
 
     return dist_out;
 }
@@ -184,7 +180,8 @@ kernel void marchPerspCam(
     //// raymarching
 
     // raymarch settings, initialize variables
-    float3 color = (float3)(0.0f);    
+    float3 color = (float3)(0.0f);
+    float AO = 1.0f;
     float orbit_colors[ORBITS_ARRAY_LENGTH];
     float3 Cd_out = (float3)(1.0f);
     float3 N_grad;
@@ -202,12 +199,6 @@ kernel void marchPerspCam(
     const float max_dist = 1000.0f;
 
     float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
-
-    // coloring settings
-    float Cd_mix_N = 0.9f;
-    float Cd_mix_orbit = 0.9f;
-    float Cd_mix_AO = 0.6f;
-    float AO = 1.0f;
 
     // raymarching loop
     #pragma unroll
@@ -242,15 +233,12 @@ kernel void marchPerspCam(
             AO = compute_AO(&N_grad, &ray_P_world);
         #endif
 
-        // default color assignment
-        color.x = orbit_colors[1];
-        color.y = orbit_colors[2];
-        color.z = orbit_colors[3];
-        color *= orbit_colors[0];
+        // output shading for viewport preview
+        color.x = AO;
+        color.y = orbit_colors[0];
+        color.z = 1.0f;
 
-        Cd_out = mix(Cd_out, Cd_out * fabs(N_grad), Cd_mix_N);
-        Cd_out = mix(Cd_out, color, Cd_mix_orbit);
-        Cd_out = mix(Cd_out, Cd_out * AO, Cd_mix_AO);
+        Cd_out = color;
     }
 
     // export attribs
