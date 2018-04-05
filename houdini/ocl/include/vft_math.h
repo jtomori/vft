@@ -1,14 +1,8 @@
-#ifndef _VFT_MATH
-#define _VFT_MATH
+#ifndef VFT_MATH
+#define VFT_MATH
 
 // some of the functions here are ported/derived from Three.js library for WebGL:
 // https://github.com/mrdoob/three.js/tree/master/src/math
-
-// because of weird bugs I have to use this custom mix function
-float3 mix3(float3 x, float3 y, const float t)
-{
-    return x + (y - x) * t;
-}
 
 // length2
 static float length2(float3 vec)

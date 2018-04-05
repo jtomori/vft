@@ -1,5 +1,5 @@
-#ifndef _VFT_UTILS
-#define _VFT_UTILS
+#ifndef VFT_UTILS
+#define VFT_UTILS
 
 // some of the functions here are ported/derived from those sources:
 // http://iquilezles.org/www/

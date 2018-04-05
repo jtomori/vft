@@ -1,5 +1,5 @@
-#ifndef _VFT_FRACTALS
-#define _VFT_FRACTALS
+#ifndef VFT_FRACTALS
+#define VFT_FRACTALS
 
 // mapping of variables
 // aux.r_dz -> dr
@@ -86,7 +86,7 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
         *Z = newZ + julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)++;
 }
@@ -137,7 +137,7 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
         *Z = *Z * scale + julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)--;
 }
@@ -169,12 +169,12 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
         *Z = new + julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)++;
 }
 
-/*// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
+// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
 static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
@@ -203,12 +203,12 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
         *Z += julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)--;
-}*/
+}
 
-/*// [M2] - Bristorbrot formula - BristorbrotIteration
+// [M2] - Bristorbrot formula - BristorbrotIteration
 void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
@@ -235,7 +235,7 @@ void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, con
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)++;
-}*/
+}
 
 // [M2] - Xenodreambuie - XenodreambuieIteration
 static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power, float alpha, float beta)
@@ -269,7 +269,7 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
         *Z += julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)++;
 }
@@ -318,7 +318,7 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
         *Z += julia.yzw;
     }
 
-    *Z = mix3(Z_orig, *Z, weight);
+    *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)--;
 }
