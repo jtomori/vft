@@ -5,6 +5,7 @@
 #define NULL                    0
 
 #define LARGE_NUMBER            10e10
+#define ORBITS_OFFSET           0.006f // is used to hide colored seams in sdf subtracting
 
 #define ORBITS_ARRAY_LENGTH     9
 #define ENABLE_DELTA_DE         1
@@ -73,7 +74,9 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
 }
 
 // scene setup - setting of coordinates and shapes in them
-float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
+
+// scene with multiple unions of prims and fractals
+/*float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
@@ -85,6 +88,37 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float shape5 = primitive(P - (float3)(-2.0f, 0.0f, 0.0f), 0.6f,     final, &orbit_closest, orbit_colors, (float3)(1.0f,1.0f,0.0f), N, 1);
 
     dist_out = sdfUnion( sdfUnion( sdfUnion( sdfUnion(shape1, shape2) , shape3 ) , shape4 ) , shape5 );
+
+    return dist_out;
+}*/
+
+// scene showing unions and subtractions
+/*float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
+    float dist_out;
+    float orbit_closest = LARGE_NUMBER;
+
+    float shape1 = hybrid(P,                  10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
+    float shape2 = hybrid(P - (float3)(0.4f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 1);
+    //float shape3 = hybrid(P - (float3)(-0.5f, 0.0f, 0.5f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
+
+    float shape4 = primitive(P - (float3)(0.7f, 0.0f, 0.0f), 1.0f,      final, &orbit_closest, orbit_colors, (float3)(1.0f,0.0f,1.0f),  N, 0);
+
+    dist_out = sdfSubtract( sdfUnion(shape1, shape2) , shape4 );
+
+    return dist_out;
+}*/
+
+float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
+    float dist_out;
+    float orbit_closest = LARGE_NUMBER;
+
+    float shape1 = hybrid(P,                  10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
+    float shape2 = hybrid(P - (float3)(0.4f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 1);
+    //float shape3 = hybrid(P - (float3)(-0.5f, 0.0f, 0.5f), 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
+
+    float shape4 = primitive(P - (float3)(0.7f, 0.0f, 0.0f), 1.0f,      final, &orbit_closest, orbit_colors, (float3)(1.0f,0.0f,1.0f),  N, 0);
+
+    dist_out = sdfSubtract( sdfUnion(shape1, shape2) , shape4 );
 
     return dist_out;
 }
@@ -161,10 +195,10 @@ kernel void marchPerspCam(
     int i = 0;
 
     // quality settings
-    float step_size = 0.6f;
+    float step_size = 0.5f;
     float iso_limit_mult = 1.0f;
     float ray_dist = planeZ[0];
-    const int max_steps = 700;
+    const int max_steps = 400;
     const float max_dist = 1000.0f;
 
     float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
@@ -282,7 +316,7 @@ float primitive(float3 P, const float size, const int final, float* orbit_closes
     P /= size;
     float out_distance = primitive_stack(P, stack);
 
-    if (final == 1 && out_distance <= *orbit_closest)
+    if (final == 1 && out_distance <= *orbit_closest - ORBITS_OFFSET)
     {
         #pragma unroll
         for (int i=0; i<ORBITS_ARRAY_LENGTH; i++)
