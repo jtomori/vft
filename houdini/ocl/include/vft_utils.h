@@ -5,6 +5,8 @@
 // http://iquilezles.org/www/
 // http://woo4.me/woofractal/
 
+////////////// helper funcs
+
 
 // export float attrib
 static void vstore1(float dataIn, int i, global float* dataOut)

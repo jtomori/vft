@@ -70,6 +70,12 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
 
             break;
         }
+        case 3:
+        {
+            #define PY_FRACTAL_STACK
+
+            break;
+        }
     }
 }
 
@@ -112,7 +118,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
+    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
 
     dist_out = shape1;
 
@@ -257,7 +263,7 @@ kernel void marchPerspCam(
 }
 
 
-//// shading, shape functions
+////////////// shading, shape functions
 
 
 // compute Normals
