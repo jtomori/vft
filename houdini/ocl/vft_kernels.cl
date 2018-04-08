@@ -46,8 +46,8 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     {
         case 0:
         {
-            //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
-            bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
+            mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
+            //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
             //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
             //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.1f); // lin
             //mandelbulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 0.0f, 0.0f), 8.0f); // log
@@ -112,7 +112,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 2);
+    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
 
     dist_out = shape1;
 
@@ -293,7 +293,7 @@ float compute_AO(const float3* N, const float3* ray_P_world)
     }
     
     AO = clamp( 1.0f - 3.4f * AO_occ, 0.0f, 1.0f );
-    AO = pow(AO, 0.8f);
+    AO = pow(AO, 1.6f);
 
     return AO;
 }
