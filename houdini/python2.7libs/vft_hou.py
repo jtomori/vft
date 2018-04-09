@@ -2,12 +2,18 @@ import hou
 import toolutils
 import os
 import logging
+import time
 
-# logging conffig
+"""
+todo
+    * add unique identifier to detail attrib fractal_name
+"""
+
+# logging config
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-# returns list of fractal nodes that are connected to root node
+# returns list of fractal nodes that are connected (upstream) to root node
 def getInputFractalNodes(root):
     # node type names of all fractal nodes
     fractals_nodes = set( ["vft_bristorbrotIter", "vft_mandelbulbPower2Iter", "vft_mengerSpongeIter"] )
@@ -22,20 +28,19 @@ def getInputFractalNodes(root):
 
     return input_fractal_nodes
 
-# returns a node which belongs to "vft generator" list
-def getOutputGenerator(node):
-    generator_nodes = set( ["vft_generate_points"] )
-    all_children_nodes = outputChildren(node)
+# returns a connected node (downstream) which belongs to "vft generator" list
+def getOutputNodeByTypeName(start_node, type_name=""):
+    all_children_nodes = outputChildren(start_node)
     out = None
 
     for node in all_children_nodes:
-        if node.type().name() in generator_nodes:
+        if node.type().name() == type_name:
             out = node
             break
     
     return out
 
-# find all descending nodes
+# find all descending connected (downstream) nodes
 def outputChildren(node):
     children = list( node.outputs() )
     for node in children:
@@ -56,8 +61,7 @@ def generateClFractalStack(fractal_nodes):
     fractal_names = []
 
     # convert houdini node name to fractal function name
-    for node in fractal_nodes:
-        name = node.type().name()
+    for name in fractal_nodes:
         name = name.split("_")[-1]
         fractal_names.append(name)
     
@@ -78,8 +82,9 @@ class GenerateKernel(object):
     def __init__(self):
         self.vft_root_path = self.getVftRootFromPath( hou.getenv("HOUDINI_PATH") )
         self.vft_kernels_path = os.path.join(self.vft_root_path, "ocl/vft_kernels.cl")
-        self.vft_kernels = None # can be initialized by loadKernelsFile member func
-        self.vft_kernels_parsed = None # will be filled in by parseKernelsFile member func
+
+        self.vft_kernels = None
+        self.vft_kernels_parsed = None
     
     # this might not work on Windows
     # extracts path to VFT from os-style paths string
@@ -99,35 +104,72 @@ class GenerateKernel(object):
         return vft_root
     
     # loads vft_kernels.cl file into member variable
-    def loadKernelsFile(self):
-        log.debug("Kernels file loaded")
+    def loadKernelsFileToMemberVar(self):
+        start_time = time.time()
         with open(self.vft_kernels_path, 'r') as file:
             self.vft_kernels = file.read()
 
-        self.vft_kernels_parsed = self.vft_kernels
-        
+
+        log.debug("Kernels file loaded from disk in {0:.8f} seconds".format( time.time() - start_time ))
+    
+    # loads vft_kernels.cl into specified parm object (which should be string) - this function should be called by a button for (re)loading a parm
+    def loadKernelsFileToParm(self, parm):
+        if self.vft_kernels == None:
+            self.loadKernelsFileToMemberVar()
+
+        parm.set(self.vft_kernels)
+    
+    # loads vft_kernels.cl into member var - either from disk, or parm (if it is loaded there already)
+    def loadKernelsFileFromParm(self, parm):
+        if parm.eval() == "":
+            log.debug("Loading member var from file")
+            self.loadKernelsFileToMemberVar()
+        else:
+            log.debug("Loading member var from node parameter")
+            self.vft_kernels = parm.eval()
     
     # parses vft_kernels.cl file and replaces PY_* macros and saves it into member varible
-    def parseKernelsFile(self, root_node):
-        log.debug("Kernels file parsed")
+    def parseKernelsFile(self, fractal_nodes):
+        start_time = time.time()
+        self.vft_kernels_parsed = self.vft_kernels
+
         # generate fractal stack
         fractals_stack_token = "#define PY_FRACTAL_STACK"
 
-        fractals_stack_cl_code = generateClFractalStack( getInputFractalNodes(root_node) )
-        fractals_stack_cl_code = clStatementsToString(fractals_stack_cl_code)
+        fractals_stack_cl_code = clStatementsToString( generateClFractalStack(fractal_nodes) )
         fractals_stack_cl_code = fractals_stack_token + "\n\n" + fractals_stack_cl_code
 
         self.vft_kernels_parsed = self.vft_kernels_parsed.replace(fractals_stack_token, fractals_stack_cl_code)
 
-# this func should be used in OpenCL kernelcode parameter Python expression
-def fillKernelCodeParm():
-    log.debug("OpenCL kernel parm evaluated")
-    me = hou.pwd()
-    kernel = GenerateKernel()
-    kernel.loadKernelsFile()
-    kernel.parseKernelsFile( me.parent() )
 
-    return kernel.vft_kernels_parsed
+        log.debug("Kernels file parsed in {0:.8f} seconds".format( time.time() - start_time ))
+
+# this func will do all the parsing and will set up the kernel parm in descendant opencl node
+def fillKernelCodePythonSop():
+    start_time = time.time()    
+    me = hou.pwd()
+    geo = me.geometry()
+    kernels_parm = me.parm("vft_kernels")
+
+    # find a opencl downstream node
+    cl_node = getOutputNodeByTypeName(me, "opencl")
+
+    # init a GenerateKernel object and init member var vft_kernels
+    kernel = GenerateKernel()
+    kernel.loadKernelsFileFromParm(kernels_parm)
+
+    # get set of incoming fractals
+    fractal_nodes = list( geo.findGlobalAttrib("fractal_name").strings() )
+    print fractal_nodes
+
+    # do the parsing
+    kernel.parseKernelsFile(fractal_nodes)
+
+    # set vft_kernels_parsed to kernelcode parm in an opencl node
+    cl_node.parm("kernelcode").set(kernel.vft_kernels_parsed)
+
+
+    log.debug("Python SOP evaluated in {0:.8f} seconds".format( time.time() - start_time ))    
 
 # this func should be called by HDA on On Input Changed event
 def nodeRecook(**kwargs):
