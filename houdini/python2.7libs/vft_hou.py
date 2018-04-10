@@ -6,7 +6,6 @@ import time
 
 """
 todo
-    * pass in arbitrary parameters
     * pass in arbitrary combination of hybrids, primitives and boolean-combine them
 """
 
@@ -54,25 +53,6 @@ def outputChildren(node):
                 outputChildren(child)
     
     return children
-
-# returns a list of CL statements with fractal function calls from a list of fractal nodes
-def generateClFractalStack(fractal_nodes):
-    default_args = "(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f))"
-
-    fractal_names = []
-
-    # convert houdini node name to fractal function name
-    for name in fractal_nodes:
-        name = name.split("|")[0].split("_")[-1]
-        fractal_names.append(name)
-    
-    # list which will hold CL fractal funcs calls
-    stack = []
-
-    for name in fractal_names:
-        stack.append(name + default_args)
-    
-    return stack
 
 # helper func
 def clStatementsToString(statements):
@@ -130,20 +110,40 @@ class GenerateKernel(object):
             self.vft_kernels = parm.eval()
     
     # parses vft_kernels.cl file and replaces PY_* macros and saves it into member varible
-    def parseKernelsFile(self, fractal_nodes):
+    def parseKernelsFile(self, fractal_attribs):
         start_time = time.time()
         self.vft_kernels_parsed = self.vft_kernels
 
         # generate fractal stack
         fractals_stack_token = "#define PY_FRACTAL_STACK"
 
-        fractals_stack_cl_code = clStatementsToString( generateClFractalStack(fractal_nodes) )
+        fractals_stack_cl_code = clStatementsToString( self.generateClFractalStack(fractal_attribs) )
         fractals_stack_cl_code = fractals_stack_token + "\n\n" + fractals_stack_cl_code
 
         self.vft_kernels_parsed = self.vft_kernels_parsed.replace(fractals_stack_token, fractals_stack_cl_code)
 
 
         log.debug("Kernels file parsed in {0:.8f} seconds".format( time.time() - start_time ))
+    
+    # returns a list of CL statements with fractal function calls from a list of fractal nodes
+    def generateClFractalStack(self, fractal_attribs):
+        default_args = "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f))"
+
+        fractal_objects = []
+
+        for attrib in fractal_attribs:
+            obj = FractalObject()
+            obj.attribToVars(attrib)
+            fractal_objects.append(obj)
+
+        # list which will hold CL fractal funcs calls
+        stack = []
+
+        for obj in fractal_objects:
+            statement = default_args.format(obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]))
+            stack.append(statement)
+
+        return stack
 
 # this func will do all the parsing and will set up the kernel parm in descendant opencl node
 def fillKernelCodePythonSop():
@@ -160,10 +160,10 @@ def fillKernelCodePythonSop():
     kernel.loadKernelsFileFromParm(kernels_parm)
 
     # get set of incoming fractals
-    fractal_nodes = geo.findGlobalAttrib("fractal_name").strings()
+    fractal_attribs = geo.findGlobalAttrib("fractal_name").strings()
 
     # do the parsing
-    kernel.parseKernelsFile(fractal_nodes)
+    kernel.parseKernelsFile(fractal_attribs)
 
     # set vft_kernels_parsed to kernelcode parm in an opencl node
     cl_node.parm("kernelcode").set(kernel.vft_kernels_parsed)
