@@ -6,7 +6,8 @@ import time
 
 """
 todo
-    * add unique identifier to detail attrib fractal_name
+    * pass in arbitrary parameters
+    * pass in arbitrary combination of hybrids, primitives and boolean-combine them
 """
 
 # logging config
@@ -62,7 +63,7 @@ def generateClFractalStack(fractal_nodes):
 
     # convert houdini node name to fractal function name
     for name in fractal_nodes:
-        name = name.split("_")[-1]
+        name = name.split("|")[0].split("_")[-1]
         fractal_names.append(name)
     
     # list which will hold CL fractal funcs calls
@@ -159,8 +160,7 @@ def fillKernelCodePythonSop():
     kernel.loadKernelsFileFromParm(kernels_parm)
 
     # get set of incoming fractals
-    fractal_nodes = list( geo.findGlobalAttrib("fractal_name").strings() )
-    print fractal_nodes
+    fractal_nodes = geo.findGlobalAttrib("fractal_name").strings()
 
     # do the parsing
     kernel.parseKernelsFile(fractal_nodes)
@@ -169,9 +169,57 @@ def fillKernelCodePythonSop():
     cl_node.parm("kernelcode").set(kernel.vft_kernels_parsed)
 
 
-    log.debug("Python SOP evaluated in {0:.8f} seconds".format( time.time() - start_time ))    
+    log.debug("Python SOP evaluated in {0:.8f} seconds".format( time.time() - start_time ))
 
-# this func should be called by HDA on On Input Changed event
-def nodeRecook(**kwargs):
-    log.debug("Node recooked")
-    #node.cook(force=True)
+# a class that will hold data and functionality for getting fractal data from detail attribute
+class FractalObject(object):
+    def __init__(self):
+        # init member vars
+        self.asset_name = None
+        self.parent_name = None
+        self.cl_function_name = None
+        self.parms = {
+            "weight" : 1.0,
+            "julia_mode" : 0,
+            "juliax" : 0.0,
+            "juliay" : 0.0,
+            "juliaz" : 0.0
+        }
+    
+    # this will parse attribute string and will set member vars from it
+    def attribToVars(self, attrib):
+        attrib_list = attrib.split("|")
+
+        self.asset_name = attrib_list[0]
+        self.parent_name = attrib_list[1]
+
+        self.cl_function_name = self.asset_name.split("_")[-1]
+
+        parms_string = attrib_list[2]
+        parms_list = parms_string.split(",")
+
+        for item in parms_list:
+            item_split = item.split(":")
+            self.parms[ item_split[0] ] = item_split[1]
+
+    # this will fill in member vars based on a node, it should be used inside of a fractal node
+    def nodeToVars(self):
+        node = hou.pwd()
+
+        self.asset_name = node.parent().type().name()
+        self.parent_name = node.parent().name()
+
+        parms = node.parent().parms()
+        for parm in parms:
+            self.parms[ parm.name() ] = parm.eval()
+    
+    # this will serialize member vars into a string, which should be stored in detail attribute
+    def varsToAttrib(self):
+        parms_string = ""
+
+        for key, value in self.parms.iteritems():
+            parms_string += key + ":" + "{0:.6f}".format(value) + ","
+        parms_string = parms_string[:-1] # remove the last comma
+        
+        attrib = "|".join( [self.asset_name, self.parent_name, parms_string] )
+        return attrib
