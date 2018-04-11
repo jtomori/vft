@@ -6,11 +6,12 @@ import time
 
 """
 todo
+    * pass parameters as attributes, to reduce overhead of kernel re-compilation
     * pass in arbitrary combination of hybrids, primitives and boolean-combine them
 """
 
 # logging config
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG) # set to logging.INFO to disable DEBUG logs
 log = logging.getLogger(__name__)
 
 # returns list of fractal nodes that are connected (upstream) to root node
@@ -127,10 +128,42 @@ class GenerateKernel(object):
     
     # returns a list of CL statements with fractal function calls from a list of fractal nodes
     def generateClFractalStack(self, fractal_attribs):
-        default_args = "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f))"
+        # a dictionary mapping strings of arguments to OpenCL fractal function names
+        args_dict = {
+            "default" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f))",
+            "mandelboxIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
+            "mandelbulbIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
+            "xenodreambuieIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, {7:.6f}f, {8:.6f}f)",
+            "sierpinski3dIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, (float3)({7:.6f}f, {8:.6f}f, {9:.6f}f), (float3)({10:.6f}f, {11:.6f}f, {12:.6f}f))"
+        }
+
+        def args_format(args_dict, obj):
+            # if a function has some custom arguments, then their formatting is specified here
+            if obj.cl_function_name in args_dict:
+
+                # this line is picking a string to be formatted from args_dict dictionary
+                string = args_dict[obj.cl_function_name]
+
+                if obj.cl_function_name == "mandelboxIter":
+                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]) )
+
+                elif obj.cl_function_name == "mandelbulbIter":
+                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["power"]) )
+                
+                elif obj.cl_function_name == "xenodreambuieIter":
+                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["power"]), float(obj.parms["alpha"]), float(obj.parms["beta"]) )
+                
+                elif obj.cl_function_name == "sierpinski3dIter":
+                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]), float(obj.parms["offsetx"]), float(obj.parms["offsety"]), float(obj.parms["offsetz"]), float(obj.parms["rotx"]), float(obj.parms["roty"]), float(obj.parms["rotz"]) )
+
+            # if function has not arguments mapping in args_dict, then it is considered to use default one
+            else:
+                string = args_dict["default"]
+                string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]) )
+            
+            return string
 
         fractal_objects = []
-
         for attrib in fractal_attribs:
             obj = FractalObject()
             obj.attribToVars(attrib)
@@ -140,7 +173,7 @@ class GenerateKernel(object):
         stack = []
 
         for obj in fractal_objects:
-            statement = default_args.format(obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]))
+            statement = args_format(args_dict, obj)
             stack.append(statement)
 
         return stack
@@ -165,11 +198,17 @@ def fillKernelCodePythonSop():
     # do the parsing
     kernel.parseKernelsFile(fractal_attribs)
 
-    # set vft_kernels_parsed to kernelcode parm in an opencl node
-    cl_node.parm("kernelcode").set(kernel.vft_kernels_parsed)
+    # set vft_kernels_parsed to kernelcode parm in an opencl node if has changed
+    cl_node_parm = cl_node.parm("kernelcode")
+    old_cl_code = cl_node_parm.eval()
 
+    if old_cl_code != kernel.vft_kernels_parsed:
+        cl_node_parm.set(kernel.vft_kernels_parsed)
+        log.debug("Kernel in OpenCL node updated")
+    else:
+        log.debug("Kernel in OpenCL is up to date")
 
-    log.debug("Python SOP evaluated in {0:.8f} seconds".format( time.time() - start_time ))
+    log.debug("Python SOP evaluated in {0:.8f} seconds \n\n".format( time.time() - start_time ))
 
 # a class that will hold data and functionality for getting fractal data from detail attribute
 class FractalObject(object):
