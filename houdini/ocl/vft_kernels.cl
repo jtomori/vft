@@ -118,7 +118,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 10, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
+    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
 
     dist_out = shape1;
 
@@ -198,10 +198,10 @@ kernel void marchPerspCam(
     int i = 0;
 
     // quality settings
-    float step_size = 0.5f;
-    float iso_limit_mult = 1.0f;
+    float step_size = 0.6f;
+    float iso_limit_mult = 0.7f;
     float ray_dist = planeZ[0];
-    const int max_steps = 400;
+    const int max_steps = 700;
     const float max_dist = 1000.0f;
 
     float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
