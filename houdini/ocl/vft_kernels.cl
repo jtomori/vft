@@ -169,7 +169,7 @@ kernel void marchPerspCam(
 
     // apply transformations, also produce alternative matrix with scaled near plane
     near_plane_xform = mtxMult(near_plane_xform, near_plane_scale);
-    float16 near_plane_xform_scaled = mtxMult(near_plane_xform, mtxScale( (float3)(100000.0f) ) );
+    float16 near_plane_xform_scaled = mtxMult(near_plane_xform, mtxScale( (float3)(10000000.0f) ) );
     near_plane_xform = mtxMult(near_plane_xform, cam_xform_world);
     near_plane_xform_scaled = mtxMult(near_plane_xform_scaled, cam_xform_world);
 
