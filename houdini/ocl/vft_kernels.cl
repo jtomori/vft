@@ -108,19 +108,19 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
     
     float distance = length(*Z);
 
-    Z->x = fabs(Z->x);
-    Z->y = fabs(Z->y);
-    Z->z = fabs(Z->z);
+    (*Z).x = fabs((*Z).x);
+    (*Z).y = fabs((*Z).y);
+    (*Z).z = fabs((*Z).z);
 
-    if (Z->x - Z->y < 0.0f) Z->xy = Z->yx;
-    if (Z->x - Z->z < 0.0f) Z->xz = Z->zx;
-    if (Z->y - Z->z < 0.0f) Z->yz = Z->zy;
+    if ((*Z).x - (*Z).y < 0.0f) (*Z).xy = (*Z).yx;
+    if ((*Z).x - (*Z).z < 0.0f) (*Z).xz = (*Z).zx;
+    if ((*Z).y - (*Z).z < 0.0f) (*Z).yz = (*Z).zy;
 
     *Z *= 3.0f;
 
-    Z->x -= 2.0f;
-    Z->y -= 2.0f;
-    if (Z->z > 1.0f) Z->z -= 2.0f;
+    (*Z).x -= 2.0f;
+    (*Z).y -= 2.0f;
+    if ((*Z).z > 1.0f) (*Z).z -= 2.0f;
 
     *de *= 3.0f;
 
@@ -145,9 +145,9 @@ void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, con
     float distance = length(*Z);
 
     float3 new;
-    new.x = Z->x * Z->x - Z->y * Z->y - Z->z * Z->z;
-    new.y = Z->y * (2.0f * Z->x - Z->z);
-    new.z = Z->z * (2.0f * Z->x + Z->y);
+    new.x = (*Z).x * (*Z).x - (*Z).y * (*Z).y - (*Z).z * (*Z).z;
+    new.y = (*Z).y * (2.0f * (*Z).x - (*Z).z);
+    new.z = (*Z).z * (2.0f * (*Z).x + (*Z).y);
     
     *de = *de * 2.0f * distance;
     *Z = new;
