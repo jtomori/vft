@@ -65,8 +65,8 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     float distance = length(*Z);
 
     // convert to polar coordinates
-    float theta = acos(Z->z/distance);
-    float phi = atan2(Z->y, Z->x);
+    float theta = acos((*Z).z/distance);
+    float phi = atan2((*Z).y, (*Z).x);
 
     *de =  pow(distance, power-1) * power * (*de) + 1.0f;
     
@@ -104,16 +104,16 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
     float minRadius = 0.5f;
     float mR2 = minRadius * minRadius;
 
-    if (Z->x > 1.0f) Z->x = 2.0f - Z->x;
-    else if (Z->x < -1.0f) Z->x = -2.0f - Z->x;
+    if ((*Z).x > 1.0f) (*Z).x = 2.0f - (*Z).x;
+    else if ((*Z).x < -1.0f) (*Z).x = -2.0f - (*Z).x;
 
-    if (Z->y > 1.0f) Z->y = 2.0f - Z->y;
-    else if (Z->y < -1.0f) Z->y = -2.0f - Z->y;
+    if ((*Z).y > 1.0f) (*Z).y = 2.0f - (*Z).y;
+    else if ((*Z).y < -1.0f) (*Z).y = -2.0f - (*Z).y;
 
-    if (Z->z > 1.0f) Z->z = 2.0f - Z->z;
-    else if (Z->z < -1.0f) Z->z = -2.0f - Z->z;
+    if ((*Z).z > 1.0f) (*Z).z = 2.0f - (*Z).z;
+    else if ((*Z).z < -1.0f) (*Z).z = -2.0f - (*Z).z;
 
-    float r2 = Z->x*Z->x + Z->y*Z->y + Z->z*Z->z;
+    float r2 = (*Z).x*(*Z).x + (*Z).y*(*Z).y + (*Z).z*(*Z).z;
 
     if (r2 < mR2)
     {
@@ -151,14 +151,14 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     float distance = length(*Z);
 
     *de = *de * 2.0f * distance;
-    float x2 = Z->x * Z->x;
-    float y2 = Z->y * Z->y;
-    float z2 = Z->z * Z->z;
+    float x2 = (*Z).x * (*Z).x;
+    float y2 = (*Z).y * (*Z).y;
+    float z2 = (*Z).z * (*Z).z;
     float temp = 1.0f - z2 / (x2 + y2);
     float3 new;
     new.x = (x2 - y2) * temp;
-    new.y = 2.0f * Z->x * Z->y * temp;
-    new.z = -2.0f * Z->z * sqrt(x2 + y2);
+    new.y = 2.0f * (*Z).x * (*Z).y * temp;
+    new.z = -2.0f * (*Z).z * sqrt(x2 + y2);
 
     if (julia.x == 0.0f)
     {
@@ -182,19 +182,19 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
     
     float distance = length(*Z);
 
-    Z->x = fabs(Z->x);
-    Z->y = fabs(Z->y);
-    Z->z = fabs(Z->z);
+    (*Z).x = fabs((*Z).x);
+    (*Z).y = fabs((*Z).y);
+    (*Z).z = fabs((*Z).z);
 
-    if (Z->x - Z->y < 0.0f) Z->xy = Z->yx;
-    if (Z->x - Z->z < 0.0f) Z->xz = Z->zx;
-    if (Z->y - Z->z < 0.0f) Z->yz = Z->zy;
+    if ((*Z).x - (*Z).y < 0.0f) (*Z).xy = (*Z).yx;
+    if ((*Z).x - (*Z).z < 0.0f) (*Z).xz = (*Z).zx;
+    if ((*Z).y - (*Z).z < 0.0f) (*Z).yz = (*Z).zy;
 
     *Z *= 3.0f;
 
-    Z->x -= 2.0f;
-    Z->y -= 2.0f;
-    if (Z->z > 1.0f) Z->z -= 2.0f;
+    (*Z).x -= 2.0f;
+    (*Z).y -= 2.0f;
+    if ((*Z).z > 1.0f) (*Z).z -= 2.0f;
 
     *de *= 3.0f;
 
@@ -217,9 +217,9 @@ void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, con
     float distance = length(*Z);
 
     float3 new;
-    new.x = Z->x * Z->x - Z->y * Z->y - Z->z * Z->z;
-    new.y = Z->y * (2.0f * Z->x - Z->z);
-    new.z = Z->z * (2.0f * Z->x + Z->y);
+    new.x = (*Z).x * (*Z).x - (*Z).y * (*Z).y - (*Z).z * (*Z).z;
+    new.y = (*Z).y * (2.0f * (*Z).x - (*Z).z);
+    new.z = (*Z).z * (2.0f * (*Z).x + (*Z).y);
     
     *de = *de * 2.0f * distance;
     *Z = new;
@@ -252,14 +252,14 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     *de = rp * (*de) * power + 1.0f;
     rp *= distance;
 
-    float th = atan2(Z->y, Z->x) + beta;
-    float ph = acos(Z->z / distance) + alpha;
+    float th = atan2((*Z).y, (*Z).x) + beta;
+    float ph = acos((*Z).z / distance) + alpha;
 
     if (fabs(ph) > 0.5f * M_PI_F) ph = sign(ph) * M_PI_F - ph;
 
-    Z->x = rp * cos(th * power) * sin(ph * power);
-    Z->y = rp * sin(th * power) * sin(ph * power);
-    Z->z = rp * cos(ph * power);
+    (*Z).x = rp * cos(th * power) * sin(ph * power);
+    (*Z).y = rp * sin(th * power) * sin(ph * power);
+    (*Z).z = rp * cos(ph * power);
 
     if (julia.x == 0.0f)
     {
@@ -284,26 +284,26 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
 
     float3 temp = *Z;
 
-    if (Z->x - Z->y < 0.0f) Z->xy = Z->yx;
-    if (Z->x - Z->z < 0.0f) Z->xz = Z->zx;
-    if (Z->y - Z->z < 0.0f) Z->yz = Z->zy;
-    if (Z->x + Z->y < 0.0f)
+    if ((*Z).x - (*Z).y < 0.0f) (*Z).xy = (*Z).yx;
+    if ((*Z).x - (*Z).z < 0.0f) (*Z).xz = (*Z).zx;
+    if ((*Z).y - (*Z).z < 0.0f) (*Z).yz = (*Z).zy;
+    if ((*Z).x + (*Z).y < 0.0f)
     {
-        temp.x = -Z->y;
-        Z->y = -Z->x;
-        Z->x = temp.x;
+        temp.x = -(*Z).y;
+        (*Z).y = -(*Z).x;
+        (*Z).x = temp.x;
     }
-    if (Z->x + Z->z < 0.0f)
+    if ((*Z).x + (*Z).z < 0.0f)
     {
-        temp.x = -Z->z;
-        Z->z = -Z->x;
-        Z->x = temp.x;
+        temp.x = -(*Z).z;
+        (*Z).z = -(*Z).x;
+        (*Z).x = temp.x;
     }
-    if (Z->y + Z->z < 0.0f)
+    if ((*Z).y + (*Z).z < 0.0f)
     {
-        temp.y = -Z->z;
-        Z->z = -Z->y;
-        Z->y = temp.y;
+        temp.y = -(*Z).z;
+        (*Z).z = -(*Z).y;
+        (*Z).y = temp.y;
     }
 
     *Z *= scale;
@@ -335,33 +335,33 @@ static float amazingSurf(float3 P, float size)
 //{
 //    // update aux.actualScale
 //    aux.actualScale =
-//        fractal->mandelbox.scale + fractal->mandelboxVary4D.scaleVary * (fabs(aux.actualScale) - 1.0);
+//        fractal).mandelbox.scale + fractal).mandelboxVary4D.scaleVary * (fabs(aux.actualScale) - 1.0);
 
 //    CVector4 c = aux.const_c;
-//    z.x = fabs(z.x + fractal->transformCommon.additionConstant111.x)
-//                - fabs(z.x - fractal->transformCommon.additionConstant111.x) - z.x;
-//    z.y = fabs(z.y + fractal->transformCommon.additionConstant111.y)
-//                - fabs(z.y - fractal->transformCommon.additionConstant111.y) - z.y;
+//    z.x = fabs(z.x + fractal).transformCommon.additionConstant111.x)
+//                - fabs(z.x - fractal).transformCommon.additionConstant111.x) - z.x;
+//    z.y = fabs(z.y + fractal).transformCommon.additionConstant111.y)
+//                - fabs(z.y - fractal).transformCommon.additionConstant111.y) - z.y;
 //    // no z fold
 
 //    double rr = z.Dot(z);
-//    if (fractal->transformCommon.functionEnabledFalse) // force cylinder fold
+//    if (fractal).transformCommon.functionEnabledFalse) // force cylinder fold
 //        rr -= z.z * z.z;
 
-//    double sqrtMinR = sqrt(fractal->transformCommon.minR05);
+//    double sqrtMinR = sqrt(fractal).transformCommon.minR05);
 //    double dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0);
 
 //    // use aux.actualScale
 //    double m = aux.actualScale / dividend;
 
-//    z *= (m - 1.0) * fractal->transformCommon.scale1 + 1.0;
-//    // z *= m * fractal->transformCommon.scale1 + 1.0 * (1.0 - fractal->transformCommon.scale1);
+//    z *= (m - 1.0) * fractal).transformCommon.scale1 + 1.0;
+//    // z *= m * fractal).transformCommon.scale1 + 1.0 * (1.0 - fractal).transformCommon.scale1);
 //    aux.DE = aux.DE * fabs(m) + 1.0;
 
-//    if (fractal->transformCommon.addCpixelEnabledFalse)
-//        z += CVector4(c.y, c.x, c.z, c.w) * fractal->transformCommon.constantMultiplier111;
+//    if (fractal).transformCommon.addCpixelEnabledFalse)
+//        z += CVector4(c.y, c.x, c.z, c.w) * fractal).transformCommon.constantMultiplier111;
 
-//    z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+//    z = fractal).transformCommon.rotationMatrix.RotateVector(z);
 //}
     //P /= size;
     float3 z = P;
@@ -387,7 +387,7 @@ static float amazingSurf(float3 P, float size)
         // no z fold
     
         float rr = z.x*z.x + z.y*z.y + z.z*z.z;
-        //if (fractal->transformCommon.functionEnabledFalse) // force cylinder fold
+        //if (fractal).transformCommon.functionEnabledFalse) // force cylinder fold
         //    rr -= z.z * z.z;
     
         float sqrtMinR = sqrt(minRad);
@@ -400,10 +400,10 @@ static float amazingSurf(float3 P, float size)
         z *= (m - 1.0f) * scaleInf + 1.0f;
         dr = dr * fabs(m) + 1.0;
     
-        //if (fractal->transformCommon.addCpixelEnabledFalse)
-        //    z += CVector4(c.y, c.x, c.z, c.w) * fractal->transformCommon.constantMultiplier111;
+        //if (fractal).transformCommon.addCpixelEnabledFalse)
+        //    z += CVector4(c.y, c.x, c.z, c.w) * fractal).transformCommon.constantMultiplier111;
     
-        //z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+        //z = fractal).transformCommon.rotationMatrix.RotateVector(z);
         float16 rotMtx = mtxRotate( (float3)(8.414060, 3.340000, 18.125000) );
         //z = mtxPtMult(rotMtx, z);
 
@@ -471,17 +471,17 @@ static float quaternion3d(float3 P, float size)
 //    z = CVector4(z.x * z.x - z.y * z.y - z.z * z.z, z.x * z.y, z.x * z.z, z.w);
 //
 //    double tempL = z.Length();
-//    z *= fractal->transformCommon.constantMultiplier122;
+//    z *= fractal).transformCommon.constantMultiplier122;
 //    // if (tempL < 1e-21) tempL = 1e-21;
 //    CVector4 tempAvgScale = CVector4(z.x, z.y / 2.0, z.z / 2.0, z.w);
 //    double avgScale = tempAvgScale.Length() / tempL;
 //    double tempAux = aux.r_dz * avgScale;
-//    aux.r_dz = aux.r_dz + (tempAux - aux.r_dz) * fractal->transformCommon.scaleA1;
+//    aux.r_dz = aux.r_dz + (tempAux - aux.r_dz) * fractal).transformCommon.scaleA1;
 //
-//    if (fractal->transformCommon.rotationEnabled)
-//        z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+//    if (fractal).transformCommon.rotationEnabled)
+//        z = fractal).transformCommon.rotationMatrix.RotateVector(z);
 //
-//    z += fractal->transformCommon.additionConstant000;
+//    z += fractal).transformCommon.additionConstant000;
 //}
     P /= size;
 
@@ -507,8 +507,8 @@ static float quaternion3d(float3 P, float size)
         float tempAux = dr * avgScale;
         dr = dr + (tempAux - dr) * 1.0f;
 
-        //if (fractal->transformCommon.rotationEnabled)
-        //    z = fractal->transformCommon.rotationMatrix.RotateVector(z);
+        //if (fractal).transformCommon.rotationEnabled)
+        //    z = fractal).transformCommon.rotationMatrix.RotateVector(z);
 
         z += (float4)(0,0,0,0);
     }
