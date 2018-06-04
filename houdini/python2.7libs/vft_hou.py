@@ -14,8 +14,10 @@ todo
 logging.basicConfig(level=logging.DEBUG) # set to logging.INFO to disable DEBUG logs
 log = logging.getLogger(__name__)
 
-# returns list of fractal nodes that are connected (upstream) to root node
 def getInputFractalNodes(root):
+    """
+    returns list of fractal nodes that are connected (upstream) to root node
+    """
     # node type names of all fractal nodes
     fractals_nodes = set( ["vft_bristorbrotIter", "vft_mandelbulbPower2Iter", "vft_mengerSpongeIter"] )
 
@@ -29,8 +31,10 @@ def getInputFractalNodes(root):
 
     return input_fractal_nodes
 
-# returns a connected node (downstream) which belongs to "vft generator" list
 def getOutputNodeByTypeName(start_node, type_name=""):
+    """
+    returns a connected node (downstream) which belongs to "vft generator" list
+    """
     all_children_nodes = outputChildren(start_node)
     out = None
 
@@ -41,8 +45,10 @@ def getOutputNodeByTypeName(start_node, type_name=""):
     
     return out
 
-# find all descending connected (downstream) nodes
 def outputChildren(node):
+    """
+    find all descending connected (downstream) nodes
+    """
     children = list( node.outputs() )
     for node in children:
         new_children = node.outputs()
@@ -55,12 +61,16 @@ def outputChildren(node):
     
     return children
 
-# helper func
 def clStatementsToString(statements):
+    """
+    helper func
+    """
     return ";\n".join(statements) + ";\n"
 
-# class that will generate fractal generation CL code that Houdini will read from a string parameter and will execute
 class GenerateKernel(object):
+    """
+    class that will generate fractal generation CL code that Houdini will read from a string parameter and will execute
+    """
     def __init__(self):
         self.vft_root_path = self.getVftRootFromPath( hou.getenv("HOUDINI_PATH") )
         self.vft_kernels_path = os.path.join(self.vft_root_path, "ocl/vft_kernels.cl")
@@ -68,9 +78,11 @@ class GenerateKernel(object):
         self.vft_kernels = None
         self.vft_kernels_parsed = None
     
-    # this might not work on Windows
-    # extracts path to VFT from os-style paths string
     def getVftRootFromPath(self, path):
+        """
+        this might not work on Windows
+        extracts path to VFT from os-style paths string
+        """
         paths = path.split(":")
         
         # this will need to be changed if git repository name changes
@@ -85,8 +97,10 @@ class GenerateKernel(object):
         
         return vft_root
     
-    # loads vft_kernels.cl file into member variable
     def loadKernelsFileToMemberVar(self):
+        """
+        loads vft_kernels.cl file into member variable
+        """
         start_time = time.time()
         with open(self.vft_kernels_path, 'r') as file:
             self.vft_kernels = file.read()
@@ -94,15 +108,19 @@ class GenerateKernel(object):
 
         log.debug("Kernels file loaded from disk in {0:.8f} seconds".format( time.time() - start_time ))
     
-    # loads vft_kernels.cl into specified parm object (which should be string) - this function should be called by a button for (re)loading a parm
     def loadKernelsFileToParm(self, parm):
+        """
+        loads vft_kernels.cl into specified parm object (which should be string) - this function should be called by a button for (re)loading a parm
+        """
         if self.vft_kernels == None:
             self.loadKernelsFileToMemberVar()
 
         parm.set(self.vft_kernels)
     
-    # loads vft_kernels.cl into member var - either from disk, or parm (if it is loaded there already)
     def loadKernelsFileFromParm(self, parm):
+        """
+        loads vft_kernels.cl into member var - either from disk, or parm (if it is loaded there already)
+        """
         if parm.eval() == "":
             log.debug("Loading member var from file")
             self.loadKernelsFileToMemberVar()
@@ -110,8 +128,10 @@ class GenerateKernel(object):
             log.debug("Loading member var from node parameter")
             self.vft_kernels = parm.eval()
     
-    # parses vft_kernels.cl file and replaces PY_* macros and saves it into member varible
     def parseKernelsFile(self, fractal_attribs):
+        """
+        parses vft_kernels.cl file and replaces PY_* macros and saves it into member varible
+        """
         start_time = time.time()
         self.vft_kernels_parsed = self.vft_kernels
 
@@ -126,8 +146,10 @@ class GenerateKernel(object):
 
         log.debug("Kernels file parsed in {0:.8f} seconds".format( time.time() - start_time ))
     
-    # returns a list of CL statements with fractal function calls from a list of fractal nodes
     def generateClFractalStack(self, fractal_attribs):
+        """
+        returns a list of CL statements with fractal function calls from a list of fractal nodes
+        """
         # a dictionary mapping strings of arguments to OpenCL fractal function names
         args_dict = {
             "default" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f))",
@@ -138,7 +160,9 @@ class GenerateKernel(object):
         }
 
         def args_format(args_dict, obj):
-            # if a function has some custom arguments, then their formatting is specified here
+            """
+            if a function has some custom arguments, then their formatting is specified here
+            """
             if obj.cl_function_name in args_dict:
 
                 # this line is picking a string to be formatted from args_dict dictionary
@@ -178,8 +202,10 @@ class GenerateKernel(object):
 
         return stack
 
-# this func will do all the parsing and will set up the kernel parm in descendant opencl node
 def fillKernelCodePythonSop():
+    """
+    this func will do all the parsing and will set up the kernel parm in descendant opencl node
+    """
     start_time = time.time()    
     me = hou.pwd()
     geo = me.geometry()
@@ -210,8 +236,10 @@ def fillKernelCodePythonSop():
 
     log.debug("Python SOP evaluated in {0:.8f} seconds \n\n".format( time.time() - start_time ))
 
-# a class that will hold data and functionality for getting fractal data from detail attribute
 class FractalObject(object):
+    """
+    a class that will hold data and functionality for getting fractal data from detail attribute
+    """
     def __init__(self):
         # init member vars
         self.asset_name = None
@@ -225,8 +253,10 @@ class FractalObject(object):
             "juliaz" : 0.0
         }
     
-    # this will parse attribute string and will set member vars from it
     def attribToVars(self, attrib):
+        """
+        this will parse attribute string and will set member vars from it
+        """
         attrib_list = attrib.split("|")
 
         self.asset_name = attrib_list[0]
@@ -241,8 +271,10 @@ class FractalObject(object):
             item_split = item.split(":")
             self.parms[ item_split[0] ] = item_split[1]
 
-    # this will fill in member vars based on a node, it should be used inside of a fractal node
     def nodeToVars(self):
+        """
+        this will fill in member vars based on a node, it should be used inside of a fractal node
+        """
         node = hou.pwd()
 
         self.asset_name = node.parent().type().name()
@@ -252,8 +284,10 @@ class FractalObject(object):
         for parm in parms:
             self.parms[ parm.name() ] = parm.eval()
     
-    # this will serialize member vars into a string, which should be stored in detail attribute
     def varsToAttrib(self):
+        """
+        this will serialize member vars into a string, which should be stored in detail attribute
+        """
         parms_string = ""
 
         for key, value in self.parms.iteritems():
