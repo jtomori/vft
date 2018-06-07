@@ -83,7 +83,7 @@ class GenerateKernel(object):
         this might not work on Windows
         extracts path to VFT from os-style paths string
         """
-        paths = path.split(":")
+        paths = path.replace(";",":").split(":")
         
         # this will need to be changed if git repository name changes
         pattern = os.sep + "raymarching" + os.sep + "houdini"
@@ -156,7 +156,8 @@ class GenerateKernel(object):
             "mandelboxIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
             "mandelbulbIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
             "xenodreambuieIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, {7:.6f}f, {8:.6f}f)",
-            "sierpinski3dIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, (float3)({7:.6f}f, {8:.6f}f, {9:.6f}f), (float3)({10:.6f}f, {11:.6f}f, {12:.6f}f))"
+            "sierpinski3dIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, (float3)({7:.6f}f, {8:.6f}f, {9:.6f}f), (float3)({10:.6f}f, {11:.6f}f, {12:.6f}f))",
+            "mengerSmoothIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}, {7:.6f}, (float3)({8:.6f}, {9:.6f}, {10:.6f}), (float3)({11:.6f}, {12:.6f}, {13:.6f}))"
         }
 
         def args_format(args_dict, obj):
@@ -179,6 +180,9 @@ class GenerateKernel(object):
                 
                 elif obj.cl_function_name == "sierpinski3dIter":
                     string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]), float(obj.parms["offsetx"]), float(obj.parms["offsety"]), float(obj.parms["offsetz"]), float(obj.parms["rotx"]), float(obj.parms["roty"]), float(obj.parms["rotz"]) )
+                
+                elif obj.cl_function_name == "mengerSmoothIter":
+                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]), float(obj.parms["offset_s"]), float(obj.parms["offset_cx"]), float(obj.parms["offset_cy"]), float(obj.parms["offset_cz"]), float(obj.parms["rotx"]), float(obj.parms["roty"]), float(obj.parms["rotz"]) )
 
             # if function has not arguments mapping in args_dict, then it is considered to use default one
             else:

@@ -2,8 +2,9 @@
 #define VFT_FRACTALS
 
 // mapping of variables
-// aux.r_dz -> dr
-// aux.r -> r
+// aux.r_dz -> de
+// aux.r -> distance
+// aux.de -> de
 // dr -> de
 // r -> distance
 // Bailout -> max_distance
@@ -209,7 +210,7 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
 }
 
 // [M2] - Bristorbrot formula - BristorbrotIteration
-void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -323,6 +324,58 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
     (*log_lin)--;
 }
 
+// [M2] - Menger Smooth - mengerSmoothIteration
+static float mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale, const float offset_s, const float3 offset_c, const float3 rot)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+	
+    float sc1 = scale - 1.0f;
+	float sc2 = sc1 / scale;
+
+    *Z = (float3)(sqrt((*Z).x * (*Z).x + offset_s), sqrt((*Z).y * (*Z).y + offset_s), sqrt((*Z).z * (*Z).z + offset_s));    
+
+	float t;
+
+	t = (*Z).x - (*Z).y;
+	t = 0.5f * (t - sqrt(t * t + offset_s));
+	(*Z).x = (*Z).x - t;
+	(*Z).y = (*Z).y + t;
+
+	t = (*Z).x - (*Z).z;
+	t = 0.5f * (t - sqrt(t * t + offset_s));
+	(*Z).x = (*Z).x - t;
+	(*Z).z = (*Z).z + t;
+
+	t = (*Z).y - (*Z).z;
+	t = 0.5f * (t - sqrt(t * t + offset_s));
+	(*Z).y = (*Z).y - t;
+	(*Z).z = (*Z).z + t;
+
+	(*Z).z = (*Z).z - offset_c.z * sc2;
+	(*Z).z = -sqrt((*Z).z * (*Z).z + offset_s);
+	(*Z).z = (*Z).z + offset_c.z * sc2;
+
+	(*Z).x = scale * (*Z).x - offset_c.x * sc1;
+	(*Z).y = scale * (*Z).y - offset_c.y * sc1;
+	(*Z).z = scale * (*Z).z;
+
+	*de *= scale;
+
+    *Z = mtxPtMult( mtxRotate(rot) , *Z );
+
+    if (julia.x == 1.0f)
+    {
+        *Z += *P_in;
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
+}
 
 
 // testing new formulas
