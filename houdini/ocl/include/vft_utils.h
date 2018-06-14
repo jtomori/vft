@@ -80,6 +80,12 @@ static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
     return p;
 }
 
+// [M2] wrap 
+static float3 wrap(float3 x, float3 a, float3 s)
+{
+	x -= s;
+	return (float3)(x.x - a.x * floor(x.x / a.x) + s.x, x.y - a.y * floor(x.y / a.y) + s.y, x.z - a.z * floor(x.z / a.z) + s.z);
+}
 
 ////////////// debug
 

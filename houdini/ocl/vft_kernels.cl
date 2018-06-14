@@ -46,7 +46,9 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     {
         case 0:
         {
-            amazingSurfIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0, 0.5f, 2.0f, 1.0f, (float3)(0.0f, 0.0f, 0.0f), 1, (float3)(1.0f, 1.0f, 1.0f));
+            josKleinianIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f), 2.0f, 0.0f, (float3)(1.0f, 1.0f, 1.0f));            
+            //benesiIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));
+            //amazingSurfIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0, 0.5f, 2.0f, 1.0f, (float3)(0.0f, 0.0f, 0.0f), 1, (float3)(1.0f, 1.0f, 1.0f));
             //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
             //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
             //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log

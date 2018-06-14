@@ -327,7 +327,7 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
 }
 
 // [M2] - Menger Smooth - mengerSmoothIteration
-static float mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale, const float offset_s, const float3 offset_c, const float3 rot)
+static void mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float scale, const float offset_s, const float3 offset_c, const float3 rot)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -427,6 +427,137 @@ static void amazingSurfIter(float3* Z, float* de, const float3* P_in, int* log_l
     *Z = mix(Z_orig, *Z, weight);
     *de = mix(de_orig, *de, weight);
     (*log_lin)--;
+}
+
+// [M2] - Benesi formula invented by Benesi - BenesiIteration
+static void benesiIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+    *de = *de * 2.0f * distance;
+    float r1 = (*Z).y * (*Z).y + (*Z).z * (*Z).z;
+    float newx;
+	if ((*P_in).x < 0.0f || (*Z).x < sqrt(r1))
+	{
+		newx = (*Z).x * (*Z).x - r1;
+	}
+	else
+	{
+		newx = -(*Z).x * (*Z).x + r1;
+	}
+	r1 = -1.0f / sqrt(r1) * 2.0f * fabs((*Z).x);
+	float newy = r1 * ((*Z).y * (*Z).y - (*Z).z * (*Z).z);
+	float newz = r1 * 2.0f * (*Z).y * (*Z).z;
+
+	*Z = (float3)(newx, newy, newz);
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
+// [M2] - JosLeys-Kleinian - JosKleinianIteration
+// will not work in this case, requires different DE computation
+static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float r, const float l, const float3 box_size)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+	float a = r;
+	float b = l;
+	float f = sign(b);
+
+	float3 box1 = (float3)(2.0f * box_size.x, a * box_size.y, 2.0 * box_size.z);
+	float3 box2 = (float3)(-box_size.x, -box_size.y + 1.0f, -box_size.z);
+	float3 wrapped = wrap(*Z, box1, box2);
+
+    *Z = (float3)(wrapped.x, wrapped.y, wrapped.z);
+
+    if ((*Z).y >= a * (0.5f + 0.2f * sin(f * M_PI_F * ((*Z).x + b * 0.5f) / box_size.x)))
+		*Z = (float3)(-b, a, 0.0f) - *Z;
+
+    float z2 = dot(*Z, *Z);
+
+    float iR = 1.0f / z2;
+	*Z *= -iR;
+	(*Z).x = -b - (*Z).x;
+	(*Z).y = a + (*Z).y;
+	*de *= iR;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
+// [M2] - T>rotation - TransfRotationIteration
+static void rotationIter(float3* Z, float3 rot)
+{
+    *Z = mtxPtMult( mtxRotate(rot) , *Z );
+}
+
+// [M2] - T>Box Fold - TransfBoxFoldIteration
+static void boxFoldIter(float3* Z, const float folding_limit, const float folding_value, const float z_scale)
+//{
+//  CVector4 oldZ = z;
+//  if (fabs(z.x) > fractal->mandelbox.foldingLimit)
+//  {
+//    z.x = sign(z.x) * fractal->mandelbox.foldingValue - z.x;
+//  }
+//  if (fabs(z.y) > fractal->mandelbox.foldingLimit)
+//  {
+//    z.y = sign(z.y) * fractal->mandelbox.foldingValue - z.y;
+//  }
+//  double zLimit = fractal->mandelbox.foldingLimit * fractal->transformCommon.scale1;
+//  double zValue = fractal->mandelbox.foldingValue * fractal->transformCommon.scale1;
+//  if (fabs(z.z) > zLimit)
+//  {
+//    z.z = sign(z.z) * zValue - z.z;
+//  }
+//  if (fractal->foldColor.auxColorEnabledFalse)
+//  {
+//    if (z.x != oldZ.x) aux.color += fractal->mandelbox.color.factor.x;
+//    if (z.y != oldZ.y) aux.color += fractal->mandelbox.color.factor.y;
+//    if (z.z != oldZ.z) aux.color += fractal->mandelbox.color.factor.z;
+//  }
+//}
+{
+    if (fabs((*Z).x) > folding_limit)
+    {
+        (*Z).x = sign((*Z).x) * folding_value - (*Z).x;
+    }
+    if (fabs((*Z).y) > folding_limit)
+    {
+        (*Z).y = sign((*Z).y) * folding_value - (*Z).y;
+    }
+    float zLimit = folding_limit * z_scale;
+    float zValue = folding_value * z_scale;
+    if (fabs((*Z).z) > zLimit)
+    {
+        (*Z).z = sign((*Z).z) * zValue - (*Z).z;
+    }
 }
 
 /*
