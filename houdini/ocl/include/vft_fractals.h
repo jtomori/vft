@@ -229,7 +229,8 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_l
     {
         *Z += *P_in;
     }
-    else {
+    else 
+    {
         *Z += julia.yzw;
     }
 
@@ -266,7 +267,8 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     {
         *Z += *P_in;
     }
-    else {
+    else 
+    {
         *Z += julia.yzw;
     }
 
@@ -377,96 +379,59 @@ static float mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log
     (*log_lin)--;
 }
 
-
-// testing new formulas
-
-// amazing surf from M3D
-// does nothing
-static float amazingSurf(float3 P, float size)
+// [M2] - Amazing Surf from Mandelbulber3D, formula proposed by Kali, with features added by Darkbeam - AmazingSurfIteration
+static void amazingSurfIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float fold_x, const float fold_y, const int force_cylindrical_fold, const float min_radius, float scale, const float scale_fold_influence, const float3 rot, const int multiply_c, const float3 c_multiplier)
 {
-//void AmazingSurfIteration(CVector4 &z, const sFractal *fractal, sExtendedAux &aux)
-//{
-//    // update aux.actualScale
-//    aux.actualScale =
-//        fractal).mandelbox.scale + fractal).mandelboxVary4D.scaleVary * (fabs(aux.actualScale) - 1.0);
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
 
-//    CVector4 c = aux.const_c;
-//    z.x = fabs(z.x + fractal).transformCommon.additionConstant111.x)
-//                - fabs(z.x - fractal).transformCommon.additionConstant111.x) - z.x;
-//    z.y = fabs(z.y + fractal).transformCommon.additionConstant111.y)
-//                - fabs(z.y - fractal).transformCommon.additionConstant111.y) - z.y;
-//    // no z fold
+    float actual_scale = scale;
 
-//    double rr = z.Dot(z);
-//    if (fractal).transformCommon.functionEnabledFalse) // force cylinder fold
-//        rr -= z.z * z.z;
+    (*Z).x = fabs((*Z).x + fold_x) - fabs((*Z).x - fold_x) - (*Z).x;
+    (*Z).y = fabs((*Z).y + fold_y) - fabs((*Z).y - fold_y) - (*Z).y;
 
-//    double sqrtMinR = sqrt(fractal).transformCommon.minR05);
-//    double dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0);
+    float rr = dot(*Z, *Z);
 
-//    // use aux.actualScale
-//    double m = aux.actualScale / dividend;
-
-//    z *= (m - 1.0) * fractal).transformCommon.scale1 + 1.0;
-//    // z *= m * fractal).transformCommon.scale1 + 1.0 * (1.0 - fractal).transformCommon.scale1);
-//    aux.DE = aux.DE * fabs(m) + 1.0;
-
-//    if (fractal).transformCommon.addCpixelEnabledFalse)
-//        z += CVector4(c.y, c.x, c.z, c.w) * fractal).transformCommon.constantMultiplier111;
-
-//    z = fractal).transformCommon.rotationMatrix.RotateVector(z);
-//}
-    //P /= size;
-    float3 z = P;
-    float dr = 1.0;
-    int Iterations = 10;
-    //int Bailout = 6;
-
-    float actualScale = 1.39;
-    float scaleVary = 0;
-    float2 fold = (float2)(1.076562, 1.05);
-    float minRad = 0.18;
-    float scaleInf = 1;
-    float auxScale = 1;
-
-    for (int i = 0; i < Iterations ; i++)
+    // get rid of if afterwards
+    if (force_cylindrical_fold == 1)
     {
-        //update aux.actualScale
-        actualScale = actualScale + scaleVary * (fabs(actualScale) - 1.0f);
-    
-        //CVector4 c = aux.const_c;
-        z.x = fabs(z.x + fold.x) - fabs(z.x - fold.x) - z.x;
-        z.y = fabs(z.y + fold.y) - fabs(z.y - fold.y) - z.y;
-        // no z fold
-    
-        float rr = z.x*z.x + z.y*z.y + z.z*z.z;
-        //if (fractal).transformCommon.functionEnabledFalse) // force cylinder fold
-        //    rr -= z.z * z.z;
-    
-        float sqrtMinR = sqrt(minRad);
-        float dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0f);
-    
-        // use aux.actualScale
-        //float m = auxScale / dividend;
-        float m = actualScale / dividend;
-    
-        z *= (m - 1.0f) * scaleInf + 1.0f;
-        dr = dr * fabs(m) + 1.0;
-    
-        //if (fractal).transformCommon.addCpixelEnabledFalse)
-        //    z += CVector4(c.y, c.x, c.z, c.w) * fractal).transformCommon.constantMultiplier111;
-    
-        //z = fractal).transformCommon.rotationMatrix.RotateVector(z);
-        float16 rotMtx = mtxRotate( (float3)(8.414060, 3.340000, 18.125000) );
-        //z = mtxPtMult(rotMtx, z);
-
-        z += P;
+        rr -= (*Z).z * (*Z).z;
     }
 
-    //float out = 0.5 * log(r) * r/dr;
-    //return out * size;
-    return dr;
+	float sqrtMinR = sqrt(min_radius);
+	float dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0f);
+
+    float m = actual_scale / dividend;
+
+	*Z *= (m - 1.0f) * scale_fold_influence + 1.0f;
+	*de = *de * fabs(m) + 1.0f;
+
+    if (multiply_c == 1)
+    {
+        *Z += (float3)((*P_in).y, (*P_in).x, (*P_in).z) * c_multiplier;
+    }
+
+    *Z = mtxPtMult( mtxRotate(rot) , *Z );
+
+    if (julia.x == 0.0f)
+    {
+        *Z += (float3)((*P_in).y, (*P_in).x, (*P_in).z);
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
 }
+
+/*
+// testing new formulas
+
 
 // quaternion fractals, kind of works, but not sure what to do with z.w component :)
 static float quaternion(float3 P, float size)
@@ -571,4 +536,5 @@ static float quaternion3d(float3 P, float size)
     return out * size;
 }
 
+*/
 #endif

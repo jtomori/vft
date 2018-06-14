@@ -150,14 +150,16 @@ class GenerateKernel(object):
         """
         returns a list of CL statements with fractal function calls from a list of fractal nodes
         """
+       
         # a dictionary mapping strings of arguments to OpenCL fractal function names
         args_dict = {
-            "default" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f))",
-            "mandelboxIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
-            "mandelbulbIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f)",
-            "xenodreambuieIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, {7:.6f}f, {8:.6f}f)",
-            "sierpinski3dIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}f, (float3)({7:.6f}f, {8:.6f}f, {9:.6f}f), (float3)({10:.6f}f, {11:.6f}f, {12:.6f}f))",
-            "mengerSmoothIter" : "{0}(Z, de, P_in, log_lin, {1:.6f}f, (float4)({2:.1f}f, {3:.6f}f, {4:.6f}f, {5:.6f}f), {6:.6f}, {7:.6f}, (float3)({8:.6f}, {9:.6f}, {10:.6f}), (float3)({11:.6f}, {12:.6f}, {13:.6f}))"
+            "default" :  "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f))",
+            "mandelboxIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[scale]:.6f}f)",
+            "mandelbulbIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[power]:.6f}f)",
+            "xenodreambuieIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[power]:.6f}f, {obj.parms[alpha]:.6f}f, {obj.parms[beta]:.6f}f)",
+            "sierpinski3dIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[scale]:.6f}f, (float3)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f), (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f))",
+            "mengerSmoothIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[scale]:.6f}f, {obj.parms[offset_s]:.6f}f, (float3)({obj.parms[offset_cx]:.6f}f, {obj.parms[offset_cy]:.6f}f, {obj.parms[offset_cz]:.6f}f), (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f))",
+            "amazingSurfIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[foldx]:.6f}f, {obj.parms[foldy]:.6f}f, {obj.parms[force_cylindrical_fold]:.1f}, {obj.parms[min_radius]:.6f}f, {obj.parms[scale]:.6f}f, {obj.parms[scale_fold_influence]:.6f}f, (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f), {obj.parms[multiply_c]:.1f}, (float3)({obj.parms[c_multiplierx]:.6f}f, {obj.parms[c_multipliery]:.6f}f, {obj.parms[c_multiplierz]:.6f}f))"
         }
 
         def args_format(args_dict, obj):
@@ -168,26 +170,12 @@ class GenerateKernel(object):
 
                 # this line is picking a string to be formatted from args_dict dictionary
                 string = args_dict[obj.cl_function_name]
-
-                if obj.cl_function_name == "mandelboxIter":
-                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]) )
-
-                elif obj.cl_function_name == "mandelbulbIter":
-                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["power"]) )
-                
-                elif obj.cl_function_name == "xenodreambuieIter":
-                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["power"]), float(obj.parms["alpha"]), float(obj.parms["beta"]) )
-                
-                elif obj.cl_function_name == "sierpinski3dIter":
-                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]), float(obj.parms["offsetx"]), float(obj.parms["offsety"]), float(obj.parms["offsetz"]), float(obj.parms["rotx"]), float(obj.parms["roty"]), float(obj.parms["rotz"]) )
-                
-                elif obj.cl_function_name == "mengerSmoothIter":
-                    string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]), float(obj.parms["scale"]), float(obj.parms["offset_s"]), float(obj.parms["offset_cx"]), float(obj.parms["offset_cy"]), float(obj.parms["offset_cz"]), float(obj.parms["rotx"]), float(obj.parms["roty"]), float(obj.parms["rotz"]) )
+                string = string.format( obj=obj )
 
             # if function has not arguments mapping in args_dict, then it is considered to use default one
             else:
                 string = args_dict["default"]
-                string = string.format( obj.cl_function_name, float(obj.parms["weight"]), float(obj.parms["julia_mode"]), float(obj.parms["juliax"]), float(obj.parms["juliay"]), float(obj.parms["juliaz"]) )
+                string = string.format( obj=obj )
             
             return string
 
@@ -202,6 +190,7 @@ class GenerateKernel(object):
 
         for obj in fractal_objects:
             statement = args_format(args_dict, obj)
+            log.debug(statement)
             stack.append(statement)
 
         return stack
@@ -273,7 +262,7 @@ class FractalObject(object):
 
         for item in parms_list:
             item_split = item.split(":")
-            self.parms[ item_split[0] ] = item_split[1]
+            self.parms[ item_split[0] ] = float(item_split[1])
 
     def nodeToVars(self):
         """

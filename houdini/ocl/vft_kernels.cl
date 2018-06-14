@@ -46,7 +46,8 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     {
         case 0:
         {
-            mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
+            amazingSurfIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0, 0.5f, 2.0f, 1.0f, (float3)(0.0f, 0.0f, 0.0f), 1, (float3)(1.0f, 1.0f, 1.0f));
+            //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
             //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
             //xenodreambuieIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 1.0f, 0.0f, 0.0f), 9.0f, 0.0f, 0.0f); // log
             //mandelboxIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 3.0f, 4.0f), 3.1f); // lin
@@ -198,7 +199,7 @@ kernel void marchPerspCam(
     int i = 0;
 
     // quality settings
-    float step_size = 0.6f;
+    float step_size = 0.4f;
     float iso_limit_mult = 0.7f;
     float ray_dist = planeZ[0];
     const int max_steps = 700;
