@@ -175,8 +175,8 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     (*log_lin)++;
 }
 
-// [M2] - Menger Sponge formula created by Knighty - MengerSpongeIteration
-static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+// [M2] - Menger Sponge formula created by Knighty, modulus modification by mancoast - MengerSpongeIteration
+static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const int modulus)
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
@@ -195,7 +195,15 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
 
     (*Z).x -= 2.0f;
     (*Z).y -= 2.0f;
-    if ((*Z).z > 1.0f) (*Z).z -= 2.0f;
+    
+    if (modulus == 0)
+    {
+        if ((*Z).z > 1.0f) (*Z).z -= 2.0f;
+    }
+    else
+    {
+        if (fmod((*Z).z, M_PI_F) > 2.0f) (*Z).z -= 2.0f;
+    }
 
     *de *= 3.0f;
 
@@ -468,6 +476,134 @@ static void benesiIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
     (*log_lin)++;
 }
 
+// [M2] - Mandelbulb 2 fractal formula created by Buddhi - Mandelbulb2Iteration
+static void mandelbulb2Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+	*de = *de * 2.0f * distance;
+
+	float tempR = sqrt((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
+	*Z *= 1.0f / tempR;
+	float temp = (*Z).x * (*Z).x - (*Z).y * (*Z).y;
+	(*Z).y = 2.0f * (*Z).x * (*Z).y;
+	(*Z).x = temp;
+	*Z *= tempR;
+
+	tempR = sqrt((*Z).y * (*Z).y + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= 1.0f / tempR;
+	temp = (*Z).y * (*Z).y - (*Z).z * (*Z).z;
+	(*Z).z = 2.0f * (*Z).y * (*Z).z;
+	(*Z).y = temp;
+	*Z *= tempR;
+
+	tempR = sqrt((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= 1.0f / tempR;
+	temp = (*Z).x * (*Z).x - (*Z).z * (*Z).z;
+	(*Z).z = 2.0f * (*Z).x * (*Z).z;
+	(*Z).x = temp;
+	*Z *= tempR;
+
+	(*Z) *= distance;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)--;
+}
+
+// [M2] - Mandelbulb 3 fractal formula created by Buddhi - Mandelbulb3Iteration
+static void mandelbulb3Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+	
+    *de = *de * 2.0f * distance;
+
+	float temp, tempR;
+
+	float sign = 1.0f;
+	float sign2 = 1.0f;
+
+	if ((*Z).x < 0.0f) sign2 = -1.0f;
+	tempR = sqrt((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
+	*Z *= 1.0f / tempR;
+	temp = (*Z).x * (*Z).x - (*Z).y * (*Z).y;
+	(*Z).y = 2.0f * (*Z).x * (*Z).y;
+	(*Z).x = temp;
+	*Z *= tempR;
+
+	if ((*Z).x < 0.0f) sign = -1.0f;
+	tempR = sqrt((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= 1.0f / tempR;
+	temp = (*Z).x * (*Z).x - (*Z).z * (*Z).z;
+	(*Z).z = 2.0f * (*Z).x * (*Z).z * sign2;
+	(*Z).x = temp * sign;
+	*Z *= tempR;
+
+	*Z *= distance;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
+// [M2] - Mandelbulb 4 fractal formula created by Buddhi - Mandelbulb4Iteration
+static void mandelbulb4Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power, const float3 angles)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+    float rp = pow(distance, power - 1.0f);
+	*de = rp * (*de) * power + 1.0f;
+
+	float angZ = degrees(atan2((*Z).y, (*Z).x)) + angles.x;
+	float angY = degrees(atan2((*Z).z, (*Z).x)) + angles.y;
+	float angX = degrees(atan2((*Z).z, (*Z).y)) + angles.z;
+
+    float16 rotM = mtxRotate( (float3)((angX * (power - 1.0f)), (angY * (power - 1.0f)), (angZ * (power - 1.0f))) );
+
+	*Z = mtxPtMult( rotM , *Z ) * rp;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
 // [M2] - JosLeys-Kleinian - JosKleinianIteration
 // will not work in this case, requires different DE computation
 static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float r, const float l, const float3 box_size)
@@ -513,36 +649,13 @@ static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_l
 }
 
 // [M2] - T>rotation - TransfRotationIteration
-static void rotationIter(float3* Z, float3 rot)
+static void rotationIter(float3* Z, const float3 rot)
 {
     *Z = mtxPtMult( mtxRotate(rot) , *Z );
 }
 
 // [M2] - T>Box Fold - TransfBoxFoldIteration
 static void boxFoldIter(float3* Z, const float folding_limit, const float folding_value, const float z_scale)
-//{
-//  CVector4 oldZ = z;
-//  if (fabs(z.x) > fractal->mandelbox.foldingLimit)
-//  {
-//    z.x = sign(z.x) * fractal->mandelbox.foldingValue - z.x;
-//  }
-//  if (fabs(z.y) > fractal->mandelbox.foldingLimit)
-//  {
-//    z.y = sign(z.y) * fractal->mandelbox.foldingValue - z.y;
-//  }
-//  double zLimit = fractal->mandelbox.foldingLimit * fractal->transformCommon.scale1;
-//  double zValue = fractal->mandelbox.foldingValue * fractal->transformCommon.scale1;
-//  if (fabs(z.z) > zLimit)
-//  {
-//    z.z = sign(z.z) * zValue - z.z;
-//  }
-//  if (fractal->foldColor.auxColorEnabledFalse)
-//  {
-//    if (z.x != oldZ.x) aux.color += fractal->mandelbox.color.factor.x;
-//    if (z.y != oldZ.y) aux.color += fractal->mandelbox.color.factor.y;
-//    if (z.z != oldZ.z) aux.color += fractal->mandelbox.color.factor.z;
-//  }
-//}
 {
     if (fabs((*Z).x) > folding_limit)
     {
@@ -560,8 +673,69 @@ static void boxFoldIter(float3* Z, const float folding_limit, const float foldin
     }
 }
 
+// [M2] - T>Scale - TransfScaleIteration
+static void scaleIter(float3* Z, float* de, const float3 scale)
+{
+    float distance_init = length(*Z);
+
+    *Z = mtxPtMult( mtxScale(scale) , *Z );
+    
+    float distance_scaled = length(*Z);
+    *de *= distance_scaled / distance_init;
+}
+
+static void translateIter(float3* Z, const float3 translate)
+{
+    *Z += translate;
+}
+
+static void addCOffsetIter(float3* Z, const float3* P_in, const float3 offset)
+{
+    *Z += *P_in + offset;
+}
+
 /*
 // testing new formulas
+
+
+// [M2] - Hypercomplex 3D Mandelbrot formula invented by David Makin - HypercomplexIteration
+static void hypercomplexIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+    float4 Z_complex = (float4)((*Z).x, (*Z).y, (*Z).z, 1.0f);
+    float4* Z_ = &Z_complex;
+
+	*de = *de * 2.0f * distance;
+	float newx = (*Z_).x * (*Z_).x - (*Z_).y * (*Z_).y - (*Z_).z * (*Z_).z - (*Z_).w * (*Z_).w;
+	float newy = 2.0f * (*Z_).x * (*Z_).y - 2.0f * (*Z_).w * (*Z_).z;
+	float newz = 2.0f * (*Z_).x * (*Z_).z - 2.0f * (*Z_).y * (*Z_).w;
+	float neww = 2.0f * (*Z_).x * (*Z_).w - 2.0f * (*Z_).y * (*Z_).z;
+	//(*Z).x = newx;
+	//(*Z).y = newy;
+	//(*Z).z = newz;
+	//(*Z).w = neww;
+    
+    (*Z).x = newx * newx - newy * newy - newz * newz - neww * neww;
+    (*Z).y = newx * newy;
+    (*Z).z = newx * newz;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
 
 
 // quaternion fractals, kind of works, but not sure what to do with z.w component :)

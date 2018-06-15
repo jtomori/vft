@@ -46,7 +46,8 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     {
         case 0:
         {
-            josKleinianIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f), 2.0f, 0.0f, (float3)(1.0f, 1.0f, 1.0f));            
+            hypercomplexIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));            
+            //josKleinianIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 1.0f, 3.0f), 2.0f, 0.0f, (float3)(1.0f, 1.0f, 1.0f));            
             //benesiIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));
             //amazingSurfIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0, 0.5f, 2.0f, 1.0f, (float3)(0.0f, 0.0f, 0.0f), 1, (float3)(1.0f, 1.0f, 1.0f));
             //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
@@ -121,7 +122,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
+    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
 
     dist_out = shape1;
 
