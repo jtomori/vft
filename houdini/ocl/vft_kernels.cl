@@ -10,6 +10,9 @@
 #define ORBITS_ARRAY_LENGTH     9
 #define ENABLE_DELTA_DE         0
 
+
+
+
 // forward func declarations
 float3 compute_N(const float*, const float3*);
 float compute_AO(const float3*, const float3*);
@@ -46,9 +49,11 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     {
         case 0:
         {
-            hypercomplexIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));            
-            //josKleinianIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 1.0f, 3.0f), 2.0f, 0.0f, (float3)(1.0f, 1.0f, 1.0f));            
+            iqBulbIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f), 8.0f, 8.0f);
+            //idesIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f), (float3)(1.0f, 2.0f, 1.0f), (float2)(0.5f, 0.5f));
             //benesiIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));
+            //hypercomplexIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 0.0f, 0.0f, 0.0f));            
+            //josKleinianIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.0f, 1.0f, 3.0f), 2.0f, 0.0f, (float3)(1.0f, 1.0f, 1.0f));            
             //amazingSurfIter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0, 0.5f, 2.0f, 1.0f, (float3)(0.0f, 0.0f, 0.0f), 1, (float3)(1.0f, 1.0f, 1.0f));
             //mandelbulbPower2Iter(Z, de, P_in, log_lin, 1.0f, (float4)(1.0f, 0.3f, 0.5f, 0.2f)); // log
             //bristorbrotIter(Z, de, P_in, log_lin, 1.0f, (float4)(0.0f, 1.3f, 3.3f, 0.0f)); // log
@@ -122,7 +127,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
+    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
 
     dist_out = shape1;
 

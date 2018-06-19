@@ -604,6 +604,103 @@ static void mandelbulb4Iter(float3* Z, float* de, const float3* P_in, int* log_l
     (*log_lin)++;
 }
 
+// [M2] - Ides formula made by Trafassel, the original Ide's Formula thread - IdesIteration
+static void idesIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float3 multiplier, const float2 sub_multiplier)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+	if (fabs((*Z).x) < 2.5f) (*Z).x = (*Z).x * 0.9f;
+	if (fabs((*Z).z) < 2.5f) (*Z).z = (*Z).z * 0.9f;
+
+	float3 z2 = (*Z) * (*Z);
+	float3 newZ;
+	newZ.x = multiplier.x * z2.x - sub_multiplier.x * (z2.y + z2.z);
+	newZ.y = multiplier.y * (*Z).x * (*Z).y * (*Z).z;
+	newZ.z = multiplier.z * z2.z - sub_multiplier.y * (z2.x + z2.y);
+	*Z = newZ;
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+}
+
+
+// [M2] - Ides 2 formula made by Trafassel, the original Ide's Formula thread - Ides2Iteration
+static void ides2Iter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float3 multiplier, const float2 sub_multiplier)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+
+	float3 z2 = (*Z) * (*Z);
+	float3 newZ;
+	newZ.x = multiplier.x * z2.x - sub_multiplier.x * (z2.y + z2.z);
+	newZ.y = multiplier.y * (*Z).x * (*Z).y * (*Z).z;
+	newZ.z = multiplier.z * z2.z - sub_multiplier.y * (z2.x + z2.y);
+
+	*Z = newZ + (*Z);
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+}
+
+// [M2] - IQ Bulb from Mandelbulb 3D and Inigo Quilez - IqBulbIteration
+static void iqBulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float power, const float zpower)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+	// extract polar coordinates
+	float wr = distance;
+	float wo = acos((*Z).y / wr);
+	float wi = atan2((*Z).x, (*Z).z);
+
+	// scale and rotate the point
+	wr = pow(wr, power - 1.0f);
+	*de = wr * *de * power + 1.0f;
+	wr *= distance;
+	wo *= power;
+	wi *= zpower;
+
+	// convert back to cartesian coordinates
+	(*Z).x = sin(wo) * sin(wi);
+	(*Z).y = cos(wo);
+	(*Z).z = sin(wo) * cos(wi);
+
+	*Z *= wr; // then add Cpixel constant
+
+    if (julia.x == 0.0f)
+    {
+        *Z += *P_in;
+    }
+    else 
+    {
+        *Z += julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
 // [M2] - JosLeys-Kleinian - JosKleinianIteration
 // will not work in this case, requires different DE computation
 static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float r, const float l, const float3 box_size)

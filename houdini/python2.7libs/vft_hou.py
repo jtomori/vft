@@ -162,6 +162,9 @@ class GenerateKernel(object):
             "mengerSmoothIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[scale]:.6f}f, {obj.parms[offset_s]:.6f}f, (float3)({obj.parms[offset_cx]:.6f}f, {obj.parms[offset_cy]:.6f}f, {obj.parms[offset_cz]:.6f}f), (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f))",
             "amazingSurfIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[foldx]:.6f}f, {obj.parms[foldy]:.6f}f, {obj.parms[force_cylindrical_fold]:.1f}, {obj.parms[min_radius]:.6f}f, {obj.parms[scale]:.6f}f, {obj.parms[scale_fold_influence]:.6f}f, (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f), {obj.parms[multiply_c]:.1f}, (float3)({obj.parms[c_multiplierx]:.6f}f, {obj.parms[c_multipliery]:.6f}f, {obj.parms[c_multiplierz]:.6f}f))",
             "mandelbulb4Iter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[power]:.6f}f, (float3)({obj.parms[anglesx]:.6f}f, {obj.parms[anglesy]:.6f}f, {obj.parms[anglesz]:.6f}f))",
+            "idesIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), (float3)({obj.parms[multiplierx]:.6f}f, {obj.parms[multipliery]:.6f}f, {obj.parms[multiplierz]:.6f}f), (float2)({obj.parms[sub_multiplierx]:.6f}f, {obj.parms[sub_multipliery]:.6f}f))",
+            "ides2Iter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), (float3)({obj.parms[multiplierx]:.6f}f, {obj.parms[multipliery]:.6f}f, {obj.parms[multiplierz]:.6f}f), (float2)({obj.parms[sub_multiplierx]:.6f}f, {obj.parms[sub_multipliery]:.6f}f))",
+            "iqBulbIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[power]:.6f}f, {obj.parms[zpower]:.6f}f)",
             "josKleinianIter" : "{obj.cl_function_name}(Z, de, P_in, log_lin, {obj.parms[weight]:.6f}f, (float4)({obj.parms[julia_mode]:.1f}f, {obj.parms[juliax]:.6f}f, {obj.parms[juliay]:.6f}f, {obj.parms[juliaz]:.6f}f), {obj.parms[r]:.6f}f, {obj.parms[l]:.6f}f, (float3)({obj.parms[box_sizex]:.6f}f, {obj.parms[box_sizey]:.6f}f, {obj.parms[box_sizez]:.6f}f))",
             "rotationIter" :  "{obj.cl_function_name}(Z, (float3)({obj.parms[rotx]:.6f}f, {obj.parms[roty]:.6f}f, {obj.parms[rotz]:.6f}f))",
             "boxFoldIter" :  "{obj.cl_function_name}(Z, {obj.parms[folding_limit]:.6f}f, {obj.parms[folding_value]:.6f}f, {obj.parms[z_scale]:.6f}f)",
@@ -283,7 +286,8 @@ class FractalObject(object):
 
         parms = node.parent().parms()
         for parm in parms:
-            self.parms[ parm.name() ] = parm.eval()
+            if parm.parmTemplate().type() != hou.parmTemplateType.Label:
+                self.parms[ parm.name() ] = parm.eval()
     
     def varsToAttrib(self):
         """
