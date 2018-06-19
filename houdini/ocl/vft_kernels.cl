@@ -11,8 +11,6 @@
 #define ENABLE_DELTA_DE         0
 
 
-
-
 // forward func declarations
 float3 compute_N(const float*, const float3*);
 float compute_AO(const float3*, const float3*);
@@ -207,8 +205,8 @@ kernel void marchPerspCam(
     int i = 0;
 
     // quality settings
-    float step_size = 0.4f;
-    float iso_limit_mult = 0.7f;
+    float step_size = 0.6f;
+    float iso_limit_mult = 2.0f;
     float ray_dist = planeZ[0];
     const int max_steps = 700;
     const float max_dist = 1000.0f;

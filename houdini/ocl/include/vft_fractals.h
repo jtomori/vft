@@ -98,8 +98,6 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
-
     float fixedRadius = 1.0f;
     float fR2 = fixedRadius * fixedRadius;
     float minRadius = 0.5f;
@@ -181,8 +179,6 @@ static void mengerSpongeIter(float3* Z, float* de, const float3* P_in, int* log_
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
-
     (*Z).x = fabs((*Z).x);
     (*Z).y = fabs((*Z).y);
     (*Z).z = fabs((*Z).z);
@@ -291,8 +287,6 @@ static void sierpinski3dIter(float3* Z, float* de, const float3* P_in, int* log_
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
-
     float3 temp = *Z;
 
     if ((*Z).x - (*Z).y < 0.0f) (*Z).xy = (*Z).yx;
@@ -339,9 +333,7 @@ static void mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log_
 {
     float3 Z_orig = *Z;
     float de_orig = *de;
-    
-    float distance = length(*Z);
-	
+    	
     float sc1 = scale - 1.0f;
 	float sc2 = sc1 / scale;
 
@@ -393,8 +385,6 @@ static void amazingSurfIter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
-
     float actual_scale = scale;
 
     (*Z).x = fabs((*Z).x + fold_x) - fabs((*Z).x - fold_x) - (*Z).x;
@@ -639,7 +629,6 @@ static void ides2Iter(float3* Z, float* de, const float3* P_in, int* log_lin, co
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-
 	float3 z2 = (*Z) * (*Z);
 	float3 newZ;
 	newZ.x = multiplier.x * z2.x - sub_multiplier.x * (z2.y + z2.z);
@@ -701,6 +690,42 @@ static void iqBulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
     (*log_lin)++;
 }
 
+// [M2] - Quaternion3DE fractal with extended controls - Quaternion3dIteration
+static void quaternion3dIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float3 scale, const float3 offset, const float3 rot, const float de_influence)
+{
+    float3 Z_orig = *Z;
+    float de_orig = *de;
+    
+    float distance = length(*Z);
+
+	*de = (*de) * 2.0f * distance;
+	*Z = (float3)((*Z).x * (*Z).x - (*Z).y * (*Z).y - (*Z).z * (*Z).z, (*Z).x * (*Z).y, (*Z).x * (*Z).z);
+
+	float tempL = length(*Z);
+	*Z *= scale;
+	float3 tempAvgScale = (float3)((*Z).x, (*Z).y / 2.0f, (*Z).z / 2.0f);
+	float avgScale = length(tempAvgScale) / tempL;
+	float tempAux = *de * avgScale;
+	*de = *de + (tempAux - *de) * de_influence;
+
+    *Z = mtxPtMult( mtxRotate(rot) , *Z );
+
+	*Z += offset;
+
+    if (julia.x == 0.0f)
+    {
+        *Z = *Z * scale + *P_in;
+    }
+    else
+    {
+        *Z = *Z * scale + julia.yzw;
+    }
+
+    *Z = mix(Z_orig, *Z, weight);
+    *de = mix(de_orig, *de, weight);
+    (*log_lin)++;
+}
+
 // [M2] - JosLeys-Kleinian - JosKleinianIteration
 // will not work in this case, requires different DE computation
 static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_lin, const float weight, const float4 julia, const float r, const float l, const float3 box_size)
@@ -708,8 +733,6 @@ static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
-
 	float a = r;
 	float b = l;
 	float f = sign(b);
