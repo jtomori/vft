@@ -714,11 +714,11 @@ static void quaternion3dIter(float3* Z, float* de, const float3* P_in, int* log_
 
     if (julia.x == 0.0f)
     {
-        *Z = *Z * scale + *P_in;
+        *Z += *P_in;
     }
-    else
+    else 
     {
-        *Z = *Z * scale + julia.yzw;
+        *Z += julia.yzw;
     }
 
     *Z = mix(Z_orig, *Z, weight);
@@ -775,21 +775,65 @@ static void rotationIter(float3* Z, const float3 rot)
 }
 
 // [M2] - T>Box Fold - TransfBoxFoldIteration
-static void boxFoldIter(float3* Z, const float folding_limit, const float folding_value, const float z_scale)
+static void boxFoldIter(float3* Z, const int3 axis_enable, const float folding_limit, const float folding_value, const float z_scale)
 {
-    if (fabs((*Z).x) > folding_limit)
+    if (axis_enable.x == 1)
     {
-        (*Z).x = sign((*Z).x) * folding_value - (*Z).x;
+        if (fabs((*Z).x) > folding_limit)
+        {
+            (*Z).x = sign((*Z).x) * folding_value - (*Z).x;
+        }
     }
-    if (fabs((*Z).y) > folding_limit)
+    if (axis_enable.y == 1)
     {
-        (*Z).y = sign((*Z).y) * folding_value - (*Z).y;
+        if (fabs((*Z).y) > folding_limit)
+        {
+            (*Z).y = sign((*Z).y) * folding_value - (*Z).y;
+        }
     }
-    float zLimit = folding_limit * z_scale;
-    float zValue = folding_value * z_scale;
-    if (fabs((*Z).z) > zLimit)
+    if (axis_enable.z == 1)
     {
-        (*Z).z = sign((*Z).z) * zValue - (*Z).z;
+        float zLimit = folding_limit * z_scale;
+        float zValue = folding_value * z_scale;
+        if (fabs((*Z).z) > zLimit)
+        {
+            (*Z).z = sign((*Z).z) * zValue - (*Z).z;
+        }
+    }
+}
+
+// [M2] - Rotation Folding: rotatedAbs & Rotated Folding transform from M3D - TransfRotationFoldingIteration
+static void fabsFoldIter(float3* Z, const int3 axis_enable, const float3 offset)
+{
+    if (axis_enable.x == 1)
+    {
+        (*Z).x = fabs((*Z).x + offset.x) - offset.x;
+    }
+    if (axis_enable.y == 1)
+    {
+        (*Z).y = fabs((*Z).y + offset.y) - offset.y;
+    }
+    if (axis_enable.z == 1)
+    {
+        (*Z).z = fabs((*Z).z + offset.z) - offset.z;
+    }
+}
+
+
+// [M2] - Rotation Folding: rotatedAbs & Rotated Folding transform from M3D - TransfRotationFoldingIteration
+static void tgladFoldIter(float3* Z, const int3 axis_enable, const float3 offset)
+{
+    if (axis_enable.x == 1)
+    {
+        (*Z).x = fabs((*Z).x + offset.x) - fabs((*Z).x - offset.x) - (*Z).x;
+    }
+    if (axis_enable.y == 1)
+    {
+        (*Z).y = fabs((*Z).y + offset.y) - fabs((*Z).y - offset.y) - (*Z).y;
+    }
+    if (axis_enable.z == 1)
+    {
+        (*Z).z = fabs((*Z).z + offset.z) - fabs((*Z).z - offset.z) - (*Z).z;
     }
 }
 
