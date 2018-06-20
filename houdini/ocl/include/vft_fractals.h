@@ -410,7 +410,7 @@ static void amazingSurfIter(float3* Z, float* de, const float3* P_in, int* log_l
     {
         *Z += (float3)((*P_in).y, (*P_in).x, (*P_in).z) * c_multiplier;
     }
-
+    
     *Z = mtxPtMult( mtxRotate(rot) , *Z );
 
     if (julia.x == 0.0f)
