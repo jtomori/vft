@@ -125,7 +125,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
+    float shape1 = hybrid(P, 250, 100.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
 
     dist_out = shape1;
 

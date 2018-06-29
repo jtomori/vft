@@ -14,58 +14,94 @@ todo
 logging.basicConfig(level=logging.DEBUG) # set to logging.INFO to disable DEBUG logs
 log = logging.getLogger(__name__)
 
-def getInputFractalNodes(root):
+class NodeUtils(object):
     """
-    returns list of fractal nodes that are connected (upstream) to root node
+    set of methods operating on Houdini nodes
     """
-    # node type names of all fractal nodes
-    fractals_nodes = set( ["vft_bristorbrotIter", "vft_mandelbulbPower2Iter", "vft_mengerSpongeIter"] )
+    @staticmethod
+    def getInputFractalNodes(root):
+        """
+        returns list of fractal nodes that are connected (upstream) to root node
+        """
+        # node type names of all fractal nodes
+        fractals_nodes = set( ["vft_bristorbrotIter", "vft_mandelbulbPower2Iter", "vft_mengerSpongeIter"] )
 
-    all_input_nodes = root.inputAncestors()
-    input_fractal_nodes = []
+        all_input_nodes = root.inputAncestors()
+        input_fractal_nodes = []
 
-    # find fractal nodes in all input nodes
-    for node in all_input_nodes:
-        if node.type().name() in fractals_nodes:
-            input_fractal_nodes.append(node)
+        # find fractal nodes in all input nodes
+        for node in all_input_nodes:
+            if node.type().name() in fractals_nodes:
+                input_fractal_nodes.append(node)
 
-    return input_fractal_nodes
+        return input_fractal_nodes
 
-def getOutputNodeByTypeName(start_node, type_name=""):
-    """
-    returns a connected node (downstream) which belongs to "vft generator" list
-    """
-    all_children_nodes = outputChildren(start_node)
-    out = None
+    @staticmethod
+    def getOutputNodeByTypeName(start_node, type_name=""):
+        """
+        returns a connected node (downstream) which belongs to "vft generator" list
+        """
+        all_children_nodes = NodeUtils.outputChildren(start_node)
+        out = None
 
-    for node in all_children_nodes:
-        if node.type().name() == type_name:
-            out = node
-            break
+        for node in all_children_nodes:
+            if node.type().name() == type_name:
+                out = node
+                break
+        
+        return out
+
+    @staticmethod
+    def outputChildren(node):
+        """
+        find all descending connected (downstream) nodes
+        """
+        children = list( node.outputs() )
+        for node in children:
+            new_children = node.outputs()
+            if len(new_children) == 0:
+                break
+            else:
+                for child in new_children:
+                    children.append( child )
+                    NodeUtils.outputChildren(child)
+        
+        return children
     
-    return out
+    @staticmethod
+    def fillKernelCodePythonSop():
+        """
+        this func will do all the parsing and will set up the kernel parm in descendant opencl node
+        """
+        start_time = time.time()    
+        me = hou.pwd()
+        geo = me.geometry()
+        kernels_parm = me.parm("vft_kernels")
 
-def outputChildren(node):
-    """
-    find all descending connected (downstream) nodes
-    """
-    children = list( node.outputs() )
-    for node in children:
-        new_children = node.outputs()
-        if len(new_children) == 0:
-            break
+        # find a opencl downstream node
+        cl_node = NodeUtils.getOutputNodeByTypeName(me, "opencl")
+
+        # init a GenerateKernel object and init member var vft_kernels
+        kernel = GenerateKernel()
+        kernel.loadKernelsFileFromParm(kernels_parm)
+
+        # get set of incoming fractals
+        fractal_attribs = geo.findGlobalAttrib("fractal_name").strings()
+
+        # do the parsing
+        kernel.parseKernelsFile(fractal_attribs)
+
+        # set vft_kernels_parsed to kernelcode parm in an opencl node if has changed
+        cl_node_parm = cl_node.parm("kernelcode")
+        old_cl_code = cl_node_parm.eval()
+
+        if old_cl_code != kernel.vft_kernels_parsed:
+            cl_node_parm.set(kernel.vft_kernels_parsed)
+            log.debug("Kernel in OpenCL node updated")
         else:
-            for child in new_children:
-                children.append( child )
-                outputChildren(child)
-    
-    return children
+            log.debug("Kernel in OpenCL is up to date")
 
-def clStatementsToString(statements):
-    """
-    helper func
-    """
-    return ";\n".join(statements) + ";\n"
+        log.debug("Python SOP evaluated in {0:.8f} seconds \n\n".format( time.time() - start_time ))
 
 class GenerateKernel(object):
     """
@@ -77,6 +113,12 @@ class GenerateKernel(object):
 
         self.vft_kernels = None
         self.vft_kernels_parsed = None
+
+    def clStatementsToString(self, statements):
+        """
+        helper func
+        """
+        return ";\n".join(statements) + ";\n"
     
     def getVftRootFromPath(self, path):
         """
@@ -138,7 +180,7 @@ class GenerateKernel(object):
         # generate fractal stack
         fractals_stack_token = "#define PY_FRACTAL_STACK"
 
-        fractals_stack_cl_code = clStatementsToString( self.generateClFractalStack(fractal_attribs) )
+        fractals_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(fractal_attribs) )
         fractals_stack_cl_code = fractals_stack_token + "\n\n" + fractals_stack_cl_code
 
         self.vft_kernels_parsed = self.vft_kernels_parsed.replace(fractals_stack_token, fractals_stack_cl_code)
@@ -209,40 +251,6 @@ class GenerateKernel(object):
 
         return stack
 
-def fillKernelCodePythonSop():
-    """
-    this func will do all the parsing and will set up the kernel parm in descendant opencl node
-    """
-    start_time = time.time()    
-    me = hou.pwd()
-    geo = me.geometry()
-    kernels_parm = me.parm("vft_kernels")
-
-    # find a opencl downstream node
-    cl_node = getOutputNodeByTypeName(me, "opencl")
-
-    # init a GenerateKernel object and init member var vft_kernels
-    kernel = GenerateKernel()
-    kernel.loadKernelsFileFromParm(kernels_parm)
-
-    # get set of incoming fractals
-    fractal_attribs = geo.findGlobalAttrib("fractal_name").strings()
-
-    # do the parsing
-    kernel.parseKernelsFile(fractal_attribs)
-
-    # set vft_kernels_parsed to kernelcode parm in an opencl node if has changed
-    cl_node_parm = cl_node.parm("kernelcode")
-    old_cl_code = cl_node_parm.eval()
-
-    if old_cl_code != kernel.vft_kernels_parsed:
-        cl_node_parm.set(kernel.vft_kernels_parsed)
-        log.debug("Kernel in OpenCL node updated")
-    else:
-        log.debug("Kernel in OpenCL is up to date")
-
-    log.debug("Python SOP evaluated in {0:.8f} seconds \n\n".format( time.time() - start_time ))
-
 class FractalObject(object):
     """
     a class that will hold data and functionality for getting fractal data from detail attribute
@@ -304,3 +312,6 @@ class FractalObject(object):
         
         attrib = "|".join( [self.asset_name, self.parent_name, parms_string] )
         return attrib
+
+class FpsCam(object):
+    pass
