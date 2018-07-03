@@ -314,4 +314,7 @@ class FractalObject(object):
         return attrib
 
 class FpsCam(object):
+    """
+    Set of functions helping with FPS/Flying camera orientation in scenes.
+    """
     pass
