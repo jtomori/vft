@@ -255,3 +255,24 @@ kernel void marchPerspCam(
         orbits[j] = orbit_colors[j-orbits_idx_start];
     }
 }
+
+kernel void computeSdf( 
+        int surface_stride_x, 
+        int surface_stride_y, 
+        int surface_stride_z, 
+        int surface_stride_offset, 
+        float16 surface_xformtoworld, 
+        global float * surface 
+        )
+{
+    int gidx = get_global_id(0);
+    int gidy = get_global_id(1);
+    int gidz = get_global_id(2);
+    int idx = surface_stride_offset + surface_stride_x * gidx + surface_stride_y * gidy + surface_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+    float3 P_world = mtxPtMult(surface_xformtoworld, P_vol);
+
+    float dist = length(P_world) - 1;
+    vstore1(dist, idx, surface);
+}
