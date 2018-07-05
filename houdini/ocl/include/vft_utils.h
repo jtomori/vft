@@ -104,6 +104,23 @@ static void printMtx(float16 m)
     }
 }
 
+// print a mtx
+static void printMtxVol(float16 m)
+{
+    int gidx = get_global_id(0);
+    int gidy = get_global_id(1);
+    int gidz = get_global_id(2);
+    
+    if (gidx == 0 && gidy == 0 && gidz == 0) {
+        printf( "\n" );
+        printf( "%2.2v4hlf\n", m.s0123 );
+        printf( "%2.2v4hlf\n", m.s4567 );
+        printf( "%2.2v4hlf\n", m.s89ab );
+        printf( "%2.2v4hlf\n", m.scdef );
+        printf( "\n" );
+    }
+}
+
 // print a vector
 static void printVec(float3 a)
 {
