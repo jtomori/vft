@@ -19,7 +19,7 @@
 ////////////// primitives
 // [WEB] - http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
-// sphere: position, radius, center
+// sphere: position, radius
 static float sphere( float3 P, float rad )
 {
     float dist = length(P) - rad;

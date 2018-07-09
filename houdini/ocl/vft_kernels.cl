@@ -112,7 +112,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
+    float shape1 = hybrid(P, 250, 100.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 0);
 
     dist_out = shape1;
 
@@ -257,13 +257,58 @@ kernel void marchPerspCam(
 }
 
 kernel void computeSdf( 
-        int surface_stride_x, 
-        int surface_stride_y, 
-        int surface_stride_z, 
-        int surface_stride_offset, 
-        float16 surface_xformtoworld, 
-        global float * surface 
-        )
+    int surface_stride_x, 
+    int surface_stride_y, 
+    int surface_stride_z, 
+    int surface_stride_offset, 
+    float16 surface_xformtoworld, 
+    global float * surface,
+    int color_0_stride_x, 
+    int color_0_stride_y, 
+    int color_0_stride_z, 
+    int color_0_stride_offset, 
+    global float * color_0,
+    int color_1_stride_x, 
+    int color_1_stride_y, 
+    int color_1_stride_z, 
+    int color_1_stride_offset, 
+    global float * color_1,
+    int color_2_stride_x, 
+    int color_2_stride_y, 
+    int color_2_stride_z, 
+    int color_2_stride_offset, 
+    global float * color_2,
+    int color_3_stride_x, 
+    int color_3_stride_y, 
+    int color_3_stride_z, 
+    int color_3_stride_offset, 
+    global float * color_3,
+    int color_4_stride_x, 
+    int color_4_stride_y, 
+    int color_4_stride_z, 
+    int color_4_stride_offset, 
+    global float * color_4,
+    int color_5_stride_x, 
+    int color_5_stride_y, 
+    int color_5_stride_z, 
+    int color_5_stride_offset, 
+    global float * color_5,
+    int color_6_stride_x, 
+    int color_6_stride_y, 
+    int color_6_stride_z, 
+    int color_6_stride_offset, 
+    global float * color_6,
+    int color_7_stride_x, 
+    int color_7_stride_y, 
+    int color_7_stride_z, 
+    int color_7_stride_offset, 
+    global float * color_7,
+    int color_8_stride_x, 
+    int color_8_stride_y, 
+    int color_8_stride_z, 
+    int color_8_stride_offset, 
+    global float * color_8 
+    )
 {
     int gidx = get_global_id(0);
     int gidy = get_global_id(1);
@@ -272,7 +317,9 @@ kernel void computeSdf(
 
     float3 P_vol = (float3)(gidx, gidy, gidz);
     float3 P_world = mtxPtMult(surface_xformtoworld, P_vol);
-
-    float dist = length(P_world) - 1;
-    vstore1(dist, idx, surface);
+    
+    float de = 0.0f;
+    de = scene(P_world, 0, NULL, NULL);
+    
+    vstore1(de, idx, surface);
 }
