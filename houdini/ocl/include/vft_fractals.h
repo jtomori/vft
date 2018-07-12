@@ -848,6 +848,11 @@ static void scaleIter(float3* Z, float* de, const float3 scale)
     *de *= DIV(distance_scaled, distance_init);
 }
 
+static void preScaleIter(float3* Z, const float3 scale)
+{
+    *Z = mtxPtMult( mtxScale(scale) , *Z );
+}
+
 static void translateIter(float3* Z, const float3 translate)
 {
     *Z += translate;

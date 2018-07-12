@@ -194,11 +194,12 @@ class GenerateKernel(object):
         fractal_stack_cl_code = fractal_stack_token + "\n\n" + fractal_stack_cl_code
 
         # generate pre-transform stack
+        allowed_pre_transforms = ["curlNoise", "translateIter", "tgladFoldIter", "fabsFoldIter", "boxFoldIter", "rotationIter", "preScaleIter"]
         pre_transform_stack_token = "#define PY_PRE_TRANSFORM_STACK"
 
         pre_transform_stack_cl_code = ""
         try:
-            pre_transform_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(attribs_dict["pre-transform_stack"]) )
+            pre_transform_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(attribs_dict["pre-transform_stack"], valid_list=allowed_pre_transforms) )
         except KeyError:
             pass
             log.debug('No "pre-transform_stack" attribute found, probably missing input')
@@ -211,7 +212,7 @@ class GenerateKernel(object):
 
         log.debug("Kernels file parsed in {0:.8f} seconds".format( time.time() - start_time ))
     
-    def generateClFractalStack(self, fractal_attribs):
+    def generateClFractalStack(self, fractal_attribs, valid_list=None):
         """
         returns a list of CL statements with fractal function calls from a list of fractal nodes
         """
@@ -239,7 +240,8 @@ class GenerateKernel(object):
             "scaleIter" :  "{obj.cl_function_name}(Z, de, (float3)({obj.parms[scalex]:.6f}f, {obj.parms[scaley]:.6f}f, {obj.parms[scalez]:.6f}f))",
             "translateIter" :  "{obj.cl_function_name}(Z, (float3)({obj.parms[translatex]:.6f}f, {obj.parms[translatey]:.6f}f, {obj.parms[translatez]:.6f}f))",
             "addCOffsetIter" :  "{obj.cl_function_name}(Z, P_in, (float3)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f))",
-            "curlNoise" :  "{obj.cl_function_name}(theXNoise, Z, (float4)({obj.parms[frequencyx]:.6f}f, {obj.parms[frequencyy]:.6f}f, {obj.parms[frequencyz]:.6f}f, {obj.parms[frequencyw]:.6f}f), (float4)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f, {obj.parms[offsetw]:.6f}f), (float3)({obj.parms[amplitudex]:.6f}f, {obj.parms[amplitudey]:.6f}f, {obj.parms[amplitudez]:.6f}f))"
+            "curlNoise" :  "{obj.cl_function_name}(theXNoise, Z, (float4)({obj.parms[frequencyx]:.6f}f, {obj.parms[frequencyy]:.6f}f, {obj.parms[frequencyz]:.6f}f, {obj.parms[frequencyw]:.6f}f), (float4)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f, {obj.parms[offsetw]:.6f}f), (float3)({obj.parms[amplitudex]:.6f}f, {obj.parms[amplitudey]:.6f}f, {obj.parms[amplitudez]:.6f}f))",
+            "preScaleIter" :  "{obj.cl_function_name}(Z, (float3)({obj.parms[scalex]:.6f}f, {obj.parms[scaley]:.6f}f, {obj.parms[scalez]:.6f}f))"
         }
 
         def args_format(args_dict, obj):
@@ -263,7 +265,12 @@ class GenerateKernel(object):
         for attrib in fractal_attribs:
             obj = FractalObject()
             obj.attribToVars(attrib)
-            fractal_objects.append(obj)
+
+            if valid_list:
+                if obj.cl_function_name in valid_list:
+                    fractal_objects.append(obj)
+            else:
+                fractal_objects.append(obj)
 
         # list which will hold CL fractal funcs calls
         stack = []
