@@ -858,8 +858,14 @@ static void addCOffsetIter(float3* Z, const float3* P_in, const float3 offset)
     *Z += *P_in + offset;
 }
 
-/*
+static void curlNoise(global const void* theXNoise, float3* Z, const float4 frequency, const float4 offset, const float3 amplitude)
+{
+    *Z += curlxnoise4(theXNoise, (float4)(*Z, 1.0f) * frequency + offset) * amplitude;
+}
+
+
 // testing new formulas
+/*
 
 
 // [M2] - Hypercomplex 3D Mandelbrot formula invented by David Makin - HypercomplexIteration

@@ -1,33 +1,31 @@
 #ifndef VFT_SHADING
 #define VFT_SHADING
 
-//#include "vft_defines.h"
-
-float scene(float3, const int, float*, float3*);
+float scene(float3, const int, float*, float3*, global const void*);
 static float length2(float3);
 static float distPointPlane(float3, float3, float3);
 float primitive_stack(float3, const int);
-void fractal_stack(float3*, float*, const float3*, int*, const int);
+void fractal_stack(float3*, float*, const float3*, int*, const int, global const void*);
 
 ////////////// shading functions
 
 // compute Normals
 // based on "Modeling with distance functions" article from Inigo Quilez
-static float3 compute_N(const float* iso_limit, const float3* ray_P_world)
+static float3 compute_N(const float* iso_limit, const float3* ray_P_world, global const void* theXNoise)
 {
     float3 N_grad;
     float2 e = (float2)(1.0f, -1.0f) * (*iso_limit) * 0.01f;
 
-    N_grad = NORMALIZE( e.xyy * scene( (*ray_P_world) + e.xyy, 0, NULL, NULL) + 
-                        e.yyx * scene( (*ray_P_world) + e.yyx, 0, NULL, NULL) + 
-                        e.yxy * scene( (*ray_P_world) + e.yxy, 0, NULL, NULL) + 
-                        e.xxx * scene( (*ray_P_world) + e.xxx, 0, NULL, NULL) );
+    N_grad = NORMALIZE( e.xyy * scene( (*ray_P_world) + e.xyy, 0, NULL, NULL, theXNoise) + 
+                        e.yyx * scene( (*ray_P_world) + e.yyx, 0, NULL, NULL, theXNoise) + 
+                        e.yxy * scene( (*ray_P_world) + e.yxy, 0, NULL, NULL, theXNoise) + 
+                        e.xxx * scene( (*ray_P_world) + e.xxx, 0, NULL, NULL, theXNoise) );
     return N_grad;
 }
 
 // compute Ambient Occlusion
 // based on "Modeling with distance functions" article from Inigo Quilez
-static float compute_AO(const float3* N, const float3* ray_P_world)
+static float compute_AO(const float3* N, const float3* ray_P_world, global const void* theXNoise)
 {
     float AO = 1.0f;
     float AO_occ = 0.0f;
@@ -38,7 +36,7 @@ static float compute_AO(const float3* N, const float3* ray_P_world)
     {
         float AO_hr = 0.01f + 0.12f * DIV((float)(j), 4.0f);
         float3 AO_pos =  (*N) * AO_hr + (*ray_P_world);
-        float AO_dd = scene(AO_pos, 0, NULL, NULL);
+        float AO_dd = scene(AO_pos, 0, NULL, NULL, theXNoise);
         AO_occ += -(AO_dd-AO_hr)*AO_sca;
         AO_sca *= 0.95f;
     }
@@ -76,7 +74,7 @@ static float primitive(float3 P, const float size, const int final, float* orbit
 }
 
 // hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode also outputs N
-static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack)
+static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack, global const void* theXNoise)
 {
     P_in = DIV(P_in, size);
     float3 Z = P_in;
@@ -104,7 +102,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         distance = LENGTH(Z);
         if (distance > max_distance) break;
         
-        fractal_stack(&Z, &de, &P_in, &log_lin, stack);
+        fractal_stack(&Z, &de, &P_in, &log_lin, stack, theXNoise);
 
         // orbit traps calculations
         if (final == 1)
@@ -131,7 +129,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractal_stack(&Z, &de, &P_in, &log_lin, stack);
+            fractal_stack(&Z, &de, &P_in, &log_lin, stack, theXNoise);
         }
         float rx = LENGTH(Z);
         float drx = DIV((distance - rx), delta);
@@ -141,7 +139,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractal_stack(&Z, &de, &P_in, &log_lin, stack);
+            fractal_stack(&Z, &de, &P_in, &log_lin, stack, theXNoise);
         }
         float ry = LENGTH(Z);
         float dry = DIV((distance - ry), delta);
@@ -151,7 +149,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         #pragma unroll
         for (int j=0; j<i; j++)
         {
-            fractal_stack(&Z, &de, &P_in, &log_lin, stack);
+            fractal_stack(&Z, &de, &P_in, &log_lin, stack, theXNoise);
         }
         float rz = LENGTH(Z);
         float drz = DIV((distance - rz), delta);

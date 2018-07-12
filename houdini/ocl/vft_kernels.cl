@@ -1,3 +1,4 @@
+#include "xnoise.h"
 #include "vft_defines.h"
 #include "vft_utils.h"
 #include "vft_math.h"
@@ -27,8 +28,13 @@ float primitive_stack(float3 P, const int stack)
     return out_distance;
 }
 
+void pre_transform_stack(float3* Z, global const void* theXNoise)
+{
+    #define PY_PRE_TRANSFORM_STACK
+}
+
 // contains fractal combinations for all shapes
-void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const int stack)
+void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const int stack, global const void* theXNoise)
 {
     switch (stack)
     {
@@ -108,11 +114,13 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
     return dist_out;
 }*/
 
-float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
+float scene( float3 P, const int final, float* orbit_colors, float3* N, global const void* theXNoise ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3);
+    pre_transform_stack(&P, theXNoise);
+
+    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3, theXNoise);
 
     dist_out = shape1;
 
@@ -120,6 +128,7 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
 }
 
 kernel void marchPerspCam(
+        global const void* theXNoise,
         int P_length, global float* P,
         int planeZ_length, global float* planeZ,
         int width_length, global float* width,
@@ -186,7 +195,7 @@ kernel void marchPerspCam(
     float3 N_grad;
 
     float3 ray_P_world = pixel_P_world;
-    float cam_dist = scene(cam_P_world, 0, NULL, NULL);
+    float cam_dist = scene(cam_P_world, 0, NULL, NULL, theXNoise);
     float de = 0.0f;
     int i = 0;
 
@@ -203,11 +212,11 @@ kernel void marchPerspCam(
     #pragma unroll
     for (i=0; i<max_steps; i++)
     {
-        de = scene(ray_P_world, 0, NULL, NULL) * step_size;
+        de = scene(ray_P_world, 0, NULL, NULL, theXNoise) * step_size;
 
         if ( de <= iso_limit || ray_dist >= max_dist )
         {
-            de = scene(ray_P_world, 1, orbit_colors, &N_grad) * step_size;
+            de = scene(ray_P_world, 1, orbit_colors, &N_grad, theXNoise) * step_size;
             break;
         }
 
@@ -228,8 +237,8 @@ kernel void marchPerspCam(
     {
         // compute N and AO only when not using DELTA DE mode
         #if !ENABLE_DELTA_DE
-            N_grad = compute_N(&iso_limit, &ray_P_world);
-            AO = compute_AO(&N_grad, &ray_P_world);
+            N_grad = compute_N(&iso_limit, &ray_P_world, theXNoise);
+            AO = compute_AO(&N_grad, &ray_P_world, theXNoise);
         #endif
 
         // output shading for viewport preview
@@ -256,6 +265,7 @@ kernel void marchPerspCam(
 }
 
 kernel void marchPoints(
+        global const void* theXNoise,
         int P_length, global float* P,
         int N_length, global float* N,
         int iRel_length, global float* iRel,
@@ -283,7 +293,7 @@ kernel void marchPoints(
     float3 N_grad;
 
     float3 ray_P_world = point_P_origin;
-    float cam_dist = scene(point_P_origin, 0, NULL, NULL);
+    float cam_dist = scene(point_P_origin, 0, NULL, NULL, theXNoise);
     float de = 0.0f;
     int i = 0;
 
@@ -300,11 +310,11 @@ kernel void marchPoints(
     #pragma unroll
     for (i=0; i<max_steps; i++)
     {
-        de = scene(ray_P_world, 0, NULL, NULL) * step_size;
+        de = scene(ray_P_world, 0, NULL, NULL, theXNoise) * step_size;
 
         if ( de <= iso_limit || ray_dist >= max_dist )
         {
-            de = scene(ray_P_world, 1, orbit_colors, &N_grad) * step_size;
+            de = scene(ray_P_world, 1, orbit_colors, &N_grad, theXNoise) * step_size;
             break;
         }
 
@@ -325,8 +335,8 @@ kernel void marchPoints(
     {
         // compute N and AO only when not using DELTA DE mode
         #if !ENABLE_DELTA_DE
-            N_grad = compute_N(&iso_limit, &ray_P_world);
-            AO = compute_AO(&N_grad, &ray_P_world);
+            N_grad = compute_N(&iso_limit, &ray_P_world, theXNoise);
+            AO = compute_AO(&N_grad, &ray_P_world, theXNoise);
         #endif
 
         // output shading for viewport preview
@@ -353,6 +363,7 @@ kernel void marchPoints(
 }
 
 kernel void computeSdf( 
+    global const void* theXNoise,
     int surface_stride_x, 
     int surface_stride_y, 
     int surface_stride_z, 
@@ -370,11 +381,12 @@ kernel void computeSdf(
     float3 P_world = mtxPtMult(surface_xformtoworld, P_vol);
 
     float de = 0.0f;
-    de = scene(P_world, 0, NULL, NULL);
+    de = scene(P_world, 0, NULL, NULL, theXNoise);
     vstore1(de, idx, surface);
 }
 
 kernel void computeSdfColors( 
+    global const void* theXNoise,
     int color_0_stride_x, 
     int color_0_stride_y, 
     int color_0_stride_z, 
@@ -402,7 +414,7 @@ kernel void computeSdfColors(
     float orbit_colors[ORBITS_ARRAY_LENGTH];    
     float de = 0.0f;
 
-    de = scene(P_world, 1, orbit_colors, NULL);
+    de = scene(P_world, 1, orbit_colors, NULL, theXNoise);
     
     vstore1(orbit_colors[0], idx, color_0);
     vstore1(orbit_colors[1], idx, color_1);

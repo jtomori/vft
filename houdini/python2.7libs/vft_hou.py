@@ -86,10 +86,10 @@ class NodeUtils(object):
         kernel.loadKernelsFileFromParm(kernels_parm)
 
         # get set of incoming fractals
-        fractal_attribs = geo.findGlobalAttrib("fractal_name").strings()
+        detail_attribs = geo.globalAttribs()
 
         # do the parsing
-        kernel.parseKernelsFile(fractal_attribs)
+        kernel.parseKernelsFile(detail_attribs)
 
         # set vft_kernels_parsed to kernelcode parm in an opencl node if has changed
         cl_node_parm = cl_node.parm("kernelcode")
@@ -170,21 +170,44 @@ class GenerateKernel(object):
             log.debug("Loading member var from node parameter")
             self.vft_kernels = parm.eval()
     
-    def parseKernelsFile(self, fractal_attribs):
+    def parseKernelsFile(self, attribs):
         """
         parses vft_kernels.cl file and replaces PY_* macros and saves it into member varible
         """
         start_time = time.time()
         self.vft_kernels_parsed = self.vft_kernels
 
+        attribs_dict = {}
+        for attr in attribs:
+            attribs_dict[ attr.name() ] = attr.strings()
+
         # generate fractal stack
-        fractals_stack_token = "#define PY_FRACTAL_STACK"
+        fractal_stack_token = "#define PY_FRACTAL_STACK"
 
-        fractals_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(fractal_attribs) )
-        fractals_stack_cl_code = fractals_stack_token + "\n\n" + fractals_stack_cl_code
+        fractal_stack_cl_code = ""
+        try:
+            fractal_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(attribs_dict["fractal_stack"]) )
+        except KeyError:
+            pass
+            log.error('No "fractal_stack" attribute found, probably missing input')
 
-        self.vft_kernels_parsed = self.vft_kernels_parsed.replace(fractals_stack_token, fractals_stack_cl_code)
+        fractal_stack_cl_code = fractal_stack_token + "\n\n" + fractal_stack_cl_code
 
+        # generate pre-transform stack
+        pre_transform_stack_token = "#define PY_PRE_TRANSFORM_STACK"
+
+        pre_transform_stack_cl_code = ""
+        try:
+            pre_transform_stack_cl_code = self.clStatementsToString( self.generateClFractalStack(attribs_dict["pre-transform_stack"]) )
+        except KeyError:
+            pass
+            log.debug('No "pre-transform_stack" attribute found, probably missing input')
+
+        pre_transform_stack_cl_code = pre_transform_stack_token + "\n\n" + pre_transform_stack_cl_code
+
+
+        self.vft_kernels_parsed = self.vft_kernels_parsed.replace(fractal_stack_token, fractal_stack_cl_code)
+        self.vft_kernels_parsed = self.vft_kernels_parsed.replace(pre_transform_stack_token, pre_transform_stack_cl_code)
 
         log.debug("Kernels file parsed in {0:.8f} seconds".format( time.time() - start_time ))
     
@@ -215,7 +238,8 @@ class GenerateKernel(object):
             "tgladFoldIter" :  "{obj.cl_function_name}(Z, (int3)({obj.parms[axis_enablex]:.0f}, {obj.parms[axis_enabley]:.0f}, {obj.parms[axis_enablez]:.0f}), (float3)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f))",
             "scaleIter" :  "{obj.cl_function_name}(Z, de, (float3)({obj.parms[scalex]:.6f}f, {obj.parms[scaley]:.6f}f, {obj.parms[scalez]:.6f}f))",
             "translateIter" :  "{obj.cl_function_name}(Z, (float3)({obj.parms[translatex]:.6f}f, {obj.parms[translatey]:.6f}f, {obj.parms[translatez]:.6f}f))",
-            "addCOffsetIter" :  "{obj.cl_function_name}(Z, P_in, (float3)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f))"
+            "addCOffsetIter" :  "{obj.cl_function_name}(Z, P_in, (float3)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f))",
+            "curlNoise" :  "{obj.cl_function_name}(theXNoise, Z, (float4)({obj.parms[frequencyx]:.6f}f, {obj.parms[frequencyy]:.6f}f, {obj.parms[frequencyz]:.6f}f, {obj.parms[frequencyw]:.6f}f), (float4)({obj.parms[offsetx]:.6f}f, {obj.parms[offsety]:.6f}f, {obj.parms[offsetz]:.6f}f, {obj.parms[offsetw]:.6f}f), (float3)({obj.parms[amplitudex]:.6f}f, {obj.parms[amplitudey]:.6f}f, {obj.parms[amplitudez]:.6f}f))"
         }
 
         def args_format(args_dict, obj):
