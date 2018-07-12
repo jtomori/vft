@@ -119,7 +119,6 @@ float scene( float3 P, const int final, float* orbit_colors, float3* N ) {
     return dist_out;
 }
 
-// main function
 kernel void marchPerspCam(
         int P_length, global float* P,
         int planeZ_length, global float* planeZ,
@@ -256,6 +255,103 @@ kernel void marchPerspCam(
     }
 }
 
+kernel void marchPoints(
+        int P_length, global float* P,
+        int N_length, global float* N,
+        int iRel_length, global float* iRel,
+        int Cd_length, global float* Cd,
+        int orbits_length, global int* orbits_index, global float* orbits
+        )
+{
+    // get current point id
+    const int idx = get_global_id(0);
+
+    // if current point is not valid, then end
+    if ( idx >= P_length ) return;
+
+    // read in P, N attribs
+    const float3 point_P_origin = vload3(idx, P);
+    const float3 point_N = vload3(idx, N);
+
+    //// raymarching
+
+    // raymarch settings, initialize variables
+    float3 color = (float3)(0.0f);
+    float AO = 1.0f;
+    float orbit_colors[ORBITS_ARRAY_LENGTH];
+    float3 Cd_out = (float3)(1.0f);
+    float3 N_grad;
+
+    float3 ray_P_world = point_P_origin;
+    float cam_dist = scene(point_P_origin, 0, NULL, NULL);
+    float de = 0.0f;
+    int i = 0;
+
+    // quality settings
+    float step_size = 0.4f;
+    float iso_limit_mult = 0.5f;
+    float ray_dist = 0.0f;
+    const int max_steps = 300;
+    const float max_dist = 1000.0f;
+
+    float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
+
+    // raymarching loop
+    #pragma unroll
+    for (i=0; i<max_steps; i++)
+    {
+        de = scene(ray_P_world, 0, NULL, NULL) * step_size;
+
+        if ( de <= iso_limit || ray_dist >= max_dist )
+        {
+            de = scene(ray_P_world, 1, orbit_colors, &N_grad) * step_size;
+            break;
+        }
+
+        ray_dist += de;
+        ray_P_world += point_N * de;
+    }
+
+    // relative amount of steps
+    float i_rel = (float)(i)/(float)(max_steps);
+    i_rel = 1.0f-pow(i_rel, 1.0f/3.0f);
+
+    // remove missed
+    if ( de > iso_limit )
+    {
+        i_rel = -1.0f;
+    }
+    else
+    {
+        // compute N and AO only when not using DELTA DE mode
+        #if !ENABLE_DELTA_DE
+            N_grad = compute_N(&iso_limit, &ray_P_world);
+            AO = compute_AO(&N_grad, &ray_P_world);
+        #endif
+
+        // output shading for viewport preview
+        color.x = AO;
+        color.y = orbit_colors[0];
+        color.z = 1.0f;
+
+        Cd_out = color;
+    }
+
+    // export attribs
+    vstore3(ray_P_world, idx, P);
+    vstore3(N_grad, idx, N);
+    vstore3(Cd_out, idx, Cd);
+    vstore1(i_rel, idx, iRel);
+
+    int orbits_idx_start = orbits_index[idx];
+    int orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
+    #pragma unroll
+    for (int j=orbits_idx_start; j<orbits_idx_end; j++)
+    {
+        orbits[j] = orbit_colors[j-orbits_idx_start];
+    }
+}
+
 kernel void computeSdf( 
     int surface_stride_x, 
     int surface_stride_y, 
@@ -277,7 +373,6 @@ kernel void computeSdf(
     de = scene(P_world, 0, NULL, NULL);
     vstore1(de, idx, surface);
 }
-
 
 kernel void computeSdfColors( 
     int color_0_stride_x, 
