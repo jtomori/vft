@@ -18,7 +18,7 @@ static float distPointPlane(float3 point, float3 plane_n, float3 plane_point)
 
     sn = -dot( plane_n, (point - plane_point));
     sd = dot(plane_n, plane_n);
-    sb = sn / sd;
+    sb = DIV(sn, sd);
 
     point_proj = point + sb * plane_n;
     
@@ -101,22 +101,22 @@ static float16 mtxRotate(float3 rot)
 {
     rot = radians(-rot);
 
-    const float cosx = cos(rot.x);
-    const float sinx = sin(rot.x);
+    const float cosx = COS(rot.x);
+    const float sinx = SIN(rot.x);
     const float16 x = (float16)(1,            0,              0,              0,
                                 0,            cosx,           -sinx,          0,
                                 0,            sinx,          cosx,           0,
                                 0,            0,              0,              1 );
 
-    const float cosy = cos(rot.y);
-    const float siny = sin(rot.y);
+    const float cosy = COS(rot.y);
+    const float siny = SIN(rot.y);
     const float16 y = (float16)(cosy,         0,              siny,           0,
                                 0,            1,              0,              0,
                                 -siny,        0,              cosy,           0,
                                 0,            0,              0,              1 );
 
-    const float cosz = cos(rot.z);
-    const float sinz = sin(rot.z);
+    const float cosz = COS(rot.z);
+    const float sinz = SIN(rot.z);
     const float16 z = (float16)(cosz,         -sinz,          0,              0,
                                 sinz,         cosz,           0,              0,
                                 0,            0,              1,              0,
@@ -141,7 +141,7 @@ static float3 mtxPtMult(float16 mtx, float3 vec)
 
     const float4 v = (float4)(vec.x, vec.y, vec.z, 1);
     float4 x = (float4)( dot(v, m[0]), dot(v, m[1]), dot(v, m[2]), dot(v, m[3]) );
-    x = x/x.w;
+    x = DIV(x, x.w);
 
     return (float3)(x.xyz);
 }
@@ -179,7 +179,7 @@ static float16 mtxInvert(float16 me)
 
     //if ( det == 0 ) return mtxIdent(); // assuming invertible matrices only
 
-    float detInv = 1.0f / det;
+    float detInv = DIV(1.0f, det);
 
     te.s0 = t11 * detInv;
     te.s1 = ( n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44 ) * detInv;

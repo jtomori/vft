@@ -1,10 +1,10 @@
+#include "vft_defines.h"
 #include "vft_utils.h"
 #include "vft_math.h"
 #include "vft_fractals.h"
-#include "vft_defines.h"
 #include "vft_shading.h"
 
-// contains primitives
+// contains primitives 
 float primitive_stack(float3 P, const int stack)
 {
     float out_distance;
@@ -216,8 +216,8 @@ kernel void marchPerspCam(
     }
 
     // relative amount of steps
-    float i_rel = (float)(i)/(float)(max_steps);
-    i_rel = 1.0f-pow(i_rel, 1.0f/3.0f);
+    float i_rel = DIV((float)(i), (float)(max_steps));
+    i_rel = 1.0f-POWR(i_rel, DIV(1.0f, 3.0f));
 
     // remove missed
     if ( de > iso_limit )
@@ -313,8 +313,8 @@ kernel void marchPoints(
     }
 
     // relative amount of steps
-    float i_rel = (float)(i)/(float)(max_steps);
-    i_rel = 1.0f-pow(i_rel, 1.0f/3.0f);
+    float i_rel = DIV((float)(i), (float)(max_steps));
+    i_rel = 1.0f-POWR(i_rel, DIV(1.0f, 3.0f));
 
     // remove missed
     if ( de > iso_limit )

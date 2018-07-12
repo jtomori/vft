@@ -66,18 +66,18 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     float distance = length(*Z);
 
     // convert to polar coordinates
-    float theta = acos((*Z).z/distance);
+    float theta = acos( DIV((*Z).z, distance));
     float phi = atan2((*Z).y, (*Z).x);
 
-    *de =  pow(distance, power-1) * power * (*de) + 1.0f;
+    *de =  POWR(distance, power-1) * power * (*de) + 1.0f;
     
     // scale and rotate the point
-    float zr = pow(distance, power);
+    float zr = POWR(distance, power);
     theta *= power;
     phi *= power;
     
     // convert back to cartesian coordinates
-    float3 newZ = zr * (float3)( sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta) );
+    float3 newZ = zr * (float3)( SIN(theta)*COS(phi), SIN(phi)*SIN(theta), COS(theta) );
 
     if (julia.x == 0.0f)
     {
@@ -116,13 +116,13 @@ static void mandelboxIter(float3* Z, float* de, const float3* P_in, int* log_lin
 
     if (r2 < mR2)
     {
-        *Z = *Z * fR2 / mR2;
-        *de = *de * fR2 / mR2;
+        *Z = *Z * DIV(fR2, mR2);
+        *de = *de * DIV(fR2, mR2);
     }
     else if (r2 < fR2)
     {
-        *Z = *Z * fR2 / r2;
-        *de *= fR2 / r2;
+        *Z = *Z * DIV(fR2, r2);
+        *de *= DIV(fR2, r2);
     }
 
     *de *= scale;
@@ -153,11 +153,11 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     float x2 = (*Z).x * (*Z).x;
     float y2 = (*Z).y * (*Z).y;
     float z2 = (*Z).z * (*Z).z;
-    float temp = 1.0f - z2 / (x2 + y2);
+    float temp = DIV(1.0f - z2, (x2 + y2));
     float3 new;
     new.x = (x2 - y2) * temp;
     new.y = 2.0f * (*Z).x * (*Z).y * temp;
-    new.z = -2.0f * (*Z).z * sqrt(x2 + y2);
+    new.z = -2.0f * (*Z).z * SQRT(x2 + y2);
 
     if (julia.x == 0.0f)
     {
@@ -254,18 +254,18 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     alpha = radians(alpha);
     beta = radians(beta);
 
-    float rp = pow(distance, power - 1.0f);
+    float rp = POWR(distance, power - 1.0f);
     *de = rp * (*de) * power + 1.0f;
     rp *= distance;
 
     float th = atan2((*Z).y, (*Z).x) + beta;
-    float ph = acos((*Z).z / distance) + alpha;
+    float ph = acos( DIV((*Z).z, distance)) + alpha;
 
     if (fabs(ph) > 0.5f * M_PI_F) ph = sign(ph) * M_PI_F - ph;
 
-    (*Z).x = rp * cos(th * power) * sin(ph * power);
-    (*Z).y = rp * sin(th * power) * sin(ph * power);
-    (*Z).z = rp * cos(ph * power);
+    (*Z).x = rp * COS(th * power) * SIN(ph * power);
+    (*Z).y = rp * SIN(th * power) * SIN(ph * power);
+    (*Z).z = rp * COS(ph * power);
 
     if (julia.x == 0.0f)
     {
@@ -335,29 +335,29 @@ static void mengerSmoothIter(float3* Z, float* de, const float3* P_in, int* log_
     float de_orig = *de;
     	
     float sc1 = scale - 1.0f;
-	float sc2 = sc1 / scale;
+	float sc2 = DIV(sc1, scale);
 
-    *Z = (float3)(sqrt((*Z).x * (*Z).x + offset_s), sqrt((*Z).y * (*Z).y + offset_s), sqrt((*Z).z * (*Z).z + offset_s));    
+    *Z = (float3)(SQRT((*Z).x * (*Z).x + offset_s), SQRT((*Z).y * (*Z).y + offset_s), SQRT((*Z).z * (*Z).z + offset_s));    
 
 	float t;
 
 	t = (*Z).x - (*Z).y;
-	t = 0.5f * (t - sqrt(t * t + offset_s));
+	t = 0.5f * (t - SQRT(t * t + offset_s));
 	(*Z).x = (*Z).x - t;
 	(*Z).y = (*Z).y + t;
 
 	t = (*Z).x - (*Z).z;
-	t = 0.5f * (t - sqrt(t * t + offset_s));
+	t = 0.5f * (t - SQRT(t * t + offset_s));
 	(*Z).x = (*Z).x - t;
 	(*Z).z = (*Z).z + t;
 
 	t = (*Z).y - (*Z).z;
-	t = 0.5f * (t - sqrt(t * t + offset_s));
+	t = 0.5f * (t - SQRT(t * t + offset_s));
 	(*Z).y = (*Z).y - t;
 	(*Z).z = (*Z).z + t;
 
 	(*Z).z = (*Z).z - offset_c.z * sc2;
-	(*Z).z = -sqrt((*Z).z * (*Z).z + offset_s);
+	(*Z).z = -SQRT((*Z).z * (*Z).z + offset_s);
 	(*Z).z = (*Z).z + offset_c.z * sc2;
 
 	(*Z).x = scale * (*Z).x - offset_c.x * sc1;
@@ -398,10 +398,10 @@ static void amazingSurfIter(float3* Z, float* de, const float3* P_in, int* log_l
         rr -= (*Z).z * (*Z).z;
     }
 
-	float sqrtMinR = sqrt(min_radius);
-	float dividend = rr < sqrtMinR ? sqrtMinR : min(rr, 1.0f);
+	float SQRTMinR = SQRT(min_radius);
+	float dividend = rr < SQRTMinR ? SQRTMinR : min(rr, 1.0f);
 
-    float m = actual_scale / dividend;
+    float m = DIV(actual_scale, dividend);
 
 	*Z *= (m - 1.0f) * scale_fold_influence + 1.0f;
 	*de = *de * fabs(m) + 1.0f;
@@ -438,7 +438,7 @@ static void benesiIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
     *de = *de * 2.0f * distance;
     float r1 = (*Z).y * (*Z).y + (*Z).z * (*Z).z;
     float newx;
-	if ((*P_in).x < 0.0f || (*Z).x < sqrt(r1))
+	if ((*P_in).x < 0.0f || (*Z).x < SQRT(r1))
 	{
 		newx = (*Z).x * (*Z).x - r1;
 	}
@@ -446,7 +446,7 @@ static void benesiIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
 	{
 		newx = -(*Z).x * (*Z).x + r1;
 	}
-	r1 = -1.0f / sqrt(r1) * 2.0f * fabs((*Z).x);
+	r1 = DIV(-1.0f, SQRT(r1)) * 2.0f * fabs((*Z).x);
 	float newy = r1 * ((*Z).y * (*Z).y - (*Z).z * (*Z).z);
 	float newz = r1 * 2.0f * (*Z).y * (*Z).z;
 
@@ -476,22 +476,22 @@ static void mandelbulb2Iter(float3* Z, float* de, const float3* P_in, int* log_l
 
 	*de = *de * 2.0f * distance;
 
-	float tempR = sqrt((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
-	*Z *= 1.0f / tempR;
+	float tempR = SQRT((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
+	*Z *= DIV(1.0f, tempR);
 	float temp = (*Z).x * (*Z).x - (*Z).y * (*Z).y;
 	(*Z).y = 2.0f * (*Z).x * (*Z).y;
 	(*Z).x = temp;
 	*Z *= tempR;
 
-	tempR = sqrt((*Z).y * (*Z).y + (*Z).z * (*Z).z); //+ 1e-061
-	*Z *= 1.0f / tempR;
+	tempR = SQRT((*Z).y * (*Z).y + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= DIV(1.0f, tempR);
 	temp = (*Z).y * (*Z).y - (*Z).z * (*Z).z;
 	(*Z).z = 2.0f * (*Z).y * (*Z).z;
 	(*Z).y = temp;
 	*Z *= tempR;
 
-	tempR = sqrt((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
-	*Z *= 1.0f / tempR;
+	tempR = SQRT((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= DIV(1.0f, tempR);
 	temp = (*Z).x * (*Z).x - (*Z).z * (*Z).z;
 	(*Z).z = 2.0f * (*Z).x * (*Z).z;
 	(*Z).x = temp;
@@ -530,16 +530,16 @@ static void mandelbulb3Iter(float3* Z, float* de, const float3* P_in, int* log_l
 	float sign2 = 1.0f;
 
 	if ((*Z).x < 0.0f) sign2 = -1.0f;
-	tempR = sqrt((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
-	*Z *= 1.0f / tempR;
+	tempR = SQRT((*Z).x * (*Z).x + (*Z).y * (*Z).y); //+ 1e-061
+	*Z *= DIV(1.0f, tempR);
 	temp = (*Z).x * (*Z).x - (*Z).y * (*Z).y;
 	(*Z).y = 2.0f * (*Z).x * (*Z).y;
 	(*Z).x = temp;
 	*Z *= tempR;
 
 	if ((*Z).x < 0.0f) sign = -1.0f;
-	tempR = sqrt((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
-	*Z *= 1.0f / tempR;
+	tempR = SQRT((*Z).x * (*Z).x + (*Z).z * (*Z).z); //+ 1e-061
+	*Z *= DIV(1.0f, tempR);
 	temp = (*Z).x * (*Z).x - (*Z).z * (*Z).z;
 	(*Z).z = 2.0f * (*Z).x * (*Z).z * sign2;
 	(*Z).x = temp * sign;
@@ -569,7 +569,7 @@ static void mandelbulb4Iter(float3* Z, float* de, const float3* P_in, int* log_l
     
     float distance = length(*Z);
 
-    float rp = pow(distance, power - 1.0f);
+    float rp = POWR(distance, power - 1.0f);
 	*de = rp * (*de) * power + 1.0f;
 
 	float angZ = degrees(atan2((*Z).y, (*Z).x)) + angles.x;
@@ -659,20 +659,20 @@ static void iqBulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
 
 	// extract polar coordinates
 	float wr = distance;
-	float wo = acos((*Z).y / wr);
+	float wo = acos( DIV((*Z).y, wr));
 	float wi = atan2((*Z).x, (*Z).z);
 
 	// scale and rotate the point
-	wr = pow(wr, power - 1.0f);
+	wr = POWR(wr, power - 1.0f);
 	*de = wr * *de * power + 1.0f;
 	wr *= distance;
 	wo *= power;
 	wi *= zpower;
 
 	// convert back to cartesian coordinates
-	(*Z).x = sin(wo) * sin(wi);
-	(*Z).y = cos(wo);
-	(*Z).z = sin(wo) * cos(wi);
+	(*Z).x = SIN(wo) * SIN(wi);
+	(*Z).y = COS(wo);
+	(*Z).z = SIN(wo) * COS(wi);
 
 	*Z *= wr; // then add Cpixel constant
 
@@ -703,8 +703,8 @@ static void quaternion3dIter(float3* Z, float* de, const float3* P_in, int* log_
 
 	float tempL = length(*Z);
 	*Z *= scale;
-	float3 tempAvgScale = (float3)((*Z).x, (*Z).y / 2.0f, (*Z).z / 2.0f);
-	float avgScale = length(tempAvgScale) / tempL;
+	float3 tempAvgScale = (float3)((*Z).x, DIV((*Z).y, 2.0f), DIV((*Z).z, 2.0f));
+	float avgScale = DIV(length(tempAvgScale), tempL);
 	float tempAux = *de * avgScale;
 	*de = *de + (tempAux - *de) * de_influence;
 
@@ -743,12 +743,12 @@ static void josKleinianIter(float3* Z, float* de, const float3* P_in, int* log_l
 
     *Z = (float3)(wrapped.x, wrapped.y, wrapped.z);
 
-    if ((*Z).y >= a * (0.5f + 0.2f * sin(f * M_PI_F * ((*Z).x + b * 0.5f) / box_size.x)))
+    if ((*Z).y >= a * (0.5f + 0.2f * SIN(f * M_PI_F * DIV(((*Z).x + b * 0.5f), box_size.x))))
 		*Z = (float3)(-b, a, 0.0f) - *Z;
 
     float z2 = dot(*Z, *Z);
 
-    float iR = 1.0f / z2;
+    float iR = DIV(1.0f, z2);
 	*Z *= -iR;
 	(*Z).x = -b - (*Z).x;
 	(*Z).y = a + (*Z).y;
@@ -845,7 +845,7 @@ static void scaleIter(float3* Z, float* de, const float3 scale)
     *Z = mtxPtMult( mtxScale(scale) , *Z );
     
     float distance_scaled = length(*Z);
-    *de *= distance_scaled / distance_init;
+    *de *= DIV(distance_scaled, distance_init);
 }
 
 static void translateIter(float3* Z, const float3 translate)

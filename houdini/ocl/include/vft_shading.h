@@ -1,7 +1,7 @@
 #ifndef VFT_SHADING
 #define VFT_SHADING
 
-#include "vft_defines.h"
+//#include "vft_defines.h"
 
 float scene(float3, const int, float*, float3*);
 static float length2(float3);
@@ -36,7 +36,7 @@ static float compute_AO(const float3* N, const float3* ray_P_world)
     #pragma unroll
     for(int j=0; j<5; j++)
     {
-        float AO_hr = 0.01f + 0.12f * (float)(j)/4.0f;
+        float AO_hr = 0.01f + 0.12f * DIV((float)(j), 4.0f);
         float3 AO_pos =  (*N) * AO_hr + (*ray_P_world);
         float AO_dd = scene(AO_pos, 0, NULL, NULL);
         AO_occ += -(AO_dd-AO_hr)*AO_sca;
@@ -44,7 +44,7 @@ static float compute_AO(const float3* N, const float3* ray_P_world)
     }
     
     AO = clamp( 1.0f - 3.4f * AO_occ, 0.0f, 1.0f );
-    AO = pow(AO, 1.6f);
+    AO = POWR(AO, 1.6f);
 
     return AO;
 }
@@ -52,7 +52,7 @@ static float compute_AO(const float3* N, const float3* ray_P_world)
 // primitive shape function - calls respective parto of primitive_stack(), in case of DELTA DE mode also outputs N
 static float primitive(float3 P, const float size, const int final, float* orbit_closest, float* orbit_colors, const float3 color, float3* N, const int stack)
 {
-    P /= size;
+    P = DIV(P, size);
     float out_distance = primitive_stack(P, stack);
 
     if (final == 1 && out_distance <= *orbit_closest - ORBITS_OFFSET)
@@ -78,7 +78,7 @@ static float primitive(float3 P, const float size, const int final, float* orbit
 // hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode also outputs N
 static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack)
 {
-    P_in /= size;
+    P_in = DIV(P_in, size);
     float3 Z = P_in;
     float de = 1.0f;
     float distance;
@@ -134,7 +134,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
         float rx = length(Z);
-        float drx = (distance - rx) / delta;
+        float drx = DIV((distance - rx), delta);
 
         Z = P_in + (float3)(0.0f, delta, 0.0f);
 
@@ -144,7 +144,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
         float ry = length(Z);
-        float dry = (distance - ry) / delta;
+        float dry = DIV((distance - ry), delta);
 
         Z = P_in + (float3)(0.0f, 0.0f, delta);
 
@@ -154,7 +154,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
         float rz = length(Z);
-        float drz = (distance - rz) / delta;
+        float drz = DIV((distance - rz), delta);
 
         float3 dist_grad = (float3)(drx, dry, drz);
         de = length(dist_grad);
@@ -163,21 +163,21 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
     #endif
 
     // automatic determining DE mode based on log_lin value
-    if (log_lin >= 0) out_distance = 0.5f * log(distance) * distance/de;
-    else out_distance = distance / fabs(de);
+    if (log_lin >= 0) out_distance = 0.5f * LOG(distance) * DIV(distance, de);
+    else out_distance = DIV(distance, fabs(de));
 
     // outputting orbit traps (and N in case of DELTA DE mode) to the closest shape
     if (final == 1 && out_distance <= *orbit_closest)
     {
-        orbit_colors[0] = sqrt(orbit_pt_dist); // distance to point at specified coordinates
+        orbit_colors[0] = SQRT(orbit_pt_dist); // distance to point at specified coordinates
         orbit_colors[1] = orbit_plane_dist.x; // distance to YZ plane
         orbit_colors[2] = orbit_plane_dist.y; // distance to XZ plane
         orbit_colors[3] = orbit_plane_dist.z; // distance to XY plane
         orbit_colors[4] = orbit_coord_dist; // dot(Z, world coords)
-        orbit_colors[5] = sqrt(orbit_sphere_dist); // distance to sphere
-        orbit_colors[6] = sqrt(orbit_axis_dist.x); // distance to X axis
-        orbit_colors[7] = sqrt(orbit_axis_dist.y); // distance to Y axis
-        orbit_colors[8] = sqrt(orbit_axis_dist.z); // distance to Z axis
+        orbit_colors[5] = SQRT(orbit_sphere_dist); // distance to sphere
+        orbit_colors[6] = SQRT(orbit_axis_dist.x); // distance to X axis
+        orbit_colors[7] = SQRT(orbit_axis_dist.y); // distance to Y axis
+        orbit_colors[8] = SQRT(orbit_axis_dist.z); // distance to Z axis
 
         #if ENABLE_DELTA_DE
             *N = dist_grad;

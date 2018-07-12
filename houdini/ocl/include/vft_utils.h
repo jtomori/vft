@@ -21,15 +21,15 @@ static void vstore1(float dataIn, int i, global float* dataOut)
 // polynomial smooth min
 static float sminPoly( float a, float b, float k )
 {
-    float h = clamp( 0.5f + 0.5f * (b - a) / k, 0.0f, 1.0f );
+    float h = clamp( 0.5f + 0.5f * DIV((b - a), k), 0.0f, 1.0f );
     return mix( b, a, h ) - k * h * (1.0f - h);
 }
 
 // exponential smooth min
 static float sminExp( float a, float b, float k )
 {
-    float res = exp( -k * a ) + exp( -k * b );
-    return -log( res ) / k;
+    float res = EXP( -k * a ) + EXP( -k * b );
+    return -DIV(LOG(res), k);
 }
 
 // union
@@ -84,7 +84,7 @@ static float3 spaceRepFixed(float3 p, float3 c, float3 limit)
 static float3 wrap(float3 x, float3 a, float3 s)
 {
 	x -= s;
-	return (float3)(x.x - a.x * floor(x.x / a.x) + s.x, x.y - a.y * floor(x.y / a.y) + s.y, x.z - a.z * floor(x.z / a.z) + s.z);
+	return (float3)(x.x - a.x * floor(DIV(x.x, a.x)) + s.x, x.y - a.y * floor(DIV(x.y, a.y)) + s.y, x.z - a.z * floor(DIV(x.z, a.z)) + s.z);
 }
 
 ////////////// debug
