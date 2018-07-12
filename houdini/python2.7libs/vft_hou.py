@@ -259,6 +259,7 @@ class FractalObject(object):
         # init member vars
         self.asset_name = None
         self.parent_name = None
+        self.parent_path = None
         self.cl_function_name = None
         self.parms = {
             "weight" : 1.0,
@@ -276,10 +277,11 @@ class FractalObject(object):
 
         self.asset_name = attrib_list[0]
         self.parent_name = attrib_list[1]
+        self.parent_path = attrib_list[2]
 
         self.cl_function_name = self.asset_name.split("_")[-1]
 
-        parms_string = attrib_list[2]
+        parms_string = attrib_list[3]
         parms_list = parms_string.split(",")
 
         for item in parms_list:
@@ -294,6 +296,7 @@ class FractalObject(object):
 
         self.asset_name = node.parent().type().name()
         self.parent_name = node.parent().name()
+        self.parent_path = node.parent().path()
 
         parms = node.parent().parms()
         for parm in parms:
@@ -310,7 +313,7 @@ class FractalObject(object):
             parms_string += key + ":" + "{0:.6f}".format(value) + ","
         parms_string = parms_string[:-1] # remove the last comma
         
-        attrib = "|".join( [self.asset_name, self.parent_name, parms_string] )
+        attrib = "|".join( [self.asset_name, self.parent_name, self.parent_path, parms_string] )
         return attrib
 
 class FpsCam(object):
