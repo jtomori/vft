@@ -174,7 +174,7 @@ kernel void marchPerspCam(
 
     // get camera world space position and compute ray direction vector
     const float3 cam_P_world = (float3)(camPos[0], camPos[1], camPos[2]);
-    const float3 ray_dir = normalize(pixel_P_world_scaled - cam_P_world);
+    const float3 ray_dir = NORMALIZE(pixel_P_world_scaled - cam_P_world);
 
     //// raymarching
 

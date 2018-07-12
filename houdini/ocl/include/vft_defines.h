@@ -20,5 +20,7 @@
 #define LOG(x) native_log(x)
 #define EXP(x) native_exp(x)
 #define DIV(x, y) native_divide((x), (y))
+#define NORMALIZE(x) fast_normalize(x)
+#define LENGTH(x) fast_length(x)
 
 #endif

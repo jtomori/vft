@@ -22,7 +22,7 @@
 // sphere: position, radius
 static float sphere( float3 P, float rad )
 {
-    float dist = length(P) - rad;
+    float dist = LENGTH(P) - rad;
     return dist;
 }
 
@@ -30,27 +30,27 @@ static float sphere( float3 P, float rad )
 static float box( float3 P, float3 b )
 {
   float3 d = fabs(P) - b;
-  return min( max( d.x, max(d.y, d.z) ), 0.0f) + length( max(d, 0.0f) );
+  return min( max( d.x, max(d.y, d.z) ), 0.0f) + LENGTH( max(d, 0.0f) );
 }
 
 // round box: position, size, roundness
 static float roundBox( float3 P, float3 b, float r )
 {
-  return length( max( fabs(P) - b, 0.0f ) )-r;
+  return LENGTH( max( fabs(P) - b, 0.0f ) )-r;
 }
 
 // torus: position, size (radius, thickness)
 static float torus( float3 P, float2 t )
 {
-  float2 q = (float2)(length(P.xz)-t.x,P.y);
-  return length(q)-t.y;
+  float2 q = (float2)(LENGTH(P.xz)-t.x,P.y);
+  return LENGTH(q)-t.y;
 }
 
 // infinite cone
 static float cone( float3 P, float2 c )
 {
-    c = normalize(c);
-    float q = length(P.xy);
+    c = NORMALIZE(c);
+    float q = LENGTH(P.xy);
     return dot( c, (float2)(q, P.z) );
 }
 
@@ -63,7 +63,7 @@ static void mandelbulbIter(float3* Z, float* de, const float3* P_in, int* log_li
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     // convert to polar coordinates
     float theta = acos( DIV((*Z).z, distance));
@@ -147,7 +147,7 @@ static void mandelbulbPower2Iter(float3* Z, float* de, const float3* P_in, int* 
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     *de = *de * 2.0f * distance;
     float x2 = (*Z).x * (*Z).x;
@@ -219,7 +219,7 @@ static void bristorbrotIter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     float3 new;
     new.x = (*Z).x * (*Z).x - (*Z).y * (*Z).y - (*Z).z * (*Z).z;
@@ -249,7 +249,7 @@ static void xenodreambuieIter(float3* Z, float* de, const float3* P_in, int* log
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     alpha = radians(alpha);
     beta = radians(beta);
@@ -433,7 +433,7 @@ static void benesiIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     *de = *de * 2.0f * distance;
     float r1 = (*Z).y * (*Z).y + (*Z).z * (*Z).z;
@@ -472,7 +472,7 @@ static void mandelbulb2Iter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
 	*de = *de * 2.0f * distance;
 
@@ -519,7 +519,7 @@ static void mandelbulb3Iter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
 	
     *de = *de * 2.0f * distance;
@@ -567,7 +567,7 @@ static void mandelbulb4Iter(float3* Z, float* de, const float3* P_in, int* log_l
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
     float rp = POWR(distance, power - 1.0f);
 	*de = rp * (*de) * power + 1.0f;
@@ -655,7 +655,7 @@ static void iqBulbIter(float3* Z, float* de, const float3* P_in, int* log_lin, c
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
 	// extract polar coordinates
 	float wr = distance;
@@ -696,15 +696,15 @@ static void quaternion3dIter(float3* Z, float* de, const float3* P_in, int* log_
     float3 Z_orig = *Z;
     float de_orig = *de;
     
-    float distance = length(*Z);
+    float distance = LENGTH(*Z);
 
 	*de = (*de) * 2.0f * distance;
 	*Z = (float3)((*Z).x * (*Z).x - (*Z).y * (*Z).y - (*Z).z * (*Z).z, (*Z).x * (*Z).y, (*Z).x * (*Z).z);
 
-	float tempL = length(*Z);
+	float tempL = LENGTH(*Z);
 	*Z *= scale;
 	float3 tempAvgScale = (float3)((*Z).x, DIV((*Z).y, 2.0f), DIV((*Z).z, 2.0f));
-	float avgScale = DIV(length(tempAvgScale), tempL);
+	float avgScale = DIV(LENGTH(tempAvgScale), tempL);
 	float tempAux = *de * avgScale;
 	*de = *de + (tempAux - *de) * de_influence;
 
@@ -840,11 +840,11 @@ static void tgladFoldIter(float3* Z, const int3 axis_enable, const float3 offset
 // [M2] - T>Scale - TransfScaleIteration
 static void scaleIter(float3* Z, float* de, const float3 scale)
 {
-    float distance_init = length(*Z);
+    float distance_init = LENGTH(*Z);
 
     *Z = mtxPtMult( mtxScale(scale) , *Z );
     
-    float distance_scaled = length(*Z);
+    float distance_scaled = LENGTH(*Z);
     *de *= DIV(distance_scaled, distance_init);
 }
 

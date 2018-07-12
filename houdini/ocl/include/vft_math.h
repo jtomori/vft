@@ -22,7 +22,7 @@ static float distPointPlane(float3 point, float3 plane_n, float3 plane_point)
 
     point_proj = point + sb * plane_n;
     
-    return length(point - point_proj);
+    return LENGTH(point - point_proj);
 }
 
 // identity 4x4 matrix

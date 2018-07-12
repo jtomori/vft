@@ -18,7 +18,7 @@ static float3 compute_N(const float* iso_limit, const float3* ray_P_world)
     float3 N_grad;
     float2 e = (float2)(1.0f, -1.0f) * (*iso_limit) * 0.01f;
 
-    N_grad = normalize( e.xyy * scene( (*ray_P_world) + e.xyy, 0, NULL, NULL) + 
+    N_grad = NORMALIZE( e.xyy * scene( (*ray_P_world) + e.xyy, 0, NULL, NULL) + 
                         e.yyx * scene( (*ray_P_world) + e.yyx, 0, NULL, NULL) + 
                         e.yxy * scene( (*ray_P_world) + e.yxy, 0, NULL, NULL) + 
                         e.xxx * scene( (*ray_P_world) + e.xxx, 0, NULL, NULL) );
@@ -101,7 +101,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
     #pragma unroll
     for (i = 0; i < max_iterations; i++)
     {
-        distance = length(Z);
+        distance = LENGTH(Z);
         if (distance > max_distance) break;
         
         fractal_stack(&Z, &de, &P_in, &log_lin, stack);
@@ -114,13 +114,13 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
             orbit_plane_dist.y = min( orbit_plane_dist.y, distPointPlane(Z, orbit_plane.yxy, orbit_plane_origin) );
             orbit_plane_dist.z = min( orbit_plane_dist.z, distPointPlane(Z, orbit_plane.yyx, orbit_plane_origin) );
             orbit_coord_dist = min( orbit_coord_dist, fabs(dot(Z, P_in)) );
-            orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - normalize(Z)*orbit_sphere_rad) );
+            orbit_sphere_dist = min( orbit_sphere_dist, length2(Z - NORMALIZE(Z)*orbit_sphere_rad) );
             orbit_axis_dist.x = min(orbit_axis_dist.x, Z.y*Z.y + Z.z*Z.z);
             orbit_axis_dist.y = min(orbit_axis_dist.y, Z.x*Z.x + Z.z*Z.z);
             orbit_axis_dist.z = min(orbit_axis_dist.z, Z.x*Z.x + Z.y*Z.y);
         }
     }
-    distance = length(Z);
+    distance = LENGTH(Z);
 
     // delta DE method
     // based on Makin/Buddhi 4-point Delta-DE formula
@@ -133,7 +133,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         {
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
-        float rx = length(Z);
+        float rx = LENGTH(Z);
         float drx = DIV((distance - rx), delta);
 
         Z = P_in + (float3)(0.0f, delta, 0.0f);
@@ -143,7 +143,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         {
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
-        float ry = length(Z);
+        float ry = LENGTH(Z);
         float dry = DIV((distance - ry), delta);
 
         Z = P_in + (float3)(0.0f, 0.0f, delta);
@@ -153,13 +153,13 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         {
             fractal_stack(&Z, &de, &P_in, &log_lin, stack);
         }
-        float rz = length(Z);
+        float rz = LENGTH(Z);
         float drz = DIV((distance - rz), delta);
 
         float3 dist_grad = (float3)(drx, dry, drz);
-        de = length(dist_grad);
+        de = LENGTH(dist_grad);
 
-        dist_grad = normalize(dist_grad);
+        dist_grad = NORMALIZE(dist_grad);
     #endif
 
     // automatic determining DE mode based on log_lin value
