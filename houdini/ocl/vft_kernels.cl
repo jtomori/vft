@@ -298,11 +298,11 @@ kernel void marchPoints(
     int i = 0;
 
     // quality settings
-    float step_size = 0.4f;
-    float iso_limit_mult = 0.5f;
+    float step_size = 0.9f;
+    float iso_limit_mult = 0.4f;
     float ray_dist = 0.0f;
-    const int max_steps = 300;
-    const float max_dist = 1000.0f;
+    const int max_steps = 150;
+    const float max_dist = 100.0f;
 
     float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
 
