@@ -143,7 +143,7 @@ kernel void marchPerspCam(
         )
 {
     // get current point id
-    const int idx = get_global_id(0);
+    const long idx = get_global_id(0);
 
     // if current point is not valid, then end
     if ( idx >= P_length ) return;
@@ -255,10 +255,10 @@ kernel void marchPerspCam(
     vstore3(Cd_out, idx, Cd);
     vstore1(i_rel, idx, iRel);
 
-    int orbits_idx_start = orbits_index[idx];
-    int orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
+    long orbits_idx_start = orbits_index[idx];
+    long orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
     #pragma unroll
-    for (int j=orbits_idx_start; j<orbits_idx_end; j++)
+    for (long j=orbits_idx_start; j<orbits_idx_end; j++)
     {
         orbits[j] = orbit_colors[j-orbits_idx_start];
     }
@@ -274,7 +274,7 @@ kernel void marchPoints(
         )
 {
     // get current point id
-    const int idx = get_global_id(0);
+    const long idx = get_global_id(0);
 
     // if current point is not valid, then end
     if ( idx >= P_length ) return;
@@ -353,10 +353,10 @@ kernel void marchPoints(
     vstore3(Cd_out, idx, Cd);
     vstore1(i_rel, idx, iRel);
 
-    int orbits_idx_start = orbits_index[idx];
-    int orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
+    long orbits_idx_start = orbits_index[idx];
+    long orbits_idx_end = orbits_idx_start + ORBITS_ARRAY_LENGTH;
     #pragma unroll
-    for (int j=orbits_idx_start; j<orbits_idx_end; j++)
+    for (long j=orbits_idx_start; j<orbits_idx_end; j++)
     {
         orbits[j] = orbit_colors[j-orbits_idx_start];
     }
@@ -372,10 +372,10 @@ kernel void computeSdf(
     global float * surface
     )
 {
-    int gidx = get_global_id(0);
-    int gidy = get_global_id(1);
-    int gidz = get_global_id(2);
-    int idx = surface_stride_offset + surface_stride_x * gidx + surface_stride_y * gidy + surface_stride_z * gidz;
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);   
+    const long idx = surface_stride_offset + surface_stride_x * gidx + surface_stride_y * gidy + surface_stride_z * gidz;
 
     float3 P_vol = (float3)(gidx, gidy, gidz);
     float3 P_world = mtxPtMult(surface_xformtoworld, P_vol);
@@ -403,10 +403,10 @@ kernel void computeSdfColors(
     global float * color_8
     )
 {
-    int gidx = get_global_id(0);
-    int gidy = get_global_id(1);
-    int gidz = get_global_id(2);
-    int idx = color_0_stride_offset + color_0_stride_x * gidx + color_0_stride_y * gidy + color_0_stride_z * gidz;
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);
+    const long idx = color_0_stride_offset + color_0_stride_x * gidx + color_0_stride_y * gidy + color_0_stride_z * gidz;
 
     float3 P_vol = (float3)(gidx, gidy, gidz);
     float3 P_world = mtxPtMult(color_0_xformtoworld, P_vol);

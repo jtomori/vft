@@ -9,7 +9,7 @@
 
 
 // export float attrib
-static void vstore1(float dataIn, int i, global float* dataOut)
+static void vstore1(float dataIn, long i, global float* dataOut)
 {
     dataOut[i] = dataIn;
 }
