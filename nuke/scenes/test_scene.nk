@@ -1,0 +1,935 @@
+#! /usr/local/Nuke11.1v4/libnuke-11.1.4.so -nx
+version 11.1 v4
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="1920" y="0" w="1920" h="1200" maximized="1" fullscreen="1" screen="1">
+        <splitter orientation="1">
+            <split size="934"/>
+            <splitter orientation="1">
+                <split size="934"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+            </splitter>
+            <split size="982"/>
+            <splitter orientation="2">
+                <split size="1154"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="uk.co.thefoundry.scripteditor.1"/>
+                </dock>
+            </splitter>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /home/juraj/coding/raymarching/nuke/scenes/test_scene.nk
+ project_directory "\[python \{nuke.script_directory()\}]"
+ fps 25
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode1
+ label "reference blink scripts"
+ note_font_size 30
+ xpos -104
+ ypos -398
+ bdwidth 774
+ bdheight 55
+}
+ColorWheel {
+ inputs 0
+ gamma 0.45
+ name ColorWheel1
+ xpos -90
+ ypos -219
+}
+BlinkScript {
+ ProgramGroup 1
+ KernelDescription "2 \"SaturationKernel\" iterate pixelWise 5bf75605554ae85bdb7e5f63bb463baa405e28e066b03d296b54bb6c5f395cfd 2 \"src\" Read Point \"dst\" Write Point 1 \"Saturation\" Float 1 mpmZPw== 1 \"saturation\" 1 1 1 \"coefficients\" Float 3 1 AAAAAAAAAAAAAAAAAAAAAA=="
+ kernelSource "kernel SaturationKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessPoint, eEdgeClamped> src; // the input image\n  Image<eWrite> dst; // the output image\n\n  param:\n    float saturation; // This parameter is made available to the user.\n\n  local:\n    float3 coefficients;  // This local variable is not exposed to the user.\n\n  // In define(), parameters can be given labels and default values.\n  void define() \{\n    defineParam(saturation, \"Saturation\", 1.2f);\n  \}\n\n  // The init() function is run before any calls to process().\n  // Local variables can be initialized here.\n  void init() \{\n    // Initialise coefficients according to rec. 709 standard.\n    coefficients.x = 0.2126f;\n    coefficients.y = 0.7152f;\n    coefficients.z = 0.0722f;\n  \}\n\n  void process() \{\n    // Read the input image\n    SampleType(src) input = src();\n\n    // Isolate the RGB components\n    float3 srcPixel(input.x, input.y, input.z);\n\n    // Calculate luma\n    float luma = srcPixel.x * coefficients.x\n               + srcPixel.y * coefficients.y\n               + srcPixel.z * coefficients.z;\n    // Apply saturation\n    float3 saturatedPixel = (srcPixel - luma) * saturation + luma;\n\n    // Write the result to the output image\n    dst() = float4(saturatedPixel.x, saturatedPixel.y, saturatedPixel.z, input.w);\n  \}\n\};\n"
+ rebuild ""
+ SaturationKernel_Saturation 0.91
+ rebuild_finalise ""
+ name BlinkScript1
+ xpos -90
+ ypos -127
+}
+BlinkScript {
+ inputs 0
+ recompileCount 1
+ ProgramGroup 1
+ KernelDescription "2 \"Voronoi\" iterate pixelWise 3019b1f603e2c65a967b1b3818e8f6a1fc53479285c88cece1d6806b4990f956 1 \"dst\" Write Point 5 \"Offset\" Float 2 AAAAAAAAAAA= \"Frequency\" Float 1 AABAQA== \"Seed\" Int 1 AAAAAA== \"Displacement\" Float 1 AACAPw== \"Distance\" Bool 1 AQ== 5 \"offset\" 2 1 \"frequency\" 1 1 \"seed\" 1 1 \"displacement\" 1 1 \"distance\" 1 1 1 \"m_width\" Int 1 1 AAAAAA=="
+ kernelSource "// Voronoi.blink\n// A test implementation of libNoise's Voronoi generator using Blink\n// Ivan Busquets - August 2013\n\n#define X_NOISE_GEN  1619\n#define Y_NOISE_GEN  31337\n#define Z_NOISE_GEN  6971\n#define SEED_NOISE_GEN  1013\n#define SQRT_3 1.73205081\n\ninline int IntValueNoise3D (int x, int y, int z, int seed)\n\{\n  // All constants are primes and must remain prime in order for this noise\n  // function to work correctly.\n  int n = (\n      X_NOISE_GEN    * x\n    + Y_NOISE_GEN    * y\n    + Z_NOISE_GEN    * z\n    + SEED_NOISE_GEN * seed)\n    & 0x7fffffff;\n  n = (n >> 13) ^ n;\n  return (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;\n\}\n\ninline float ValueNoise3D (int x, int y, int z, int seed)\n\{\n  return 1.0 - ((float)IntValueNoise3D (x, y, z, seed) / 1073741824.0);\n\}\n\nkernel Voronoi : ImageComputationKernel<ePixelWise>\n\{\n  Image<eWrite, eAccessPoint> dst;\n\nparam:\n  float2 offset;\n  float frequency;\n  int    seed;\n  float displacement;\n  bool distance;\n\nlocal:\n  int m_width;\n\n  void define() \{\n    defineParam (distance, \"Distance\", true);\n    defineParam(offset,      \"Offset\", float2(0.0f, 0.0f));\n    defineParam(frequency, \"Frequency\",  3.0f);\n    defineParam(displacement, \"Displacement\", 1.0f);\n    defineParam(seed,        \"Seed\",   0);\n  \}\n\n  void init() \{\n\n    m_width = dst.bounds.width(); \n\}\n\n  void process(int2 pos) \{\n    //float2 posf(pos.x, pos.y);\n   float x = (pos.x - offset.x) * frequency / m_width;\n   float y = (pos.y - offset.y) * frequency / m_width;\n    int xInt = (x > 0.0? (int)x: (int)x - 1);\n    int yInt = (y > 0.0? (int)y: (int)y - 1);\n\n\n    float minDist = 2147483647.0;\n    float xCandidate = 0;\n    float yCandidate = 0;\n\n    float dist;\n\nfor (int yCur = yInt - 2; yCur <= yInt + 2; yCur++) \{\n      for (int xCur = xInt - 2; xCur <= xInt + 2; xCur++) \{\n\n        // Calculate the position and distance to the seed point inside of\n        // this unit cube.\n        float xPos = xCur + ValueNoise3D (xCur, yCur, 0, seed    );\n        float yPos = yCur + ValueNoise3D (xCur, yCur, 0, seed + 1);\n\n        float xDist = xPos - x;\n        float yDist = yPos - y;\n\n        //dist = xDist * xDist + yDist * yDist;\n        dist = fabs(xDist) + fabs(yDist);\n        if (dist < minDist) \{\n          // This seed point is closer to any others found so far, so record\n          // this seed point.\n          minDist = dist;\n          xCandidate = xPos;\n          yCandidate = yPos;\n\t\}\n    \}\n\}\n\nfloat value = 0.0;\nif (distance) \{\n    // Determine the distance to the nearest seed point.\n    float xDist = xCandidate - x;\n    float yDist = yCandidate - y;\n    value = (sqrt (xDist * xDist + yDist * yDist)) * SQRT_3 - 1.0;\n    \}\n\nvalue += (displacement * (float)ValueNoise3D ( \t    (int)(floor (xCandidate)), (int)(floor (yCandidate)), 0.0f, seed));\n\n    SampleType(dst) sample(0.0f);\n\n    sample.x = value;\n    sample.y = value;\n    sample.z = value;\n\n    dst() = sample;\n\}\n\};"
+ rebuild ""
+ Voronoi_Frequency 30
+ Voronoi_Displacement 0.74
+ Voronoi_Distance false
+ rebuild_finalise ""
+ name BlinkScript_voronoi
+ xpos 17
+ ypos -124
+}
+Constant {
+ inputs 0
+ channels rgb
+ name Constant1
+ xpos 124
+ ypos -231
+ postage_stamp false
+}
+Reformat {
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ name Reformat1
+ xpos 124
+ ypos -190
+}
+Crop {
+ box {0 0 {width} {height}}
+ reformat true
+ crop false
+ name Crop1
+ xpos 124
+ ypos -154
+}
+Group {
+ name MandelbrotKernel
+ xpos 124
+ ypos -112
+ addUserKnob {20 MandelbrotKernel}
+ addUserKnob {41 "Local GPU: " T BlinkScript1.gpuName}
+ addUserKnob {41 "Use GPU if Available" T BlinkScript1.useGPUIfAvailable}
+ addUserKnob {26 ""}
+ addUserKnob {41 normalize T BlinkScript1.MandelbrotKernel_normalize}
+ addUserKnob {41 invert T BlinkScript1.MandelbrotKernel_invert}
+ addUserKnob {41 color T BlinkScript1.MandelbrotKernel_color}
+ addUserKnob {41 resolution T BlinkScript1.MandelbrotKernel_resolution}
+ addUserKnob {41 recursion T BlinkScript1.MandelbrotKernel_recursion}
+ addUserKnob {41 zoom T BlinkScript1.MandelbrotKernel_zoom}
+ addUserKnob {41 offset T BlinkScript1.MandelbrotKernel_offset}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -151
+  ypos -98
+ }
+ BlinkScript {
+  recompileCount 144
+  ProgramGroup 1
+  KernelDescription "2 \"MandelbrotKernel\" iterate pixelWise ae0de899f1ef1adef73068de4c6ce38035b2c90ca8ee9c4ec027d358af7b940b 2 \"src\" Read Point \"dst\" Write Point 7 \"normalize\" Bool 1 AA== \"invert\" Bool 1 AA== \"color\" Float 4 AAAAAAAAAAAAAAAAAAAAAA== \"resolution\" Int 2 AAAAAAAAAAA= \"recursion\" Int 1 AAAAAA== \"zoom\" Float 1 AAAAAA== \"offset\" Float 2 AAAAAAAAAAA= 7 \"normalize\" 1 1 \"invert\" 1 1 \"color\" 4 1 \"resolution\" 2 1 \"recursion\" 1 1 \"zoom\" 1 1 \"offset\" 2 1 6 \"width\" Int 1 1 AAAAAA== \"height\" Int 1 1 AAAAAA== \"minR\" Float 1 1 AAAAAA== \"maxR\" Float 1 1 AAAAAA== \"minI\" Float 1 1 AAAAAA== \"maxI\" Float 1 1 AAAAAA=="
+  EncodedSource "1 1510 v5OK0D8ZYd3Qz+M9pELTYNyysnUdA99z754zoPavnKENIzye5B7i6eEBtCFg7uS2p3owAB9NeTvYTvtbK/oJpakP+TjBzWNWQCLHR6FmHg4hemPcrL3WqxQpKmX58OivcFbrg4tw1XVDJ+x7P9o6mynLeG4o4E68MysVKzyDAc8sfOxKtMpq3AF+RbxvNGJ1nNURt3vsx8DhK+V36XNv1TPLbtnfvS+dxYwk0qRl88WoKs/2eFF2RUhFVcHmSQkwM3duq2I3XCSYq8DRbjxNZqGid+lWznACjiRlhhxPMveg4DePFQ6gZnFDUAxEBJqkgSaSLxlrXNS2JAi6ZtSERqrmc2IrpSXX82wPyvqAtbxAsdCqU1wbN7+UncP9H1bAdgK3iC5QMXADR9NPLQb1ZSjS2+fPCcoj/UUIsGgTk3udl/59gJ1i1yiMjTdWWIjX+AZL0Hn3YxEvlHm32yZ3m5BWYH34v/P7AtC7IitbLohGB+YhJjCUPy9Rs9ox5tJDY29pXJL/Zu7F140rPY+SfS4bNPuVLJAGL4VGFpgKsqjMXm79UQKGQU7F9WMyEJ4IPtnechCdl210UsS4VLRxDhQRQ0JTh4ce7XxV7e1jk0SGvHri33Oevb63fOH6JOj8NGneBMrNFw4vwft3huARBoh69Iee0yQBluO+s1krJdg7MbAKNBpivbUNbspHLh6cnOWHBmB0YcnRoCS75HetC0RuoPC/1KPmOaDn4j0lNXCWFhYk1eVceIecXrZ3FWl9HUFn0j6u2kuX7+nXI9Sx7vmePeyRGaYzqAoWH3iwNfTdUgNqSgJbc6DV4wi+AIjePpUU6OZOWVwb64OC/vTH+1T1pc/rxiLOErBu69HYk/njVCKHAxdw5tdbZaiMqs3rk9gMlSIWZiiZk8rVC+7T+1rKBpTji4YhwNzbIFypkf2y+KcGgNUMXi6yVGSnpQwu7/nhVGRs2+XP14FOIfcB6nV/aSsb/xmPXgfs/8lD8zal6h9T0Uz5V9X1ICuc+uUlYhBK2iKrM3cGAZctMbLiYa/lixWbkOvjDoz/rhSLFcC5/CYGObBdLLrQLMZC3jajo/XZbdA7yi3nJXvPs9jVFnPHMWj32o70dXndAwbQRdvQ4WAmKoZNL0CBK7tGg7VpeEOvWx2eY77pQxMPQTDId/mOQwHkfMs35FQekMJ7E0yTN5ITnsq3RebqKYhiaet42cPmX1OI3QwyxPl5JAJcRu2cPqTQ8OkK9EGHNpXJcztVfRoZzKUhqOd/ZWaIqpFJzImhvn8OOk170RwvCtHdXKNWgTPFqv5ahqSn4Lf3/+/vBJgAO4PZlxy9xEOwa1w+4WgOzWC7strQ0DHEqdC6jlsfmzLV3RPnKX+/p7eiBkr//FxjhUDqOkHbr4YPGz8Zy1wE4cOQ6xARWSoOs7djV4zfBh/Wy1rROeBMUfg9u7zfUPZqwMn8D1Ry3EuKT6b1gkEUva440nHbiZJG03ngosz15Kbr0Y+REJ0swfhXiKJGX//AVfTOdLKH1+0fTldV673RLAD/q68iYgq8T6sUh9+NfZC4aVr2+pniX2/Sxmnnmi+3e9FQ2WQ66aACtl3HSuKQbyVFFKuo94L8avnAUHoUbaJqRbZDBH35rGKBI4WDTl7X2SU37ZK1oFaUkRXfQrca+h1Wpjq459TQmJ8+PhOis/ed91nQ3pGuOjzEL3bxu5+p0fD4ua2ZSSacIggN1m8hYuao1gxp3tpYJ8FHEl9kbF51yH3Cwdr9hY3sxrE5ubh8w6DxSHKrv6vxiUbAN5DdOdF0vQyre4T78lN9pr0jfT7nsQgA2WYuwUqyLR6VYuk37nvOEaxoRit93w9D2uxI6Sl6MmOAa5bUWJPnPVBnex2jomQzhf/XxJGwdxyg2J8pgBip3SSQGVtzZJHwj+ONq8h9cBXFcgWdCexy+eqtxp22jLoXPmosy2mtcKDip2orK0HvjjRz5iQ6LH3V+60spHypiFcxUMHobN8cSW8deZkwcKcPnzJoiJHM92M="
+  rebuild ""
+  channels rgb
+  MandelbrotKernel_normalize true
+  MandelbrotKernel_color {1 0.25 0 0}
+  MandelbrotKernel_resolution {{width} {height}}
+  MandelbrotKernel_recursion 500
+  MandelbrotKernel_zoom 1
+  protectKernelWhenPublishing true
+  format {{{parent.format}}}
+  rebuild_finalise ""
+  name BlinkScript1
+  selected true
+  xpos -151
+  ypos -58
+ }
+ Output {
+  name Output1
+  xpos -151
+  ypos 42
+ }
+end_group
+Noise {
+ inputs 0
+ center {960 540}
+ name Noise1
+ xpos 227
+ ypos -171
+}
+Group {
+ name BlinkPixelSort1
+ xpos 227
+ ypos -109
+ addUserKnob {20 User}
+ addUserKnob {26 info l "" +STARTLINE T "P i x e l S o r t e r v1.1\nby Hagbarth"}
+ addUserKnob {26 ""}
+ addUserKnob {4 OutputMode l "Output Mode" M {Regular "Data (RGBA == Sample, X, Y, Index)" Effect "" ""}}
+ OutputMode Effect
+ addUserKnob {6 UseGPU l "Use GPU" -STARTLINE}
+ UseGPU true
+ addUserKnob {6 OutputAlpha l "Alpha From Source" t "By default it will output a alpha that shows the affected area. If you enable this checkbox the alpha will be the alpha from the source." -STARTLINE}
+ OutputAlpha true
+ addUserKnob {26 Devider_General l General}
+ addUserKnob {4 SampleChan l "Sorting Channal" M {Lum Red Green Blue Alpha}}
+ addUserKnob {4 SortingDir l "Sorting Direction" M {Horizontal Vertical ""}}
+ SortingDir Vertical
+ addUserKnob {6 reversed l Reversed -STARTLINE}
+ addUserKnob {26 devider_effet_settings l "Effect Settings"}
+ addUserKnob {7 Threshold}
+ Threshold 0.105
+ addUserKnob {3 maxlength l "Max Length"}
+ maxlength 4000
+ addUserKnob {6 Below l "Bright to Dark" +STARTLINE}
+ Below true
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 208
+  ypos -190
+ }
+set N6102cd0 [stack 0]
+ Dot {
+  name Dot7
+  xpos -62
+  ypos -96
+ }
+ Dot {
+  name Dot10
+  xpos -125
+  ypos 255
+ }
+set N610ac70 [stack 0]
+ Dot {
+  name Dot13
+  xpos -47
+  ypos 255
+ }
+set N610f520 [stack 0]
+ Dot {
+  name Dot12
+  xpos 68
+  ypos 255
+ }
+push $N6102cd0
+ Dot {
+  name Dot8
+  xpos 242
+  ypos -93
+ }
+set N6118690 [stack 0]
+ Dot {
+  name Dot2
+  xpos 376
+  ypos -92
+ }
+push $N6118690
+ Saturation {
+  saturation 0
+  name Saturation1
+  xpos 208
+  ypos -75
+  disable {{parent.SampleChan!=0}}
+ }
+set N6121eb0 [stack 0]
+ BlinkScript {
+  recompileCount 184
+  ProgramGroup 1
+  KernelDescription "2 \"SaturationKernel\" iterate pixelWise b05dff637f96f2203b57d34a9bbe556cec369ae378ccc075290f7066a596758a 2 \"src\" Read Random \"dst\" Write Random 7 \"horizontal\" Bool 1 AQ== \"inverse\" Bool 1 AQ== \"count\" Int 1 6AMAAA== \"samplechan\" Int 1 AQAAAA== \"threshold\" Float 1 AAAAAA== \"thresh_below\" Bool 1 AA== \"maxlength\" Int 1 CgAAAA== 7 \"horizontal\" 1 1 \"inverse\" 1 1 \"count\" 1 1 \"samplechan\" 1 1 \"threshold\" 1 1 \"thresh_below\" 1 1 \"maxlength\" 1 1 0"
+  kernelSource "kernel SaturationKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessRandom, eEdgeClamped> src; // the input image\n  Image<eWrite,eAccessRandom> dst; // the output image\n\nvoid shellSort(int n, float arr\[n]\[2])\n\{\n  \tfloat temp,tempB;\n    int i, j;\n    // Start with a big gap, then reduce the gap\n    for (int gap = n/2; gap > 0; gap /= 2)\n    \{\n        // Do a gapped insertion sort for this gap size.\n        // The first gap elements a\[0..gap-1] are already in gapped order\n        // keep adding one more element until the entire array is\n        // gap sorted \n        for (int i = gap; i < n; i += 1)\n        \{\n            // add a\[i] to the elements that have been gap sorted\n            // save a\[i] in temp and make a hole at position i\n            temp = arr\[i]\[0];\n            tempB = arr\[i]\[1];\n \n            // shift earlier gap-sorted elements up until the correct \n            // location for a\[i] is found          \n            for (j = i; j >= gap && arr\[j - gap]\[0] > temp; j -= gap)\{\n                arr\[j]\[0] = arr\[j - gap]\[0];\n                arr\[j]\[1] = arr\[j - gap]\[1];\n            \}\n\t            //  put temp (the original a\[i]) in its correct location\n\t        arr\[j]\[0] = temp;\n\t        arr\[j]\[1] = tempB;\n\n        \}\n    \}\n\}\n\n//Alternative algorithm:\n void BubbleSort(int n,float a\[n]\[2])\n \{\n  float temp,tempB;\n   int i, j;\n   for (i = 0; i < (n - 1); ++i)\n   \{\n        for (j = 0; j < n - 1 - i; ++j )\n        \{\n             if (a\[j]\[0] > a\[j+1]\[0])\n             \{\n                  temp = a\[j+1]\[0];\n                  tempB = a\[j+1]\[1];                \n                  a\[j+1]\[0] = a\[j]\[0];\n                  a\[j+1]\[1] = a\[j]\[1];\n                  a\[j]\[0] = temp;\n                  a\[j]\[1] = tempB;                \n             \}\n        \}\n   \}\n \}   \n\n  param:\n    bool horizontal; \n    bool inverse;\n    int count; \n    int samplechan; \n    float threshold;\n    bool thresh_below;\n    int maxlength;\n\n\n  void define() \{\n    defineParam(horizontal, \"horizontal\", true);  //Sort the pixels horizontally or vertically.\n    defineParam(inverse, \"inverse\", true);        //Black-to-white or white-to-black.\n    defineParam(count, \"count\", 1000);            //The number of incomming items to sort\n    defineParam(samplechan, \"samplechan\", 1);          //What chan to sample (R,G,B or A?)\n    defineParam(maxlength, \"maxlength\", 10);          //What chan to sample (R,G,B or A?)\n  \}\n\n\n  void process(int2 pos) \{\n   float valuesx\[8000]\[2]; \n   int cur_count = 0;\n   if (pos.x==1 && horizontal)\{ //Horizontal Sorting, only run this on pixel 1\n      //Sample all values into the container array.\n      for( int x = 0; x < count; x++ ) \{\n        cur_count +=1;\n        valuesx\[cur_count-1]\[0] = src(x,pos.y,samplechan);\n        valuesx\[cur_count-1]\[1] = float(x);  \n        if ((valuesx\[cur_count-1]\[0] < threshold && thresh_below) || (valuesx\[cur_count-1]\[0] > threshold && !thresh_below) || x >= count-1 || maxlength<cur_count)\{\n          //Do the soring \n          cur_count -=1;\n          shellSort(cur_count,valuesx);\n\n          //Write it back into the dst buffer\n          for( int a = 0; a < cur_count; a++ ) \{\n            if (dst.bounds.inside(a+(x-cur_count),pos.y))\{\n              if (inverse) \{\n                dst(a+(x-cur_count),pos.y) = float4(valuesx\[a]\[0],valuesx\[a]\[1],a,pos.y);\n              \}\n              else \{\n                dst(a+(x-cur_count),pos.y) = float4(valuesx\[(cur_count-a)-1]\[0],valuesx\[(cur_count-a)-1]\[1],(cur_count-a)-1,pos.y);\n              \}\n            \}\n          \}\n          cur_count = 0; \n        \}\n      \} \n  \}\n   else if (pos.y==1 && !horizontal)\{ //Horizontal Sorting, only run this on pixel 1\n      //Sample all values into the container array.\n      for( int y = 0; y < count; y++ ) \{\n        cur_count +=1;\n        valuesx\[cur_count-1]\[0] = src(pos.x,y,samplechan);\n        valuesx\[cur_count-1]\[1] = float(y);  \n        if ((valuesx\[cur_count-1]\[0] < threshold && thresh_below) || (valuesx\[cur_count-1]\[0] > threshold && !thresh_below) || y >= count-1 || maxlength<cur_count)\{\n          //Do the soring \n          cur_count -=1;\n          shellSort(cur_count,valuesx);\n\n          //Write it back into the dst buffer\n          for( int a = 0; a < cur_count; a++ ) \{\n            if (dst.bounds.inside(pos.x,a+(y-cur_count)))\{\n              if (inverse) \{\n                dst(pos.x,a+(y-cur_count)) = float4(valuesx\[a]\[0],valuesx\[a]\[1],a,pos.x);\n              \}\n              else \{\n                dst(pos.x,a+(y-cur_count)) = float4(valuesx\[(cur_count-a)-1]\[0],valuesx\[(cur_count-a)-1]\[1],(cur_count-a)-1,pos.x);\n              \}\n            \}\n          \}\n          cur_count = 0; \n        \}\n      \} \n    \}\n\n  \}\n\};\n"
+  useGPUIfAvailable {{parent.UseGPU}}
+  rebuild ""
+  SaturationKernel_horizontal {{!parent.SortingDir}}
+  SaturationKernel_inverse {{!parent.reversed}}
+  SaturationKernel_count {{!parent.SortingDir?input.width:input.height}}
+  SaturationKernel_samplechan {{max(0,parent.SampleChan-1)}}
+  SaturationKernel_threshold {{parent.Threshold}}
+  SaturationKernel_thresh_below {{parent.Below}}
+  SaturationKernel_maxlength {{parent.maxlength}}
+  rebuild_finalise ""
+  maxTileLines 100
+  name BlinkScript4
+  xpos 114
+  ypos -4
+ }
+push $N6121eb0
+ BlinkScript {
+  recompileCount 131
+  ProgramGroup 1
+  KernelDescription "2 \"SaturationKernel\" iterate pixelWise da381d70641891fddfcc53050bed89ac2f2f5f76282667be47fe0e1fc5873a68 2 \"src\" Read Random \"dst\" Write Random 4 \"horizontal\" Bool 1 AQ== \"inverse\" Bool 1 AQ== \"count\" Int 1 6AMAAA== \"samplechan\" Int 1 AQAAAA== 4 \"horizontal\" 1 1 \"inverse\" 1 1 \"count\" 1 1 \"samplechan\" 1 1 0"
+  kernelSource "kernel SaturationKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessRandom, eEdgeClamped> src; // the input image\n  Image<eWrite,eAccessRandom> dst; // the output image\n\nvoid shellSort(int n, float arr\[n]\[2])\n\{\n  \tfloat temp,tempB;\n    int i, j;\n    // Start with a big gap, then reduce the gap\n    for (int gap = n/2; gap > 0; gap /= 2)\n    \{\n        // Do a gapped insertion sort for this gap size.\n        // The first gap elements a\[0..gap-1] are already in gapped order\n        // keep adding one more element until the entire array is\n        // gap sorted \n        for (int i = gap; i < n; i += 1)\n        \{\n            // add a\[i] to the elements that have been gap sorted\n            // save a\[i] in temp and make a hole at position i\n            temp = arr\[i]\[0];\n            tempB = arr\[i]\[1];\n \n            // shift earlier gap-sorted elements up until the correct \n            // location for a\[i] is found          \n            for (j = i; j >= gap && arr\[j - gap]\[0] > temp; j -= gap)\{\n                arr\[j]\[0] = arr\[j - gap]\[0];\n                arr\[j]\[1] = arr\[j - gap]\[1];\n            \}\n\t            //  put temp (the original a\[i]) in its correct location\n\t        arr\[j]\[0] = temp;\n\t        arr\[j]\[1] = tempB;\n\n        \}\n    \}\n\}\n\n//Alternative algorithm:\n void BubbleSort(int n,float a\[n]\[2])\n \{\n  float temp,tempB;\n   int i, j;\n   for (i = 0; i < (n - 1); ++i)\n   \{\n        for (j = 0; j < n - 1 - i; ++j )\n        \{\n             if (a\[j]\[0] > a\[j+1]\[0])\n             \{\n                  temp = a\[j+1]\[0];\n                  tempB = a\[j+1]\[1];                \n                  a\[j+1]\[0] = a\[j]\[0];\n                  a\[j+1]\[1] = a\[j]\[1];\n                  a\[j]\[0] = temp;\n                  a\[j]\[1] = tempB;                \n             \}\n        \}\n   \}\n \}   \n\n  param:\n    bool horizontal; \n    bool inverse;\n    int count; \n    int samplechan; \n\n  void define() \{\n    defineParam(horizontal, \"horizontal\", true);  //Sort the pixels horizontally or vertically.\n    defineParam(inverse, \"inverse\", true);        //Black-to-white or white-to-black.\n    defineParam(count, \"count\", 1000);            //The number of incomming items to sort\n    defineParam(samplechan, \"samplechan\", 1);          //What chan to sample (R,G,B or A?)\n  \}\n\n\n  void process(int2 pos) \{\n   float valuesx\[8000]\[2]; \n   if (pos.x==1 && horizontal)\{ //Horizontal Sorting, only run this on pixel 1\n      //Sample all values into the container array.\n      for( int a = 0; a < count; a++ ) \{\n        valuesx\[a]\[0] = src(a,pos.y,samplechan);\n        valuesx\[a]\[1] = float(a);  \n      \} \n      //Do the soring \n      shellSort(count,valuesx);\n      //Write it back into the dst buffer\n      for( int a = 0; a < count; a++ ) \{\n        if (dst.bounds.inside(a,pos.y))\{\n          if (inverse) \{\n            dst(a,pos.y) = float4(valuesx\[a]\[0],valuesx\[a]\[1],a,pos.y);\n          \}\n          else \{\n            dst(a,pos.y) = float4(valuesx\[count-a]\[0],valuesx\[count-a]\[1],count-a,pos.y);\n          \}\n        \}\n      \}      \n   \}\n   else if  (pos.y==1 && !horizontal)\{  //Vertical Sorting, only run this on pixel 1\n      //Sample all values into the container array.\n      for( int a = 0; a < count; a++ ) \{\n        valuesx\[a]\[0] = src(pos.x,a,samplechan);\n        valuesx\[a]\[1] = float(a);  \n      \} \n      //Do the soring  \n      shellSort(count,valuesx);\n      //Write it back into the dst buffer\n      for( int a = 0; a < count; a++ ) \{\n        if (dst.bounds.inside(pos.x,a))\{\n          if (inverse) \{\n        \t\tdst(pos.x,a) = float4(valuesx\[a]\[0],valuesx\[a]\[1],a,pos.x);\n          \}\n          else \{\n            dst(pos.x,a) = float4(valuesx\[count-a]\[0],valuesx\[count-a]\[1],count-a,pos.x);\n          \}\n        \}\n      \}      \n    \}\n  \}\n\};\n"
+  useGPUIfAvailable {{parent.UseGPU}}
+  rebuild ""
+  SaturationKernel_horizontal {{!parent.SortingDir}}
+  SaturationKernel_inverse {{!parent.reversed}}
+  SaturationKernel_count {{!parent.SortingDir?input.width:input.height}}
+  SaturationKernel_samplechan {{max(0,parent.SampleChan-1)}}
+  rebuild_finalise ""
+  maxTileLines 100
+  name BlinkScript1
+  xpos 208
+  ypos -4
+ }
+ Switch {
+  inputs 2
+  which {{max(0,parent.OutputMode-1)}}
+  name Switch3
+  xpos 208
+  ypos 93
+ }
+ Shuffle {
+  blue alpha
+  alpha blue
+  name Shuffle1
+  xpos 208
+  ypos 139
+ }
+set N6156b50 [stack 0]
+ MergeExpression {
+  inputs 2
+  expr0 A.r(B.b,B.g)
+  expr1 A.g(B.b,B.g)
+  expr2 A.b(B.b,B.g)
+  name MergeExpression2
+  xpos 342
+  ypos 139
+ }
+ Dot {
+  name Dot3
+  xpos 376
+  ypos 198
+ }
+push $N6118690
+ Dot {
+  name Dot1
+  xpos 101
+  ypos -92
+ }
+push $N6156b50
+ MergeExpression {
+  inputs 2
+  expr0 A.r(B.g,B.b)
+  expr1 A.g(B.g,B.b)
+  expr2 A.b(B.g,B.b)
+  name MergeExpression1
+  selected true
+  xpos 67
+  ypos 139
+ }
+ Dot {
+  name Dot4
+  xpos 98
+  ypos 198
+ }
+push $N6156b50
+ Switch {
+  inputs 3
+  which {{!parent.OutputMode*(1+parent.SortingDir)}}
+  name Switch1
+  xpos 208
+  ypos 195
+ }
+ Dot {
+  name Dot5
+  xpos 242
+  ypos 217
+ }
+set N61a5fd0 [stack 0]
+ Dot {
+  name Dot14
+  xpos 123
+  ypos 217
+ }
+set N61aa910 [stack 0]
+ MergeExpression {
+  inputs 2
+  expr3 parent.SortingDir==0?A.a(B.g,B.b):A.a(B.b,B.g)
+  name MergeExpression4
+  xpos 89
+  ypos 278
+ }
+set N61af190 [stack 0]
+ Dot {
+  name Dot11
+  xpos 123
+  ypos 341
+ }
+push $N610f520
+push $N61aa910
+ Dot {
+  name Dot6
+  xpos 3
+  ypos 217
+ }
+ MergeExpression {
+  inputs 2
+  expr0 parent.SortingDir==0?A.r(B.g,B.b):A.r(B.b,B.g)
+  expr1 parent.SortingDir==0?A.g(B.g,B.b):A.g(B.b,B.g)
+  expr2 parent.SortingDir==0?A.b(B.g,B.b):A.b(B.b,B.g)
+  name MergeExpression3
+  xpos -31
+  ypos 279
+ }
+ Premult {
+  name Premult1
+  xpos -31
+  ypos 305
+ }
+push $N610ac70
+ Dot {
+  name Dot9
+  xpos -125
+  ypos 375
+ }
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos -31
+  ypos 372
+ }
+ ShuffleCopy {
+  inputs 2
+  name ShuffleCopy1
+  label "\[python nuke.thisNode().knob('in').value()] >> \[python nuke.thisNode().knob('out').value()]"
+  xpos 89
+  ypos 366
+  disable {{!parent.OutputAlpha}}
+ }
+push $N61a5fd0
+ Switch {
+  inputs 2
+  which {{max(0,parent.OutputMode-1)}}
+  name Switch2
+  xpos 208
+  ypos 372
+ }
+ Output {
+  name Output1
+  xpos 208
+  ypos 451
+ }
+push $N61af190
+ Viewer {
+  frame_range 1-100
+  name Viewer1
+  xpos 89
+  ypos 404
+ }
+end_group
+BlinkScript {
+ inputs 0
+ ProgramGroup 1
+ KernelDescription "1 \"fbm\" iterate pixelWise 53d5afdabf78efd825dcb19453be8c13914a1403e8fa8c19ec2521ae651abbe9 1 \"dst\" Write Point 8 \"Octaves\" Float 1 AAAgQQ== \"Gain\" Float 1 AAAAPw== \"Lacunarity\" Float 1 AAAAQA== \"Gamma\" Float 1 AAAAPw== \"Z\" Float 1 AABIQg== \"amplitude\" Float 1 AAAAPw== \"Offset\" Float 3 AAAAAAAAAAAAAAAAAAAAAA== \"Scale\" Float 3 AACAPwAAgD8AAIA/AAAAAA=="
+ kernelSource "// Permutation table.  The same list is repeated twice.\ninline int perm( int index )\n\{\n\tint permData\[512] = \{\n    151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,\n    8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,\n    35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,\n    134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,\n    55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208, 89,\n    18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,\n    250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,\n    189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,\n    172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,\n    228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,\n    107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,\n    138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180, \n\t151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,\n    8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,\n    35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,\n    134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,\n    55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208, 89,\n    18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,\n    250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,\n    189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,\n    172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,\n    228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,\n    107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,\n    138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180 \n\t\};\n\treturn permData\[index];\n\};\n\n// The gradients are the midpoints of the vertices of a cube.\ninline float3 grad3( int index )\n\{\n\tfloat grad3Data\[12*3] = \{ 1.0f,1.0f,0.0f,-1.0f,1.0f,0.0f,1.0f,-1.0f,0.0f,-1.0f,-1.0f,0.0f,1.0f,0.0f,1.0f,-1.0f,0.0f,1.0f,1.0f,0.0f,-1.0f,-1.0f,0.0f,-1.0f,0.0f,1.0f,1.0f,0.0f,-1.0f,1.0f,0.0f,1.0f,-1.0f,0.0f,-1.0f,-1.0f \};\n\n\treturn (float3)(grad3Data\[index*3], grad3Data\[(index*3) + 1], grad3Data\[(index*3) + 2]);\n\};\n\ninline float dotNoise( float3 g, float x, float y, float z ) \n\{\n\treturn g.x*x + g.y*y + g.z*z; \n\};\n\ninline int fastfloor( float x ) \n\{ \n\tif( x > 0.0f )\n\t\{\n\t\treturn (int)(x);\n\t\}\n\telse\n\t\{\n\t\treturn (int)(x - 1);\n\t\}\n\};\n\n// 3D raw Simplex noise\ninline float raw_noise_3d(\t\tfloat x, \n\t\t\t\t\t\tfloat y, \n\t\t\t\t\t\tfloat z ) \n\{\n    float n0, n1, n2, n3; // Noise contributions from the four corners\n\n    // Skew the input space to determine which simplex cell we're in\n    float F3 = 1.0f/3.0f;\n    float s = (x+y+z)*F3; // Very nice and simple skew factor for 3D\n    int i = fastfloor(x+s);\n    int j = fastfloor(y+s);\n    int k = fastfloor(z+s);\n\n    float G3 = 1.0f/6.0f; // Very nice and simple unskew factor, too\n    float t = (i+j+k)*G3;\n    float X0 = i-t; // Unskew the cell origin back to (x,y,z) space\n    float Y0 = j-t;\n    float Z0 = k-t;\n    float x0 = x-X0; // The x,y,z distances from the cell origin\n    float y0 = y-Y0;\n    float z0 = z-Z0;\n\n    // For the 3D case, the simplex shape is a slightly irregular tetrahedron.\n    // Determine which simplex we are in.\n    int i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords\n    int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords\n\n    if( x0 >= y0 ) \n\t\{\n        if( y0>=z0 ) \n\t\t\{ \n\t\t\ti1=1; j1=0; k1=0; i2=1; j2=1; k2=0; \n\t\t\} // X Y Z order\n        else if( x0 >= z0 ) \n\t\t\{ \n\t\t\ti1=1; j1=0; k1=0; i2=1; j2=0; k2=1; \n\t\t\} // X Z Y order\n        else \n\t\t\{ \n\t\t\ti1=0; j1=0; k1=1; i2=1; j2=0; k2=1; \n\t\t\} // Z X Y order\n    \}\n    else \n\t\{   // x0<y0\n        if(y0<z0) \n\t\t\{ \n\t\t\ti1=0; j1=0; k1=1; i2=0; j2=1; k2=1; \n\t\t\} // Z Y X order\n        else if(x0<z0) \n\t\t\{ \n\t\t\ti1=0; j1=1; k1=0; i2=0; j2=1; k2=1; \n\t\t\} // Y Z X order\n        else \n\t\t\{ \n\t\t\ti1=0; j1=1; k1=0; i2=1; j2=1; k2=0; \n\t\t\} // Y X Z order\n    \}\n\n    // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),\n    // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and\n    // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where\n    // c = 1/6.\n    float x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords\n    float y1 = y0 - j1 + G3;\n    float z1 = z0 - k1 + G3;\n    float x2 = x0 - i2 + 2.0*G3; // Offsets for third corner in (x,y,z) coords\n    float y2 = y0 - j2 + 2.0*G3;\n    float z2 = z0 - k2 + 2.0*G3;\n    float x3 = x0 - 1.0 + 3.0*G3; // Offsets for last corner in (x,y,z) coords\n    float y3 = y0 - 1.0 + 3.0*G3;\n    float z3 = z0 - 1.0 + 3.0*G3;\n\t\n    // Work out the hashed gradient indices of the four simplex corners\n    int ii = i & 255;\n    int jj = j & 255;\n    int kk = k & 255;\n    int gi0 = perm(ii+perm(jj+perm(kk))) % 12;\n    int gi1 = perm(ii+i1+perm(jj+j1+perm(kk+k1))) % 12;\n    int gi2 = perm(ii+i2+perm(jj+j2+perm(kk+k2))) % 12;\n    int gi3 = perm(ii+1+perm(jj+1+perm(kk+1))) % 12;\n\n    // Calculate the contribution from the four corners\n    float t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;\n    if( t0 < 0 ) \n\t\{\n\t\tn0 = 0.0;\n\t\}\n    else \n\t\{\n        t0 *= t0;\n        n0 = t0 * t0 * dotNoise(grad3(gi0), x0, y0, z0);\n    \}\n\n    float t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;\n    if( t1<0 )\n\t\{\n\t\tn1 = 0.0;\n\t\}\n    else \n\t\{\n        t1 *= t1;\n        n1 = t1 * t1 * dotNoise(grad3(gi1), x1, y1, z1);\n    \}\n\n    float t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;\n    if( t2 < 0 )\n\t\{\n\t\tn2 = 0.0;\n\t\}\n    else \n\t\{\n        t2 *= t2;\n        n2 = t2 * t2 * dotNoise(grad3(gi2), x2, y2, z2);\n    \}\n\n    float t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;\n    if( t3 < 0 )\n\t\{ \n\t\tn3 = 0.0;\n\t\}\n    else \n\t\{\n        t3 *= t3;\n        n3 = t3 * t3 * dotNoise(grad3(gi3), x3, y3, z3);\n    \}\n\n    // Add contributions from each corner to get the final noise value.\n    // The result is scaled to stay just inside \[-1,1]\n    return 32.0*(n0 + n1 + n2 + n3);\n\};\n\n// 3D Multi-octave Simplex noise.\n//\n// For each octave, a higher frequency/lower amplitude function will be added to the original.\n// The higher the persistence \[0-1], the more of each succeeding octave will be added.\ninline float octave_noise_3d(\tfloat octaves, \n\t\t\t\t\t\tfloat persistence, \n\t\t\t\t\t\tfloat scale, \n\t\t\t\t\t\tfloat x, \n\t\t\t\t\t\tfloat y, \n\t\t\t\t\t\tfloat z ) \n\{\n    float total = 0;\n    float frequency = scale;\n    float amplitude = 1;\n\n    // We have to keep track of the largest possible amplitude,\n    // because each octave adds more, and we need a value in \[-1, 1].\n    float maxAmplitude = 0;\n\tint i = 0;\n    for( i=0; i < octaves; i++ ) \n\t\{\n        total += raw_noise_3d( x * frequency, y * frequency, z * frequency ) * amplitude;\n\n        frequency *= 2.0f;\n        maxAmplitude += amplitude;\n        amplitude *= persistence;\n    \}\n\n    return total / maxAmplitude;\n\};\n\ninline float fbm_noise_3d(\tfloat octaves,\n\t\t\t\t\tfloat gain,\n\t\t\t\t\tfloat lacunarity,\n\t\t\t\t\tfloat x,\n\t\t\t\t\tfloat y, \n\t\t\t\t\tfloat z )\n\{\n\tfloat total = 0.0f;\n\tfloat frequency = 1.0f;\n\tfloat amplitude = gain;\n\n\tint i = 0;          \n\tfor ( i = 0; i < octaves; i++ )\n\t\{\n\t\t\ttotal += raw_noise_3d( x * frequency, y * frequency, z * frequency ) * amplitude;         \n\t\t\tfrequency *= lacunarity;\n\t\t\tamplitude *= gain;\n\t\}\n\n\treturn total / 2.0f + 1.0f;\n\};\n\n\nkernel fbm : ImageComputationKernel<ePixelWise>\n\{\n\tImage<eWrite, eAccessPoint> dst;\n\nparam:\n\t\tfloat octaves;\n\t\tfloat gain;\n\t\tfloat lacunarity;\n\t\tfloat gamma;\n\t\tfloat zz;\n\t\tfloat amplitude;\n\t\tfloat3 offset;\n\t\tfloat3 scale;\n\nlocal:\n\t\tint m_width;\n\t\tint m_height;\n\n\t\tvoid define() \n\t\t\{\n\t\t\tdefineParam (octaves, \"Octaves\", 10.0f);\n\t\t\tdefineParam (gain, \"Gain\", 0.5f);\n\t\t\tdefineParam (lacunarity, \"Lacunarity\", 2.0f);\n\t\t\tdefineParam (gamma, \"Gamma\", 0.5f);\n\t\t\tdefineParam (amplitude, \"amplitude\", 0.5f);\n\t\t\tdefineParam (zz, \"Z\", 50.0f);\n\t\t\tdefineParam(offset, \"Offset\", float3(0.0f, 0.0f, 0.0f));\n\t\t\tdefineParam(scale, \"Scale\", float3(1.0f, 1.0f, 1.0f));\n\t\t\}\n\n\t\tvoid init()\n\t\t\{\n\t\t\tm_width = dst.bounds.width(); \n\t\t\tm_height = dst.bounds.height(); \n\t\t\}\n\n\t\tvoid process(int2 pos) \n\t\t\{\n\t\t\tfloat noiseVal = pow( fbm_noise_3d( octaves, gain, lacunarity, ( ((float)pos.x) * scale.x ) + offset.x, ( ((float)pos.y) * scale.y ) + offset.y, ( zz * scale.z ) + offset.z ) * amplitude, 1.0f / gamma );\n\n\t\t\tSampleType(dst) sample(0.0f);\n\n\t\t\tsample.x = noiseVal;\n\t\t\tsample.y = noiseVal;\n\t\t\tsample.z = noiseVal;\n\n\t\t\tdst() = sample;\n\t\t\}\n\};\n\n"
+ rebuild ""
+ fbm_Gain 0.6
+ fbm_Scale {0.001 0.001 0.001}
+ protectKernelWhenPublishing true
+ format "4096 2990 0 0 4096 2990 1 4096x2990x1 (imax delivery)"
+ rebuild_finalise ""
+ name BlinkScript2
+ xpos 331
+ ypos -119
+}
+CheckerBoard2 {
+ inputs 0
+ format "256 256 0 0 256 256 1 square_256"
+ name CheckerBoard1
+ xpos 457
+ ypos -301
+}
+Group {
+ name DCT
+ xpos 457
+ ypos -214
+ addUserKnob {20 DCTII}
+ addUserKnob {6 useGPU l "use GPU" +STARTLINE}
+ useGPU true
+ addUserKnob {26 ""}
+ addUserKnob {26 text l "" +STARTLINE T "Naive DCT-II ortho blink implementation\nby Magno Borgo"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -866
+  ypos 396
+ }
+ Dot {
+  name Dot9
+  xpos -835
+  ypos 486
+ }
+set N6263650 [stack 0]
+ BlinkScript {
+  kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/dct_3_1.blink
+  ProgramGroup 1
+  KernelDescription "1 \"DCT\" iterate pixelWise 8f294f86fb2070abc39ef5df9c13d259ebff3c5151a460de9f37995c2f9a3f72 2 \"src\" Read Ranged1D \"dst\" Write Point 0"
+  kernelSource "kernel DCT : ImageComputationKernel<ePixelWise>\n\{\n  //1D DCT-II naive ortho implementation\n  //by Magno Borgo, 18/02/2016\n  //http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.fftpack.dct.html\n\n  Image<eRead, eAccessRanged1D> src; //input img\n  Image<eWrite> dst;  //the output image\n\n  void process(int2 pos) \{\n    float N = src.bounds.x2; //N=last position on X axis\n    int n;\n    for (int component = 0; component < dst.kComps; component++) //loop for each channel\n    \{\n       float sum = 0.0;\n       for (n=(0-pos.x); n<=(N-1-pos.x); n++)\n       \{\n          sum += src(n,component) * cos(PI * pos.x * (2*(n+pos.x)+1) / (2*N));\n       \}\n       float f;\n       if (pos.x == 0) f = sqrt(1/(4*N)); else f = sqrt(1/(2*N));\n       dst(component) = 2 * sum * f;\n    \}\n\}\n\};\n\n"
+  useGPUIfAvailable {{DCT.useGPU}}
+  rebuild ""
+  rebuild_finalise ""
+  name BlinkScript16
+  selected true
+  xpos -869
+  ypos 523
+ }
+ Dot {
+  name Dot10
+  xpos -835
+  ypos 580
+ }
+set N6276240 [stack 0]
+ Transform {
+  translate {{height} {width}}
+  rotate -90
+  scale {1 -1}
+  filter Impulse
+  name Transform7
+  xpos -748
+  ypos 579
+ }
+ Shuffle {
+  alpha white
+  name Shuffle6
+  label "\[value in] to \[value out]"
+  xpos -748
+  ypos 625
+ }
+push $N6263650
+ Crop {
+  box {0 0 {input0.height} {input0.width}}
+  reformat true
+  crop false
+  name Crop9
+  xpos -654
+  ypos 485
+ }
+ Shuffle {
+  red black
+  green black
+  blue black
+  alpha black
+  name Shuffle7
+  label "\[value in] to \[value out]"
+  xpos -654
+  ypos 542
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge4
+  xpos -654
+  ypos 631
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 multiply T "nuke.thisNode()\['operation'].setValue('multiply')" +STARTLINE}
+  addUserKnob {22 stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 minus T "nuke.thisNode()\['operation'].setValue('minus')" +STARTLINE}
+  addUserKnob {22 plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+ }
+ BlinkScript {
+  kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/dct_3_1.blink
+  ProgramGroup 1
+  KernelDescription "1 \"DCT\" iterate pixelWise bf99ec6734f5f8d6f9fbae0fa6a2841445e0de1fd451cea56dd9e6b630267e21 2 \"src\" Read Ranged1D \"dst\" Write Point 0"
+  kernelSource "kernel DCT : ImageComputationKernel<ePixelWise>\n\{\n  //1D DCT-II naive ortho implementation\n  //http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.fftpack.dct.html\n\n  Image<eRead, eAccessRanged1D> src; //input img\n  Image<eWrite> dst;  //the output image\n\n  void process(int2 pos) \{\n    float N = src.bounds.x2; //N=last position on X axis\n    int n;\n    for (int component = 0; component < dst.kComps; component++) //loop for each channel\n    \{\n       float sum = 0.0;\n       for (n=(0-pos.x); n<=(N-1-pos.x); n++)\n       \{\n          sum += src(n,component) * cos(PI * pos.x * (2*(n+pos.x)+1) / (2*N));\n       \}\n       float f;\n       if (pos.x == 0) f = sqrt(1/(4*N)); else f = sqrt(1/(2*N));\n       dst(component) = 2 * sum * f;\n    \}\n\}\n\};\n\n"
+  useGPUIfAvailable {{DCT.useGPU}}
+  rebuild ""
+  rebuild_finalise ""
+  name BlinkScript17
+  xpos -654
+  ypos 688
+ }
+ Shuffle {
+  alpha white
+  name Shuffle8
+  label "\[value in] to \[value out]"
+  xpos -654
+  ypos 753
+ }
+ Transform {
+  translate {{width} {height}}
+  rotate 90
+  scale {-1 1}
+  invert_matrix true
+  name Transform8
+  xpos -654
+  ypos 814
+  disable {{"height == width ? 1 :0"}}
+ }
+push $N6276240
+ Shuffle {
+  red black
+  green black
+  blue black
+  alpha black
+  name Shuffle9
+  label "\[value in] to \[value out]"
+  xpos -866
+  ypos 708
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge5
+  xpos -654
+  ypos 863
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 multiply T "nuke.thisNode()\['operation'].setValue('multiply')" +STARTLINE}
+  addUserKnob {22 stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 minus T "nuke.thisNode()\['operation'].setValue('minus')" +STARTLINE}
+  addUserKnob {22 plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+ }
+ Output {
+  name Output1
+  xpos -654
+  ypos 925
+ }
+end_group
+RotoPaint {
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097152}
+    {t x44700000 x44070000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup Ellipse1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc2304930 0}
+        {xc28dd9f6 xc20e9034}
+        {x42304920 0}
+        {0 xc26696dc}
+        {x43a772a2 xc2256758}
+        {0 x426696e0}
+        {x438d78f0 xbf178c00}
+        {x43974f1f x43929435}
+        {xc2304920 x3d8fa000}
+        {x424fc200 x42e16c88}
+        {x42b6bb18 x431d51a2}
+        {xc1b59c80 xc2450d30}}}
+      {cc
+       {f 8192}
+       {px 1
+        {xc2304930 0}
+        {0 0}
+        {x42304920 0}
+        {0 xc26696dc}
+        {0 0}
+        {0 x426696e0}
+        {x438d78f0 xbf178c00}
+        {0 0}
+        {xc2304920 x3d8fa000}
+        {x424fc200 x42e16c88}
+        {0 0}
+        {xc1b59c80 xc2450d30}}}}
+     {tx 1 x430acccd x4300e666}
+     {a r 0 g 0 b 0 a 0 bm x40000000 fx x41080000 fy x41080000 osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40e00000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 tt 7 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {960 540}
+ color 0
+ colorOverlay {0 0 0 0}
+ blending_mode multiply
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ feather 8.5
+ source_black_outside true
+ name RotoPaint1
+ xpos 457
+ ypos -165
+}
+Group {
+ name iDTC
+ xpos 457
+ ypos -105
+ addUserKnob {20 inverse_DCT l iDCT}
+ addUserKnob {6 useGPU l "use GPU" +STARTLINE}
+ useGPU true
+ addUserKnob {26 ""}
+ addUserKnob {26 txt l "" +STARTLINE T "Naive Inverse DCT blink implementation (DCT-III ortho)\nby Magno Borgo"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -866
+  ypos 396
+ }
+ Dot {
+  name Dot9
+  xpos -835
+  ypos 486
+ }
+set N63451f0 [stack 0]
+ BlinkScript {
+  kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/idct_0_6.blink
+  ProgramGroup 1
+  KernelDescription "1 \"iDCT\" iterate pixelWise a8e0284c7c874273706ef5f176e8859deb3ab9601588afdcad0bd03a2ce347cc 2 \"src\" Read Ranged1D \"dst\" Write Point 0"
+  kernelSource "kernel iDCT : ImageComputationKernel<ePixelWise>\n\{\n  //1D inverse DCT (DCT-III ortho) naive implementation\n  //by Magno Borgo, 18/02/2016\n  //http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.fftpack.dct.html\n  Image<eRead, eAccessRanged1D> src; //input img\n  Image<eWrite> dst;  //the output image\n  void process(int2 pos) \{\n    float N = src.bounds.x2; //N=last position on X axis\n    int n;\n    for (int component = 0; component < dst.kComps; component++) //loop for each channel\n    \{\n    float sum = 0.0;\n    for (n=(1-pos.x); n<=(N-1-pos.x); n++) //using R1Daccess relative positions\n    \{\n    float d = 0.5;\n\t    sum +=  src(n,component)  * cos((PI *(pos.x + d)) * (n+pos.x) / N);\n    \}\n    float ss = src(-pos.x,component)/sqrt(N) ;\n    dst(component) =  ss + sqrt(2/N) * sum;\n   \}\n\}\n\};\n"
+  useGPUIfAvailable {{iDTC.useGPU}}
+  rebuild ""
+  rebuild_finalise ""
+  name BlinkScript22
+  xpos -866
+  ypos 531
+ }
+ Dot {
+  name Dot10
+  xpos -835
+  ypos 580
+ }
+set N63bc0f0 [stack 0]
+ Transform {
+  translate {{height} {width}}
+  rotate -90
+  scale {1 -1}
+  filter Impulse
+  name Transform7
+  xpos -748
+  ypos 579
+ }
+ Shuffle {
+  alpha white
+  name Shuffle6
+  label "\[value in] to \[value out]"
+  xpos -748
+  ypos 625
+ }
+push $N63451f0
+ Crop {
+  box {0 0 {input0.height} {input0.width}}
+  reformat true
+  crop false
+  name Crop9
+  xpos -654
+  ypos 485
+ }
+ Shuffle {
+  red black
+  green black
+  blue black
+  alpha black
+  name Shuffle7
+  label "\[value in] to \[value out]"
+  xpos -654
+  ypos 542
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge4
+  xpos -654
+  ypos 631
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 multiply T "nuke.thisNode()\['operation'].setValue('multiply')" +STARTLINE}
+  addUserKnob {22 stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 minus T "nuke.thisNode()\['operation'].setValue('minus')" +STARTLINE}
+  addUserKnob {22 plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+ }
+ BlinkScript {
+  kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/idct_0_6.blink
+  ProgramGroup 1
+  KernelDescription "1 \"iDCT\" iterate pixelWise a8e0284c7c874273706ef5f176e8859deb3ab9601588afdcad0bd03a2ce347cc 2 \"src\" Read Ranged1D \"dst\" Write Point 0"
+  kernelSource "kernel iDCT : ImageComputationKernel<ePixelWise>\n\{\n  //1D inverse DCT (DCT-III ortho) naive implementation\n  //by Magno Borgo, 18/02/2016\n  //http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.fftpack.dct.html\n  Image<eRead, eAccessRanged1D> src; //input img\n  Image<eWrite> dst;  //the output image\n  void process(int2 pos) \{\n    float N = src.bounds.x2; //N=last position on X axis\n    int n;\n    for (int component = 0; component < dst.kComps; component++) //loop for each channel\n    \{\n    float sum = 0.0;\n    for (n=(1-pos.x); n<=(N-1-pos.x); n++) //using R1Daccess relative positions\n    \{\n    float d = 0.5;\n\t    sum +=  src(n,component)  * cos((PI *(pos.x + d)) * (n+pos.x) / N);\n    \}\n    float ss = src(-pos.x,component)/sqrt(N) ;\n    dst(component) =  ss + sqrt(2/N) * sum;\n   \}\n\}\n\};\n"
+  useGPUIfAvailable {{iDTC.useGPU}}
+  rebuild ""
+  rebuild_finalise ""
+  name BlinkScript1
+  selected true
+  xpos -654
+  ypos 674
+ }
+ Shuffle {
+  alpha white
+  name Shuffle8
+  label "\[value in] to \[value out]"
+  xpos -654
+  ypos 753
+ }
+ Transform {
+  translate {{width} {height}}
+  rotate 90
+  scale {-1 1}
+  invert_matrix true
+  name Transform8
+  xpos -654
+  ypos 814
+  disable {{"height == width ? 1 :0"}}
+ }
+push $N63bc0f0
+ Shuffle {
+  red black
+  green black
+  blue black
+  alpha black
+  name Shuffle9
+  label "\[value in] to \[value out]"
+  xpos -866
+  ypos 708
+ }
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge5
+  xpos -654
+  ypos 863
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 multiply T "nuke.thisNode()\['operation'].setValue('multiply')" +STARTLINE}
+  addUserKnob {22 stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 minus T "nuke.thisNode()\['operation'].setValue('minus')" +STARTLINE}
+  addUserKnob {22 plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+ }
+ Output {
+  name Output1
+  xpos -654
+  ypos 963
+ }
+end_group
+CheckerBoard2 {
+ inputs 0
+ format "256 256 0 0 256 256 1 square_256"
+ name CheckerBoard2
+ xpos 587
+ ypos -193
+}
+Gizmo {
+ name Gizmo1
+ xpos 587
+ ypos -107
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -81
+  ypos -141
+ }
+ BlinkScript {
+  ProgramGroup 1
+  KernelDescription "1 \"TexTile\" iterate pixelWise a835ac838bb293be4510cf5847dec90d8336ce555ff7fb19e89fc04cd1db7693 2 \"src\" Read Random \"dst\" Write Point 6 \"width\" Float 1 AAAAAA== \"height\" Float 1 AAAAAA== \"tiling\" Float 1 AAAAAA== \"offset\" Float 1 AAAAAA== \"scale\" Float 1 AAAAAA== \"contrast\" Float 1 AAAAAA=="
+  kernelSource "inline float4 mix(float4 a, float4 b, float t) \{\n  return (b - a) * clamp(t, 0.0f, 1.0f) + a;\n\}\n\nkernel TexTile: ImageComputationKernel<ePixelWise> \{\n\n    Image<eRead, eAccessRandom, eEdgeClamped> src;\n    Image<eWrite> dst;\n\n    param:\n        float width;\n        float height;\n        float tiling;\n        float offset;\n        float scale;\n        float contrast;\n\n    float4 hash4(float2 p) \{\n        float4 val =  sin(float4(1.0f + dot(p, float2(37.0f, 17.0f)), \n                                 2.0f + dot(p, float2(11.0f, 47.0f)),\n                                 3.0f + dot(p, float2(41.0f, 29.0f)),\n                                 4.0f + dot(p, float2(23.0f, 31.0f)))) * 103.0f;\n        for (int i = 0; i < 4; i++)\n            val\[i] = fmod(val\[i], 1.0f);\n        return (val + 1) * 0.5f;\n    \}\n\n    void process(int2 pos)\n    \{\n        float2 uv = float2(\n            (pos.x + 0.5f) / width,\n            (pos.y + 0.5f) / height\n        );\n\n        uv *= tiling;\n\n        float2 p = floor(uv);\n        float2 f = float2(fmod(uv.x, 1.0f), fmod(uv.y, 1.0f));\n        \n        float4 va = 0;\n        float w1 = 0;\n        float w2 = 0;\n        // Iterate over adjacent voronoi cells\n        for (int j = -1; j <= 1; j++)\n            for (int i = -1; i <= 1; i++)\n            \{\n                // Create a voronoi cell point\n                float2 g = float2(float(i), float(j));                 // Adjacent cell point\n                float4 o = hash4(p + g);                               // Random offset\n                float2 r = float2(g.x - f.x + o.x, g.y - f.y + o.y);   // Resulting co-ordinate\n\n                float d = dot(r, r);                                   // length of offset\n                float w = exp(-5.0f * d);                              // gaussian falloff\n                \n                // Use the offset to pick a pseudo-random point to sample\n                // Using r instead of uv offsets from center of cell, allowing us to scale each individually\n                float randf = (o.x - 0.5f) * scale + 1.0f;\n                float x = r.x * randf + o.z * offset;\n                float y = r.y * randf + o.w * offset;\n\n                // Wrap x and y around image and sample\n                x = fmod(fmod(x, 1.0f) + 1.0f, 1.0f) * width;\n                y = fmod(fmod(y, 1.0f) + 1.0f, 1.0f) * height;\n                float4 c = bilinear(src, x, y);\n                \n                // Accumulate weighted colour\n                va += w * c;\n                w1 += w;\n                w2 += w * w;\n            \}\n        \n        // normal averaging --> lowers contrasts\n        // float4 col = va / w1;\n\n        float4 res = contrast + (va - w1 * contrast) / sqrt(w2);\n        float4 col = mix(va / w1, res, offset);\n\n\n        for (int c = 0; c < 3; c++)\n            dst(c) = col\[c];\n        dst(3) = 1;\n\n    \}\n\};"
+  rebuild ""
+  TexTile_width {{width}}
+  TexTile_height {{height}}
+  TexTile_tiling {{parent.tiling}}
+  TexTile_offset {{parent.offset}}
+  TexTile_scale 0.25
+  TexTile_contrast 0.2
+  format {{{TexTileFormat.format}}}
+  specifiedFormat true
+  rebuild_finalise ""
+  name BlinkScript2
+  xpos -81
+  ypos -66
+ }
+ Output {
+  name Output1
+  xpos -81
+  ypos -1
+ }
+ Reformat {
+  inputs 0
+  name TexTileFormat
+  selected true
+  xpos 42
+  ypos -60
+ }
+end_group
+ColorWheel {
+ inputs 0
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ gamma 0.45
+ name ColorWheel2
+ xpos -21
+ ypos 273
+}
+set N64a46c0 [stack 0]
+BlinkScript {
+ recompileCount 14
+ ProgramGroup 1
+ KernelDescription "2 \"CopyKernel\" iterate pixelWise 7eae497d8e5084bc9657bb22f8b469d8f816de25297567ab3fb009242f973600 2 \"src\" Read Point \"dst\" Write Point 0 0 0"
+ kernelSource "kernel CopyKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessPoint, eEdgeClamped> src;\n  Image<eWrite> dst;\n\n  void process()\n  \{\n    dst() = float4(1.0, 0.0, 1.0, 1.0);\n  \}\n\};"
+ rebuild ""
+ rebuild_finalise ""
+ name BlinkScript3
+ xpos -78
+ ypos 389
+}
+push $N64a46c0
+BlinkScript {
+ kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/test_kernel.blink"
+ recompileCount 114
+ ProgramGroup 1
+ KernelDescription "2 \"testKernel\" iterate pixelWise 82ed64f639fb7628c5c3d20a2bf00d1a921324e00a9e90d898408af5245c0de0 2 \"src\" Read Point \"dst\" Write Point 3 \"Center\" Float 2 AABwRAAAB0Q= \"Radius (px)\" Float 1 AABIQw== \"Falloff\" Float 1 AACAPw== 3 \"center\" 2 1 \"radius\" 1 1 \"falloff\" 1 1 0"
+ kernelSource "#include \"include/helper_funcs.h\"\n\n/*\nFirst testing kernel, just to try out things\n*/\n\nkernel testKernel : ImageComputationKernel<ePixelWise>\n\{\n    Image<eRead, eAccessPoint, eEdgeNone> src;\n    Image<eWrite> dst;\n\n    param:\n        float2 center;\n        float radius;\n        float falloff;\n\n    void define() \{\n        defineParam(center, \"Center\", float2(960.0f, 540.0f));\n        defineParam(radius, \"Radius (px)\", 200.0f);\n        defineParam(falloff, \"Falloff\", 1.0f);\n    \}\n\n    void init() \{\n        \n    \}\n\n    void process(int2 pos)\n    \{\n        float dist = length( float2(pos) - center );\n        dist = fit(dist, 0.0f, radius, 1.0f, 0.0f);\n        dist = pow(dist, falloff);\n\n        dst() = float4(dist, dist, dist, 1);\n    \}\n\};"
+ rebuild ""
+ testKernel_Center {764 528}
+ "testKernel_Radius (px)" 600
+ rebuild_finalise ""
+ name BlinkScript4
+ xpos 52
+ ypos 387
+}
+set N64bc470 [stack 0]
+push $N64bc470
+Viewer {
+ inputs 2
+ frame 1
+ frame_range 1-100
+ fps 25
+ name Viewer1
+ xpos 1
+ ypos 779
+}

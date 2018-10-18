@@ -1,0 +1,35 @@
+#include "include/helper_funcs.h"
+
+/*
+First testing kernel, just to try out things
+*/
+
+kernel testKernel : ImageComputationKernel<ePixelWise>
+{
+    Image<eRead, eAccessPoint, eEdgeNone> src;
+    Image<eWrite> dst;
+
+    param:
+        float2 center;
+        float radius;
+        float falloff;
+
+    void define() {
+        defineParam(center, "Center", float2(960.0f, 540.0f));
+        defineParam(radius, "Radius (px)", 200.0f);
+        defineParam(falloff, "Falloff", 1.0f);
+    }
+
+    void init() {
+        
+    }
+
+    void process(int2 pos)
+    {
+        float dist = length( float2(pos) - center );
+        dist = fit(dist, 0.0f, radius, 1.0f, 0.0f);
+        dist = pow(dist, falloff);
+
+        dst() = float4(dist, dist, dist, 1);
+    }
+};
