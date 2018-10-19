@@ -191,7 +191,7 @@ Group {
   xpos 208
   ypos -190
  }
-set N6102cd0 [stack 0]
+set N6743780 [stack 0]
  Dot {
   name Dot7
   xpos -62
@@ -202,31 +202,31 @@ set N6102cd0 [stack 0]
   xpos -125
   ypos 255
  }
-set N610ac70 [stack 0]
+set N674b720 [stack 0]
  Dot {
   name Dot13
   xpos -47
   ypos 255
  }
-set N610f520 [stack 0]
+set N674ffd0 [stack 0]
  Dot {
   name Dot12
   xpos 68
   ypos 255
  }
-push $N6102cd0
+push $N6743780
  Dot {
   name Dot8
   xpos 242
   ypos -93
  }
-set N6118690 [stack 0]
+set N6759140 [stack 0]
  Dot {
   name Dot2
   xpos 376
   ypos -92
  }
-push $N6118690
+push $N6759140
  Saturation {
   saturation 0
   name Saturation1
@@ -234,7 +234,7 @@ push $N6118690
   ypos -75
   disable {{parent.SampleChan!=0}}
  }
-set N6121eb0 [stack 0]
+set N6762960 [stack 0]
  BlinkScript {
   recompileCount 184
   ProgramGroup 1
@@ -255,7 +255,7 @@ set N6121eb0 [stack 0]
   xpos 114
   ypos -4
  }
-push $N6121eb0
+push $N6762960
  BlinkScript {
   recompileCount 131
   ProgramGroup 1
@@ -287,7 +287,7 @@ push $N6121eb0
   xpos 208
   ypos 139
  }
-set N6156b50 [stack 0]
+set N6797720 [stack 0]
  MergeExpression {
   inputs 2
   expr0 A.r(B.b,B.g)
@@ -302,13 +302,13 @@ set N6156b50 [stack 0]
   xpos 376
   ypos 198
  }
-push $N6118690
+push $N6759140
  Dot {
   name Dot1
   xpos 101
   ypos -92
  }
-push $N6156b50
+push $N6797720
  MergeExpression {
   inputs 2
   expr0 A.r(B.g,B.b)
@@ -324,7 +324,7 @@ push $N6156b50
   xpos 98
   ypos 198
  }
-push $N6156b50
+push $N6797720
  Switch {
   inputs 3
   which {{!parent.OutputMode*(1+parent.SortingDir)}}
@@ -337,13 +337,13 @@ push $N6156b50
   xpos 242
   ypos 217
  }
-set N61a5fd0 [stack 0]
+set N67e5ee0 [stack 0]
  Dot {
   name Dot14
   xpos 123
   ypos 217
  }
-set N61aa910 [stack 0]
+set N67ea820 [stack 0]
  MergeExpression {
   inputs 2
   expr3 parent.SortingDir==0?A.a(B.g,B.b):A.a(B.b,B.g)
@@ -351,14 +351,14 @@ set N61aa910 [stack 0]
   xpos 89
   ypos 278
  }
-set N61af190 [stack 0]
+set N67ef0a0 [stack 0]
  Dot {
   name Dot11
   xpos 123
   ypos 341
  }
-push $N610f520
-push $N61aa910
+push $N674ffd0
+push $N67ea820
  Dot {
   name Dot6
   xpos 3
@@ -378,7 +378,7 @@ push $N61aa910
   xpos -31
   ypos 305
  }
-push $N610ac70
+push $N674b720
  Dot {
   name Dot9
   xpos -125
@@ -398,7 +398,7 @@ push $N610ac70
   ypos 366
   disable {{!parent.OutputAlpha}}
  }
-push $N61a5fd0
+push $N67e5ee0
  Switch {
   inputs 2
   which {{max(0,parent.OutputMode-1)}}
@@ -411,7 +411,7 @@ push $N61a5fd0
   xpos 208
   ypos 451
  }
-push $N61af190
+push $N67ef0a0
  Viewer {
   frame_range 1-100
   name Viewer1
@@ -462,7 +462,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N6263650 [stack 0]
+set N68a37b0 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/dct_3_1.blink
   ProgramGroup 1
@@ -481,7 +481,7 @@ set N6263650 [stack 0]
   xpos -835
   ypos 580
  }
-set N6276240 [stack 0]
+set N68b63b0 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -498,7 +498,7 @@ set N6276240 [stack 0]
   xpos -748
   ypos 625
  }
-push $N6263650
+push $N68a37b0
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -566,7 +566,7 @@ push $N6263650
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N6276240
+push $N68b63b0
  Shuffle {
   red black
   green black
@@ -697,7 +697,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N63451f0 [stack 0]
+set N69859b0 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/idct_0_6.blink
   ProgramGroup 1
@@ -715,7 +715,7 @@ set N63451f0 [stack 0]
   xpos -835
   ypos 580
  }
-set N63bc0f0 [stack 0]
+set N69fc8a0 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -732,7 +732,7 @@ set N63bc0f0 [stack 0]
   xpos -748
   ypos 625
  }
-push $N63451f0
+push $N69859b0
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -801,7 +801,7 @@ push $N63451f0
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N63bc0f0
+push $N69fc8a0
  Shuffle {
   red black
   green black
@@ -895,19 +895,7 @@ ColorWheel {
  xpos -21
  ypos 273
 }
-set N64a46c0 [stack 0]
-BlinkScript {
- recompileCount 14
- ProgramGroup 1
- KernelDescription "2 \"CopyKernel\" iterate pixelWise 7eae497d8e5084bc9657bb22f8b469d8f816de25297567ab3fb009242f973600 2 \"src\" Read Point \"dst\" Write Point 0 0 0"
- kernelSource "kernel CopyKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessPoint, eEdgeClamped> src;\n  Image<eWrite> dst;\n\n  void process()\n  \{\n    dst() = float4(1.0, 0.0, 1.0, 1.0);\n  \}\n\};"
- rebuild ""
- rebuild_finalise ""
- name BlinkScript3
- xpos -78
- ypos 389
-}
-push $N64a46c0
+set N6ae5080 [stack 0]
 BlinkScript {
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/test_kernel.blink"
  recompileCount 114
@@ -922,10 +910,34 @@ BlinkScript {
  xpos 52
  ypos 387
 }
-set N64bc470 [stack 0]
-push $N64bc470
+push $N6ae5080
+BlinkScript {
+ recompileCount 14
+ ProgramGroup 1
+ KernelDescription "2 \"CopyKernel\" iterate pixelWise 7eae497d8e5084bc9657bb22f8b469d8f816de25297567ab3fb009242f973600 2 \"src\" Read Point \"dst\" Write Point 0 0 0"
+ kernelSource "kernel CopyKernel : ImageComputationKernel<ePixelWise>\n\{\n  Image<eRead, eAccessPoint, eEdgeClamped> src;\n  Image<eWrite> dst;\n\n  void process()\n  \{\n    dst() = float4(1.0, 0.0, 1.0, 1.0);\n  \}\n\};"
+ rebuild ""
+ rebuild_finalise ""
+ name BlinkScript3
+ xpos -78
+ ypos 389
+}
+push $N6ae5080
+BlinkScript {
+ kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
+ recompileCount 121
+ KernelDescription "2 \"mandelbrot\" iterate pixelWise e23f08ef4e2cea1c177b6ce10acabacc71bad2279ffd8a92d659febab2cdeba7 2 \"src\" Read Point \"dst\" Write Point 6 \"Maximum iterations\" Int 1 6AMAAA== \"Zoom\" Float 1 AAD6Qw== \"Center\" Float 2 AABwRAAAB0Q= \"Julia mode\" Int 1 AAAAAA== \"Julia coordinate\" Float 2 AAAAAAAAAAA= \"Image resolution\" Int 2 gAcAADgEAAA= 6 \"max_iter\" 1 1 \"zoom\" 1 1 \"center\" 2 1 \"julia_mode\" 1 1 \"julia_coord\" 2 1 \"img_res\" 2 1 0"
+ kernelSource "#include \"include/helper_funcs.h\"\n\n/*\nMandelbort set visualizer\n*/\n\nkernel mandelbrot : ImageComputationKernel<ePixelWise>\n\{\n    Image<eRead, eAccessPoint, eEdgeNone> src;\n    Image<eWrite> dst;\n\n    param:\n        int max_iter;\n        float zoom;\n        float2 center;\n        int julia_mode;\n        float2 julia_coord;\n        int2 img_res;\n\n    local:\n\n    void define() \{\n        defineParam(max_iter, \"Maximum iterations\", 1000);\n        defineParam(zoom, \"Zoom\", 500.0f);\n        defineParam(center, \"Center\", float2(960.0f, 540.0f));\n        defineParam(julia_mode, \"Julia mode\", 0);\n        defineParam(julia_coord, \"Julia coordinate\", float2(0.0f, 0.0f));\n        defineParam(img_res, \"Image resolution\", int2(1920, 1080));\n    \}\n\n    void init() \{\n    \}\n\n    void process(int2 pos)\n    \{\n\n        float2 c = float2(pos) - float2(img_res)/2;\n        c /= zoom;\n        c += center;\n\n        float2 z = c;\n        float2 z_next;\n        int i = 0;\n\n        if (julia_mode)\n            c = julia_coord;\n\n        for (; i < max_iter; i++)\n        \{\n            z_next.x = z.x * z.x - z.y * z.y + c.x;\n            z_next.y = 2 * z.x * z.y + c.y;\n            z = z_next;\n\n            if (dot(z, z) > 4)\n                break;\n        \}\n\n        float col = float(i) / float(max_iter);\n        if (i == max_iter)\n            col = 0.0f;\n\n        dst() = float4(col, 0, 0, 1);\n    \}\n\};"
+ rebuild ""
+ mandelbrot_Center {0 0}
+ "mandelbrot_Julia mode" 1
+ "mandelbrot_Julia coordinate" {0.19863 0.5487}
+ rebuild_finalise ""
+ name BlinkScript5
+ xpos 203
+ ypos 387
+}
 Viewer {
- inputs 2
  frame 1
  frame_range 1-100
  fps 25

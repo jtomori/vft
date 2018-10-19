@@ -1,0 +1,64 @@
+#include "include/helper_funcs.h"
+
+/*
+Mandelbort set visualizer
+*/
+
+kernel mandelbrot : ImageComputationKernel<ePixelWise>
+{
+    Image<eRead, eAccessPoint, eEdgeNone> src;
+    Image<eWrite> dst;
+
+    param:
+        int max_iter;
+        float zoom;
+        float2 center;
+        int julia_mode;
+        float2 julia_coord;
+        int2 img_res;
+
+    local:
+
+    void define() {
+        defineParam(max_iter, "Maximum iterations", 1000);
+        defineParam(zoom, "Zoom", 500.0f);
+        defineParam(center, "Center", float2(960.0f, 540.0f));
+        defineParam(julia_mode, "Julia mode", 0);
+        defineParam(julia_coord, "Julia coordinate", float2(0.0f, 0.0f));
+        defineParam(img_res, "Image resolution", int2(1920, 1080));
+    }
+
+    void init() {
+    }
+
+    void process(int2 pos)
+    {
+
+        float2 c = float2(pos) - float2(img_res)/2;
+        c /= zoom;
+        c += center;
+
+        float2 z = c;
+        float2 z_next;
+        int i = 0;
+
+        if (julia_mode)
+            c = julia_coord;
+
+        for (; i < max_iter; i++)
+        {
+            z_next.x = z.x * z.x - z.y * z.y + c.x;
+            z_next.y = 2 * z.x * z.y + c.y;
+            z = z_next;
+
+            if (dot(z, z) > 4)
+                break;
+        }
+
+        float col = float(i) / float(max_iter);
+        if (i == max_iter)
+            col = 0.0f;
+
+        dst() = float4(col, 0, 0, 1);
+    }
+};
