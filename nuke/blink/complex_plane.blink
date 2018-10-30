@@ -13,14 +13,12 @@ kernel complexPlane : ImageComputationKernel<ePixelWise>
         int2 img_res;
         float zoom;
         float exp_zoom;
-        float exp_speed;
         float2 center;
 
     void define() {
         defineParam(img_res, "Resolution", int2(1920, 1080));
         defineParam(zoom, "Initial zoom", 500.0f);
         defineParam(exp_zoom, "Exponential zoom", 1.0f);
-        defineParam(exp_speed, "Exponential speed", 1.0f);
         defineParam(center, "Center", float2(0.0f, 0.0f));
     }
 
@@ -31,7 +29,7 @@ kernel complexPlane : ImageComputationKernel<ePixelWise>
     {
         float2 c = float2(pos) - float2(img_res)/2;
         c /= zoom;
-        c /= exp(exp_zoom * exp_speed);
+        c /= exp(exp_zoom);
         c += center;
 
         dst() = float4(c.x, c.y, 0, 0);

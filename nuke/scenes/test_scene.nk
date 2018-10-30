@@ -28,7 +28,6 @@ Root {
  inputs 0
  name /home/juraj/coding/raymarching/nuke/scenes/test_scene.nk
  project_directory "\[python \{nuke.script_directory()\}]"
- frame 2
  last_frame 1000
  fps 25
  format "1920 1080 0 0 1920 1080 1 HD_1080"
@@ -204,7 +203,7 @@ Group {
   xpos 208
   ypos -190
  }
-set N4db71a0 [stack 0]
+set N674cf90 [stack 0]
  Dot {
   name Dot7
   xpos -62
@@ -215,31 +214,31 @@ set N4db71a0 [stack 0]
   xpos -125
   ypos 255
  }
-set N4dbf0b0 [stack 0]
+set N6754ea0 [stack 0]
  Dot {
   name Dot13
   xpos -47
   ypos 255
  }
-set N4dc3960 [stack 0]
+set N6759750 [stack 0]
  Dot {
   name Dot12
   xpos 68
   ypos 255
  }
-push $N4db71a0
+push $N674cf90
  Dot {
   name Dot8
   xpos 242
   ypos -93
  }
-set N4dccad0 [stack 0]
+set N67628c0 [stack 0]
  Dot {
   name Dot2
   xpos 376
   ypos -92
  }
-push $N4dccad0
+push $N67628c0
  Saturation {
   saturation 0
   name Saturation1
@@ -247,7 +246,7 @@ push $N4dccad0
   ypos -75
   disable {{parent.SampleChan!=0}}
  }
-set N4dd62f0 [stack 0]
+set N676c0e0 [stack 0]
  BlinkScript {
   recompileCount 184
   ProgramGroup 1
@@ -268,7 +267,7 @@ set N4dd62f0 [stack 0]
   xpos 114
   ypos -4
  }
-push $N4dd62f0
+push $N676c0e0
  BlinkScript {
   recompileCount 131
   ProgramGroup 1
@@ -300,7 +299,7 @@ push $N4dd62f0
   xpos 208
   ypos 139
  }
-set N4e0af30 [stack 0]
+set N67a0d20 [stack 0]
  MergeExpression {
   inputs 2
   expr0 A.r(B.b,B.g)
@@ -315,13 +314,13 @@ set N4e0af30 [stack 0]
   xpos 376
   ypos 198
  }
-push $N4dccad0
+push $N67628c0
  Dot {
   name Dot1
   xpos 101
   ypos -92
  }
-push $N4e0af30
+push $N67a0d20
  MergeExpression {
   inputs 2
   expr0 A.r(B.g,B.b)
@@ -337,7 +336,7 @@ push $N4e0af30
   xpos 98
   ypos 198
  }
-push $N4e0af30
+push $N67a0d20
  Switch {
   inputs 3
   which {{!parent.OutputMode*(1+parent.SortingDir)}}
@@ -350,13 +349,13 @@ push $N4e0af30
   xpos 242
   ypos 217
  }
-set N4e5a730 [stack 0]
+set N67ef7d0 [stack 0]
  Dot {
   name Dot14
   xpos 123
   ypos 217
  }
-set N4e5f070 [stack 0]
+set N67f4110 [stack 0]
  MergeExpression {
   inputs 2
   expr3 parent.SortingDir==0?A.a(B.g,B.b):A.a(B.b,B.g)
@@ -364,14 +363,14 @@ set N4e5f070 [stack 0]
   xpos 89
   ypos 278
  }
-set N4e638f0 [stack 0]
+set N67f8990 [stack 0]
  Dot {
   name Dot11
   xpos 123
   ypos 341
  }
-push $N4dc3960
-push $N4e5f070
+push $N6759750
+push $N67f4110
  Dot {
   name Dot6
   xpos 3
@@ -391,7 +390,7 @@ push $N4e5f070
   xpos -31
   ypos 305
  }
-push $N4dbf0b0
+push $N6754ea0
  Dot {
   name Dot9
   xpos -125
@@ -411,7 +410,7 @@ push $N4dbf0b0
   ypos 366
   disable {{!parent.OutputAlpha}}
  }
-push $N4e5a730
+push $N67ef7d0
  Switch {
   inputs 2
   which {{max(0,parent.OutputMode-1)}}
@@ -424,7 +423,7 @@ push $N4e5a730
   xpos 208
   ypos 451
  }
-push $N4e638f0
+push $N67f8990
  Viewer {
   frame_range 1-100
   name Viewer1
@@ -475,7 +474,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N4f17a90 [stack 0]
+set N68acf80 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/dct_3_1.blink
   ProgramGroup 1
@@ -494,7 +493,7 @@ set N4f17a90 [stack 0]
   xpos -835
   ypos 580
  }
-set N4f2a670 [stack 0]
+set N68bfb70 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -511,7 +510,7 @@ set N4f2a670 [stack 0]
   xpos -748
   ypos 625
  }
-push $N4f17a90
+push $N68acf80
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -579,7 +578,7 @@ push $N4f17a90
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N4f2a670
+push $N68bfb70
  Shuffle {
   red black
   green black
@@ -710,7 +709,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N4ffa160 [stack 0]
+set N698ed00 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/idct_0_6.blink
   ProgramGroup 1
@@ -728,7 +727,7 @@ set N4ffa160 [stack 0]
   xpos -835
   ypos 580
  }
-set N5071260 [stack 0]
+set N6a05fb0 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -745,7 +744,7 @@ set N5071260 [stack 0]
   xpos -748
   ypos 625
  }
-push $N4ffa160
+push $N698ed00
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -814,7 +813,7 @@ push $N4ffa160
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N5071260
+push $N6a05fb0
  Shuffle {
   red black
   green black
@@ -908,7 +907,7 @@ ColorWheel {
  xpos 21
  ypos 710
 }
-set N5159820 [stack 0]
+set N6aee780 [stack 0]
 BlinkScript {
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/test_kernel.blink"
  recompileCount 114
@@ -923,7 +922,7 @@ BlinkScript {
  xpos 94
  ypos 824
 }
-push $N5159820
+push $N6aee780
 BlinkScript {
  recompileCount 14
  ProgramGroup 1
@@ -938,14 +937,13 @@ BlinkScript {
 BlinkScript {
  inputs 0
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/complex_plane.blink"
- recompileCount 134
- KernelDescription "2 \"complexPlane\" iterate pixelWise 879b23a94e9f5991037dd40cf818bcfa5e5905146b216e71887b5d857d8417b3 1 \"dst\" Write Point 5 \"Resolution\" Int 2 gAcAADgEAAA= \"Initial zoom\" Float 1 AAD6Qw== \"Exponential zoom\" Float 1 AACAPw== \"Exponential speed\" Float 1 AACAPw== \"Center\" Float 2 AAAAAAAAAAA= 5 \"img_res\" 2 1 \"zoom\" 1 1 \"exp_zoom\" 1 1 \"exp_speed\" 1 1 \"center\" 2 1 0"
- kernelSource "#include \"include/helper_funcs.h\"\n\n/*\nGenerates a complex plane which has positions of X and Y axes in R and G channels,\nit is meant to be used with fractal kernels, which use complex plane image as an input\n*/\n\nkernel complexPlane : ImageComputationKernel<ePixelWise>\n\{\n    Image<eWrite> dst;\n\n    param:\n        int2 img_res;\n        float zoom;\n        float exp_zoom;\n        float exp_speed;\n        float2 center;\n\n    void define() \{\n        defineParam(img_res, \"Resolution\", int2(1920, 1080));\n        defineParam(zoom, \"Initial zoom\", 500.0f);\n        defineParam(exp_zoom, \"Exponential zoom\", 1.0f);\n        defineParam(exp_speed, \"Exponential speed\", 1.0f);\n        defineParam(center, \"Center\", float2(0.0f, 0.0f));\n    \}\n\n    void init() \{        \n    \}\n\n    void process(int2 pos)\n    \{\n        float2 c = float2(pos) - float2(img_res)/2;\n        c /= zoom;\n        c /= exp(exp_zoom * exp_speed);\n        c += center;\n\n        dst() = float4(c.x, c.y, 0, 0);\n    \}\n\};"
+ recompileCount 135
+ KernelDescription "2 \"complexPlane\" iterate pixelWise 84c5068fe80ebcff712999d8e1ff576a09ec2a28dfedca1661bc336cf4b9a180 1 \"dst\" Write Point 4 \"Resolution\" Int 2 gAcAADgEAAA= \"Initial zoom\" Float 1 AAD6Qw== \"Exponential zoom\" Float 1 AACAPw== \"Center\" Float 2 AAAAAAAAAAA= 4 \"img_res\" 2 1 \"zoom\" 1 1 \"exp_zoom\" 1 1 \"center\" 2 1 0"
+ kernelSource "#include \"include/helper_funcs.h\"\n\n/*\nGenerates a complex plane which has positions of X and Y axes in R and G channels,\nit is meant to be used with fractal kernels, which use complex plane image as an input\n*/\n\nkernel complexPlane : ImageComputationKernel<ePixelWise>\n\{\n    Image<eWrite> dst;\n\n    param:\n        int2 img_res;\n        float zoom;\n        float exp_zoom;\n        float2 center;\n\n    void define() \{\n        defineParam(img_res, \"Resolution\", int2(1920, 1080));\n        defineParam(zoom, \"Initial zoom\", 500.0f);\n        defineParam(exp_zoom, \"Exponential zoom\", 1.0f);\n        defineParam(center, \"Center\", float2(0.0f, 0.0f));\n    \}\n\n    void init() \{        \n    \}\n\n    void process(int2 pos)\n    \{\n        float2 c = float2(pos) - float2(img_res)/2;\n        c /= zoom;\n        c /= exp(exp_zoom);\n        c += center;\n\n        dst() = float4(c.x, c.y, 0, 0);\n    \}\n\};"
  rebuild ""
  complexPlane_Resolution {7680 4320}
  "complexPlane_Initial zoom" 1800
- "complexPlane_Exponential zoom" {{"frame * 0.0007"}}
- "complexPlane_Exponential speed" 16
+ "complexPlane_Exponential zoom" {{"frame * 0.01"}}
  complexPlane_Center {-1.40119 0}
  format "7680 4320 0 0 7680 4320 1 8k"
  rebuild_finalise ""
@@ -953,7 +951,7 @@ BlinkScript {
  xpos 381
  ypos 525
 }
-set N5184f80 [stack 0]
+set N6b19eb0 [stack 0]
 Shuffle {
  red black
  green black
@@ -983,7 +981,7 @@ Merge2 {
  xpos 468
  ypos 786
 }
-push $N5184f80
+push $N6b19eb0
 BlinkScript {
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
  recompileCount 197
@@ -1000,7 +998,7 @@ BlinkScript {
  xpos 382
  ypos 865
 }
-set N51cfcf0 [stack 0]
+set N6b64c60 [stack 0]
 Grade {
  channels {rgba.red -rgba.green -rgba.blue none}
  multiply 0.002
@@ -1015,7 +1013,7 @@ Grade {
  xpos 512
  ypos 951
 }
-push $N51cfcf0
+push $N6b64c60
 Shuffle {
  green white
  name Shuffle1
@@ -1050,7 +1048,7 @@ Grade {
  xpos 241
  ypos 1056
 }
-push $N51cfcf0
+push $N6b64c60
 Colorspace {
  colorspace_out HSV
  name Colorspace1
@@ -1076,8 +1074,9 @@ Reformat {
  filter Lanczos4
  name Reformat2
  xpos 382
- ypos 1212
+ ypos 1213
 }
+set N6c1ea10 [stack 0]
 Write {
  file /home/juraj/Desktop/renders/fract_1_####.jpg
  file_type jpeg
@@ -1089,11 +1088,11 @@ Write {
  xpos 382
  ypos 1306
 }
+push $N6c1ea10
 Viewer {
- frame 2
+ frame 1
  frame_range 1-1000
  fps 25
- full_frame_processing true
  name Viewer1
  xpos 221
  ypos 1455
