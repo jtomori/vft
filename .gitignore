@@ -7,3 +7,5 @@ geo
 img
 *.autosave
 *.nk~
+node_modules
+npm-debug.log
