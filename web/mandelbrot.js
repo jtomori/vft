@@ -1,7 +1,21 @@
 const glsl = x => x;
 
+
+// init
 var canvas = document.getElementById("main");
 var gl = canvas.getContext('webgl');
+
+// canvas size
+// Lookup the size the browser is displaying the canvas.
+var displayWidth  = canvas.clientWidth;
+var displayHeight = canvas.clientHeight;
+
+// Check if the canvas is not the same size.
+if (canvas.width  != displayWidth || canvas.height != displayHeight) {
+    // Make the canvas the same size
+    canvas.width  = displayWidth;
+    canvas.height = displayHeight;
+}
 
 /**
  * Shaders
@@ -31,9 +45,12 @@ var vertexShader = compileShader(glsl`
 `, gl.VERTEX_SHADER);
 
 var fragmentShader = compileShader(glsl`
+    precision highp float;
+    uniform vec2 res;
+
     void main(){
         // Draw every pixel red
-        gl_FragColor = vec4(gl_FragCoord.x/800.0, gl_FragCoord.y/600.0, 0.0, 1.0);
+        gl_FragColor = vec4(gl_FragCoord.x/res.x, gl_FragCoord.y/res.y, 0.0, 1.0);
     }
 `, gl.FRAGMENT_SHADER);
 
@@ -42,6 +59,10 @@ gl.attachShader(program, vertexShader);
 gl.attachShader(program, fragmentShader);
 gl.linkProgram(program);
 gl.useProgram(program);
+
+// setup uniforms
+var resLocation = gl.getUniformLocation(program, "res");
+gl.uniform2f(resLocation, displayWidth, displayHeight);
 
 /**
  * Geometry setup
