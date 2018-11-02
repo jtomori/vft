@@ -9,3 +9,4 @@ img
 *.nk~
 node_modules
 npm-debug.log
+*.oso
