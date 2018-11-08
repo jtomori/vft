@@ -1,4 +1,4 @@
-#include "include/helper_funcs.h"
+#include "include/vft_blink.h"
 
 /*
 Generates a complex plane which has positions of X and Y axes in R and G channels,

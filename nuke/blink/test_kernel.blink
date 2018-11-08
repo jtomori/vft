@@ -1,4 +1,4 @@
-#include "include/helper_funcs.h"
+#include "include/vft_blink.h"
 
 /*
 First testing kernel, just to try out things
@@ -6,7 +6,6 @@ First testing kernel, just to try out things
 
 kernel testKernel : ImageComputationKernel<ePixelWise>
 {
-    Image<eRead, eAccessPoint, eEdgeNone> src;
     Image<eWrite> dst;
 
     param:
@@ -27,6 +26,7 @@ kernel testKernel : ImageComputationKernel<ePixelWise>
     void process(int2 pos)
     {
         float dist = length( float2(pos) - center );
+        //dist = sqrt( dot(float2(pos) - center, float2(pos) - center) );
         dist = fit(dist, 0.0f, radius, 1.0f, 0.0f);
         dist = pow(dist, falloff);
 

@@ -1,0 +1,27 @@
+#include "include/vft_blink.h"
+
+/*
+Modulo input image
+*/
+
+kernel testKernel : ImageComputationKernel<ePixelWise>
+{
+    Image<eRead, eAccessPoint, eEdgeNone> src;
+    Image<eWrite> dst;
+
+    param:
+        float4 modulo;
+
+    void define() {
+        defineParam(modulo, "Modulo", float4(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
+    void init() {
+        
+    }
+
+    void process(int2 pos)
+    {
+        dst() = float4(fmod(src(0), modulo.x), fmod(src(1), modulo.y), fmod(src(2), modulo.z), fmod(src(3), modulo.w));
+    }
+};
