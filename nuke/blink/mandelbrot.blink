@@ -13,27 +13,41 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
     param:
         int max_iter;
+
         int julia_mode;
         float2 julia_coord;
+
         int color_mode;
+
         float2 orbit_pt;
         float2 orbit_line_pt_1;
         float2 orbit_line_pt_2;
         float2 orbit_circle_center;
         float orbit_circle_radius;
 
+        float zoom;
+        float exp_zoom;
+        float2 offset;
+
     local:
 
     void define() {
         defineParam(max_iter, "Maximum iterations", 1000);
+
         defineParam(julia_mode, "Julia mode", 0);
         defineParam(julia_coord, "Julia coordinate", float2(0.0f, 0.0f));
+
         defineParam(color_mode, "Color mode", 1);
+
         defineParam(orbit_pt, "Orbit point coordinate", float2(0.0f, 0.0f));
         defineParam(orbit_line_pt_1, "Orbit line point 1 coordinate", float2(0.0f, 0.0f));
         defineParam(orbit_line_pt_2, "Orbit line point 2 coordinate", float2(1.0f, 1.0f));
         defineParam(orbit_circle_center, "Orbit circle coordinate", float2(1.0f, 1.0f));
         defineParam(orbit_circle_radius, "Orbit circle radius", 100.0f);
+
+        defineParam(zoom, "Initial zoom", 1.0f);
+        defineParam(exp_zoom, "Exponential zoom", 0.0f);
+        defineParam(offset, "offset", float2(0.0f, 0.0f));
     }
 
     void init() {
@@ -54,6 +68,11 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         float orbit_coord_dist = LARGE_NUMBER;
         float orbit_line_dist = LARGE_NUMBER;
         float orbit_circle_dist = LARGE_NUMBER;
+
+        orbit_pt = zoomComplexPlane(orbit_pt, zoom, exp_zoom, offset);
+        orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1, zoom, exp_zoom, offset);
+        orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2, zoom, exp_zoom, offset);
+        orbit_circle_center = zoomComplexPlane(orbit_circle_center, zoom, exp_zoom, offset);
 
         if (julia_mode)
             c = julia_coord;

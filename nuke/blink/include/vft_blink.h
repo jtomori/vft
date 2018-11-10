@@ -22,4 +22,13 @@ static float distPtCircle(float2 pt, float2 center, float radius)
     return length(pt - center) - radius;
 }
 
+static float2 zoomComplexPlane(float2 pos, float zoom, float exp_zoom, float2 offset)
+{
+    pos /= zoom;
+    pos /= exp(exp_zoom);
+    pos += offset;
+
+    return pos;
+}
+
 #endif
