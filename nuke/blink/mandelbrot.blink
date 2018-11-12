@@ -6,7 +6,7 @@ Mandelbort set visualizer, it takes complex image plane as an input (e.g. genera
 complex numbers are stored in vec2(X, Y) type, where X is real and Y is imaginary part
 */
 
-kernel mandelbrot : ImageComputationKernel<ePixelWise>
+kernel mandelbrotKernel : ImageComputationKernel<ePixelWise>
 {
     Image<eRead, eAccessPoint, eEdgeNone> c_src;
     Image<eRead, eAccessRandom, eEdgeConstant> c_trap;
@@ -15,6 +15,7 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
     param:
         int max_iter;
+        int mandelbrot_power;
 
         int julia_mode;
         float2 julia_coord_parm;
@@ -31,6 +32,7 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
         float zoom;
         float exp_zoom;
+        float exp_zoom_anim;
         float2 offset;
         int2 img_res;
 
@@ -38,6 +40,7 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
     void define() {
         defineParam(max_iter, "maximum_iterations", 1000);
+        defineParam(mandelbrot_power, "mandelbrot_power", 2);
 
         defineParam(julia_mode, "julia_mode", 0);
         defineParam(julia_coord_parm, "julia_coordinate", float2(0.0f, 0.0f));
@@ -54,6 +57,7 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
         defineParam(zoom, "initial_zoom", 1.0f);
         defineParam(exp_zoom, "exponential_zoom", 0.0f);
+        defineParam(exp_zoom_anim, "exponential_zoom_anim", 0.0f);
         defineParam(offset, "offset", float2(0.0f, 0.0f));
         defineParam(img_res, "resolution", int2(1920, 1080));
     }
@@ -63,11 +67,14 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
 
     void process(int2 pos)
     {
-        float2 c = float2(c_src(0), c_src(1));
-        float2 complex_pos = c;
-        float2 z = c;
-        float2 z0 = z;
-        float2 z_next;
+        //float2 c_my = float2(pos) - float2(img_res)/2;
+        //c_my = zoomComplexPlane(c_my, zoom, exp_zoom_anim, offset);
+
+        complex c = complex(c_src(0), c_src(1));
+        //c = c_my;
+        complex z = c;
+        complex z0 = z;
+        complex z_next;
         int i = 0;
 
         float col_smooth = exp( -dot(z,z) );
@@ -77,23 +84,22 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         float orbit_line_dist = LARGE_NUMBER;
         float orbit_circle_dist = LARGE_NUMBER;
 
-        float2 orbit_pt = zoomComplexPlane(orbit_pt_parm - float2(img_res)/2, zoom, exp_zoom, offset);
-        float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res)/2, zoom, exp_zoom, offset);
-        float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res)/2, zoom, exp_zoom, offset);
-        float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float2 orbit_pt = zoomComplexPlane(orbit_pt_parm - float2(img_res)/2, zoom, exp_zoom, offset) - offset;
+        float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res)/2, zoom, exp_zoom, offset) - offset;
+        float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res)/2, zoom, exp_zoom, offset) - offset;
+        float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res)/2, zoom, exp_zoom, offset) - offset;
         float4 orbit_bitmap_color = float4(0.0f);
         float2 orbit_sample_pos = float2(0.0f);
 
-        float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res)/2, zoom, exp_zoom, offset) - offset;
 
         if (julia_mode)
             c = julia_coord;
 
         for (; i < max_iter; i++)
         {
-            // iterative function
-            z_next.x = z.x * z.x - z.y * z.y + c.x;
-            z_next.y = 2 * z.x * z.y + c.y;
+            // complex iterative function
+            z_next = complex_add(complex_pow(z, mandelbrot_power), c);
             z = z_next;
 
             // colors
@@ -116,7 +122,7 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
                     break;
             }
 
-            if (dot(z, z) > 4)
+            if (complex_abs(z) > 4)
                 break;
         }
 

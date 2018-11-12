@@ -31,4 +31,34 @@ static float2 zoomComplexPlane(float2 pos, float zoom, float exp_zoom, float2 of
     return pos;
 }
 
+// complex number functions
+typedef float2 complex;
+
+static complex complex_add(complex a, complex b)
+{
+    return complex(a.x + b.x, a.y + b.y);
+}
+
+static complex complex_mult(complex a, complex b)
+{
+    return complex(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+static float complex_abs(complex a)
+{
+    return dot(float2(a), float2(a));
+}
+
+static complex complex_pow(complex a, int n)
+{
+    complex result = a;
+    
+    for (int i = 0; i < (n-1); i++)
+    {
+        result = complex_mult(result, a);
+    }
+
+    return result;
+}
+
 #endif
