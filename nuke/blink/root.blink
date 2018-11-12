@@ -1,0 +1,28 @@
+#include "include/vft_blink.h"
+
+/*
+Root input image
+*/
+
+kernel rootKernel : ImageComputationKernel<ePixelWise>
+{
+    Image<eRead, eAccessPoint, eEdgeNone> src;
+    Image<eWrite> dst;
+
+    param:
+        float root;
+
+    void define() {
+        defineParam(root, "root", 2.0f);
+    }
+
+    void init() {
+        
+    }
+
+    void process()
+    {
+        float4 img_src = float4(src(0), src(1), src(2), src(3));
+        dst() = pow(img_src, float4(1.0f/root));
+    }
+};

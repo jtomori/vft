@@ -16,10 +16,10 @@ kernel complexPlane : ImageComputationKernel<ePixelWise>
         float2 offset;
 
     void define() {
-        defineParam(img_res, "Resolution", int2(1920, 1080));
-        defineParam(zoom, "Initial_zoom", 1.0f);
-        defineParam(exp_zoom, "Exponential_zoom", 0.0f);
-        defineParam(offset, "Offset", float2(0.0f, 0.0f));
+        defineParam(img_res, "resolution", int2(1920, 1080));
+        defineParam(zoom, "initial_zoom", 1.0f);
+        defineParam(exp_zoom, "exponential_zoom", 0.0f);
+        defineParam(offset, "offset", float2(0.0f, 0.0f));
     }
 
     void init() {        

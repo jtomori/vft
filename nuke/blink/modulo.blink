@@ -4,7 +4,7 @@
 Modulo input image
 */
 
-kernel testKernel : ImageComputationKernel<ePixelWise>
+kernel moduloKernel : ImageComputationKernel<ePixelWise>
 {
     Image<eRead, eAccessPoint, eEdgeNone> src;
     Image<eWrite> dst;
@@ -13,14 +13,14 @@ kernel testKernel : ImageComputationKernel<ePixelWise>
         float4 modulo;
 
     void define() {
-        defineParam(modulo, "Modulo", float4(1.0f, 1.0f, 1.0f, 1.0f));
+        defineParam(modulo, "modulo", float4(1.0f, 1.0f, 1.0f, 1.0f));
     }
 
     void init() {
         
     }
 
-    void process(int2 pos)
+    void process()
     {
         dst() = float4(fmod(src(0), modulo.x), fmod(src(1), modulo.y), fmod(src(2), modulo.z), fmod(src(3), modulo.w));
     }

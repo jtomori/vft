@@ -15,39 +15,41 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         int max_iter;
 
         int julia_mode;
-        float2 julia_coord;
+        float2 julia_coord_parm;
 
         int color_mode;
 
-        float2 orbit_pt;
-        float2 orbit_line_pt_1;
-        float2 orbit_line_pt_2;
-        float2 orbit_circle_center;
+        float2 orbit_pt_parm;
+        float2 orbit_line_pt_1_parm;
+        float2 orbit_line_pt_2_parm;
+        float2 orbit_circle_center_parm;
         float orbit_circle_radius;
 
         float zoom;
         float exp_zoom;
         float2 offset;
+        int2 img_res;
 
     local:
 
     void define() {
-        defineParam(max_iter, "Maximum iterations", 1000);
+        defineParam(max_iter, "maximum_iterations", 1000);
 
-        defineParam(julia_mode, "Julia mode", 0);
-        defineParam(julia_coord, "Julia coordinate", float2(0.0f, 0.0f));
+        defineParam(julia_mode, "julia_mode", 0);
+        defineParam(julia_coord_parm, "julia_coordinate", float2(0.0f, 0.0f));
 
-        defineParam(color_mode, "Color mode", 1);
+        defineParam(color_mode, "color_mode", 1);
 
-        defineParam(orbit_pt, "Orbit point coordinate", float2(0.0f, 0.0f));
-        defineParam(orbit_line_pt_1, "Orbit line point 1 coordinate", float2(0.0f, 0.0f));
-        defineParam(orbit_line_pt_2, "Orbit line point 2 coordinate", float2(1.0f, 1.0f));
-        defineParam(orbit_circle_center, "Orbit circle coordinate", float2(1.0f, 1.0f));
-        defineParam(orbit_circle_radius, "Orbit circle radius", 100.0f);
+        defineParam(orbit_pt_parm, "orbit_point_coordinate", float2(0.0f, 0.0f));
+        defineParam(orbit_line_pt_1_parm, "orbit_line_point_1_coordinate", float2(0.0f, 0.0f));
+        defineParam(orbit_line_pt_2_parm, "orbit_line_point_2_coordinate", float2(1.0f, 1.0f));
+        defineParam(orbit_circle_center_parm, "orbit_circle_coordinate", float2(1.0f, 1.0f));
+        defineParam(orbit_circle_radius, "orbit_circle_radius", 2.0f);
 
-        defineParam(zoom, "Initial zoom", 1.0f);
-        defineParam(exp_zoom, "Exponential zoom", 0.0f);
+        defineParam(zoom, "initial_zoom", 1.0f);
+        defineParam(exp_zoom, "exponential_zoom", 0.0f);
         defineParam(offset, "offset", float2(0.0f, 0.0f));
+        defineParam(img_res, "resolution", int2(1920, 1080));
     }
 
     void init() {
@@ -69,10 +71,12 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         float orbit_line_dist = LARGE_NUMBER;
         float orbit_circle_dist = LARGE_NUMBER;
 
-        orbit_pt = zoomComplexPlane(orbit_pt, zoom, exp_zoom, offset);
-        orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1, zoom, exp_zoom, offset);
-        orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2, zoom, exp_zoom, offset);
-        orbit_circle_center = zoomComplexPlane(orbit_circle_center, zoom, exp_zoom, offset);
+        float2 orbit_pt = zoomComplexPlane(orbit_pt_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+
+        float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res)/2, zoom, exp_zoom, offset);
 
         if (julia_mode)
             c = julia_coord;
@@ -131,13 +135,13 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         else if (color_mode == 3) // orbit traps visualization
         {
             vis_min = min(
-                sqrt( fabs( dot(float2(pos) - orbit_pt, float2(pos) - orbit_pt) )) * 0.0001f, 
-                fabs( distPtLine(pos, orbit_line_pt_1, orbit_line_pt_2) ) * 0.0001f
+                sqrt( fabs( dot(float2(pos) - orbit_pt_parm, float2(pos) - orbit_pt_parm) )) * 0.0003f, 
+                fabs( distPtLine(float2(pos), orbit_line_pt_1_parm, orbit_line_pt_2_parm) ) * 0.0003f
             );
 
             vis_min = min(
                 vis_min,
-                fabs( distPtCircle(pos, orbit_circle_center, orbit_circle_radius) ) * 0.0001f
+                fabs( distPtCircle(float2(pos), orbit_circle_center_parm, orbit_circle_radius) ) * 0.0003f
             );
             
             out_col = float4(vis_min, vis_min, vis_min, 1.0f);

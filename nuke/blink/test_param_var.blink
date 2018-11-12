@@ -1,0 +1,27 @@
+#include "include/vft_blink.h"
+
+/*
+First testing kernel, just to try out things
+*/
+
+kernel testParamVar : ImageComputationKernel<ePixelWise>
+{
+    Image<eWrite> dst;
+
+    param:
+        float4 color;
+
+    void define() {
+        defineParam(color, "Color", float4(1.0f));
+    }
+
+    void init() {
+    }
+
+    void process()
+    {
+        color *= 0.99f;
+
+        dst() = color;
+    }
+};
