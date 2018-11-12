@@ -9,6 +9,8 @@ complex numbers are stored in vec2(X, Y) type, where X is real and Y is imaginar
 kernel mandelbrot : ImageComputationKernel<ePixelWise>
 {
     Image<eRead, eAccessPoint, eEdgeNone> c_src;
+    Image<eRead, eAccessRandom, eEdgeConstant> c_trap;
+
     Image<eWrite> dst;
 
     param:
@@ -24,6 +26,8 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         float2 orbit_line_pt_2_parm;
         float2 orbit_circle_center_parm;
         float orbit_circle_radius;
+        float2 orbit_bitmap_offset;
+        float orbit_bitmap_zoom;
 
         float zoom;
         float exp_zoom;
@@ -45,6 +49,8 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         defineParam(orbit_line_pt_2_parm, "orbit_line_point_2_coordinate", float2(1.0f, 1.0f));
         defineParam(orbit_circle_center_parm, "orbit_circle_coordinate", float2(1.0f, 1.0f));
         defineParam(orbit_circle_radius, "orbit_circle_radius", 2.0f);
+        defineParam(orbit_bitmap_offset, "orbit_bitmap_offset", float2(0.0f, 0.0f));
+        defineParam(orbit_bitmap_zoom, "orbit_bitmap_zoom", 100.0f);
 
         defineParam(zoom, "initial_zoom", 1.0f);
         defineParam(exp_zoom, "exponential_zoom", 0.0f);
@@ -75,6 +81,8 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
         float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res)/2, zoom, exp_zoom, offset);
         float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res)/2, zoom, exp_zoom, offset);
         float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res)/2, zoom, exp_zoom, offset);
+        float4 orbit_bitmap_color = float4(0.0f);
+        float2 orbit_sample_pos = float2(0.0f);
 
         float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res)/2, zoom, exp_zoom, offset);
 
@@ -98,6 +106,14 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
                 orbit_coord_dist = min(orbit_coord_dist, fabs( dot(z - z0, z - z0) ));
                 orbit_line_dist = min(orbit_line_dist, fabs( distPtLine(z, orbit_line_pt_1, orbit_line_pt_2) ));
                 orbit_circle_dist = min(orbit_circle_dist, fabs( distPtCircle(z, orbit_circle_center, orbit_circle_radius) ));
+            }
+            else if (color_mode == 3)
+            {
+                orbit_sample_pos = z * float2(orbit_bitmap_zoom) - orbit_bitmap_offset;
+                orbit_bitmap_color = c_trap(orbit_sample_pos.x, orbit_sample_pos.y);
+                
+                if (orbit_bitmap_color.w > 0.05)
+                    break;
             }
 
             if (dot(z, z) > 4)
@@ -132,7 +148,12 @@ kernel mandelbrot : ImageComputationKernel<ePixelWise>
             out_col = float4(orbit_pt_dist, orbit_coord_dist, orbit_line_dist, orbit_circle_dist);
         }
 
-        else if (color_mode == 3) // orbit traps visualization
+        else if (color_mode == 3) // bitmap orbit trap
+        {
+            out_col = orbit_bitmap_color;
+        }
+
+        else if (color_mode == 4) // orbit traps visualization
         {
             vis_min = min(
                 sqrt( fabs( dot(float2(pos) - orbit_pt_parm, float2(pos) - orbit_pt_parm) )) * 0.0003f, 
