@@ -13,19 +13,17 @@ shader vft_mandelbulb(
 {
     float3 Z = float3(P[0], P[1], P[2]);
     float3 P_in = Z;
-    float de = 1.0;
-    int log_lin = 0;
     float4 julia = float4( julia_enable, julia_coord[0], julia_coord[1], julia_coord[2] );
     int i = 0;
-    float z_dist;
+    float z_dist = LENGTH(Z);
 
-    for (i = 0; i < max_iterations; i++)
+    for (; i < max_iterations; i++)
     {
         z_dist = LENGTH(Z);
         if (z_dist > max_distance) break;
         
-        mandelbulbIter(Z, de, P_in, log_lin, 1.0, julia, power);
+        mandelbulbIter(Z, P_in, 1.0, julia, power);
     }
 
-    dist = de;
+    dist = i == max_iterations ? 1 : 0;
 }

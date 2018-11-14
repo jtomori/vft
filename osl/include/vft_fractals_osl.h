@@ -8,7 +8,8 @@
 //                  "const" keyword, 
 //                  fixing expressions with vector swizzling, 
 //                  removing pointers, 
-//                  removing casts...
+//                  removing casts
+//                  removing de, log_lin variables
 
 // sphere: position, radius
 float sphere( float3 P, float rad )
@@ -46,18 +47,15 @@ float cone( float3 P, float2 c )
 }
 
 // [WEB] - http://blog.hvidtfeldts.net/index.php/2011/09/
-void mandelbulbIter(float3 Z, float de, float3 P_in, int log_lin, float weight, float4 julia, float power)
+void mandelbulbIter(float3 Z, float3 P_in, float weight, float4 julia, float power)
 {
     float3 Z_orig = Z;
-    float de_orig = de;
     
     float distance = LENGTH(Z);
 
     // convert to polar coordinates
     float theta = acos( DIV(Z.z, distance));
     float phi = atan2(Z.y, Z.x);
-
-    de =  POWR(distance, power-1) * power * de + 1.0;
     
     // scale and rotate the point
     float zr = POWR(distance, power);
@@ -75,10 +73,6 @@ void mandelbulbIter(float3 Z, float de, float3 P_in, int log_lin, float weight, 
     {
         Z = newZ + float3(julia.y, julia.z, julia.w);
     }
-
-    Z = mix(Z_orig, Z, weight);
-    de = mix(de_orig, de, weight);
-    log_lin++;
 }
 
 #endif
