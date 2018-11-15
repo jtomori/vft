@@ -1,0 +1,10 @@
+shader vft_get_matrix_element(
+    matrix mat = 1,
+    int row = 0,
+    int column = 0,
+
+    output float element_out = 0.0
+)
+{
+    element_out = mat[row][column];
+}

@@ -3,7 +3,7 @@
 
 // Trying to make OSL more compatible with OpenCL syntax
 // Some features like vector swizzling are not supported in OSL, so they won't be fully compatible with the current code,
-// but I am at least creating some helper macros and types to speed up porting my OpenCL code
+// but I am at least creating some helper macros and structs to speed up porting my OpenCL code
 // Note that list of types and functions here is not complete, I implemented only those which were required by OpenCL functions
 
 // functions
@@ -17,6 +17,9 @@
 #define DIV(x, y) ((x) / (y))
 #define NORMALIZE(x) normalize(x)
 #define LENGTH(x) length(x)
+
+#define M_PI_F          3.14159265358979323846
+#define LARGE_NUMBER            10e10
 
 // float3
 
@@ -131,5 +134,28 @@ struct float4
 {
     float x, y, z, w;
 };
+
+
+// functions
+
+float length2(vector vec)
+{
+    return dot(vec, vec);
+}
+
+// point to plane distance
+float distPointPlane(vector pt, vector plane_n, vector plane_point)
+{
+    float sb, sn, sd;
+    vector point_proj;
+
+    sn = -dot( plane_n, (pt - plane_point));
+    sd = dot(plane_n, plane_n);
+    sb = DIV(sn, sd);
+
+    point_proj = pt + sb * plane_n;
+    
+    return LENGTH(pt - point_proj);
+}
 
 #endif

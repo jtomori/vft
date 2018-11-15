@@ -8,22 +8,46 @@ shader vft_mandelbulb(
     int max_iterations = 100,
     float max_distance = 250.0,
 
-    output float dist = 0.0
+    output matrix out = 0
 )
 {
-    float3 Z = float3(P[0], P[1], P[2]);
-    float3 P_in = Z;
+    point P_w = P;
+    point P_o = transform("object", P_w);
+
+    point P_in = P_o;
+    point Z = P_in;
     float4 julia = float4( julia_enable, julia_coord[0], julia_coord[1], julia_coord[2] );
     int i = 0;
     float z_dist = LENGTH(Z);
+
+    float orbit_coord_dist = LARGE_NUMBER;
+    float orbit_sphere_dist = LARGE_NUMBER;
 
     for (; i < max_iterations; i++)
     {
         z_dist = LENGTH(Z);
         if (z_dist > max_distance) break;
         
-        mandelbulbIter(Z, P_in, 1.0, julia, power);
+        //mandelbulbIter(Z, P_in, 1.0, julia, power);
+        //mandelboxIter(Z, P_in, 0.1, julia, -1.5);
+        //mandelbulbPower2Iter(Z, P_in, 1.0, julia);
+        //bristorbrotIter(Z, P_in, 1.0, julia);
+        //xenodreambuieIter(Z, P_in, 1.0, julia, power, 0.0, 0.0);
+        //benesiIter(Z, P_in, 1.0, julia);
+        //idesIter(Z, P_in, 1.0, julia, point(1.0, 2.0, 3.0), float2(4.0, 5.0));
+        iqBulbIter(Z, P_in, 1.0, julia, power, power);
+
+        // orbit traps
+        orbit_coord_dist = min(orbit_coord_dist, fabs( length2(Z - P_in) ));
+        orbit_sphere_dist = min( orbit_sphere_dist, fabs( length2(Z - point(0)) - 2.0) );
     }
 
-    dist = i == max_iterations ? 1 : 0;
+    orbit_coord_dist = sqrt(orbit_coord_dist);
+    orbit_sphere_dist = sqrt(orbit_sphere_dist);
+
+    float mask = i == max_iterations ? 1 : 0;
+
+    out[0][0] = mask;
+    out[0][1] = orbit_coord_dist;
+    out[0][2] = orbit_sphere_dist;
 }
