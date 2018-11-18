@@ -22,6 +22,8 @@ shader vft_mandelbulb(
 
     float orbit_coord_dist = LARGE_NUMBER;
     float orbit_sphere_dist = LARGE_NUMBER;
+    point orbit_plane_origin = point(0.0);
+    vector orbit_plane_dist = vector(LARGE_NUMBER);
 
     for (; i < max_iterations; i++)
     {
@@ -40,6 +42,9 @@ shader vft_mandelbulb(
         // orbit traps
         orbit_coord_dist = min(orbit_coord_dist, fabs( length2(Z - P_in) ));
         orbit_sphere_dist = min( orbit_sphere_dist, fabs( length2(Z - point(0)) - 2.0) );
+        orbit_plane_dist[0] = min( orbit_plane_dist[0], distPointPlane(Z, vector(1.0, 0.0, 0.0), orbit_plane_origin) );
+        orbit_plane_dist[1] = min( orbit_plane_dist[1], distPointPlane(Z, vector(0.0, 1.0, 0.0), orbit_plane_origin) );
+        orbit_plane_dist[2] = min( orbit_plane_dist[2], distPointPlane(Z, vector(0.0, 0.0, 1.0), orbit_plane_origin) );
     }
 
     orbit_coord_dist = sqrt(orbit_coord_dist);
@@ -50,4 +55,7 @@ shader vft_mandelbulb(
     out[0][0] = mask;
     out[0][1] = orbit_coord_dist;
     out[0][2] = orbit_sphere_dist;
+    out[0][3] = orbit_plane_dist[0];
+    out[1][0] = orbit_plane_dist[1];
+    out[1][1] = orbit_plane_dist[2];
 }

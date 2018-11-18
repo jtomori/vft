@@ -3,7 +3,7 @@
 
 // Porting OpenCL fractal functions from vft_fractals.h
 // it means removing 
-//                  " keyword, 
+//                  "static" keyword, 
 //                  "f" literal, 
 //                  "const" keyword, 
 //                  fixing expressions with vector swizzling, 
