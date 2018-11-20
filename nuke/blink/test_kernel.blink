@@ -25,8 +25,8 @@ kernel testKernel : ImageComputationKernel<ePixelWise>
 
     void process(int2 pos)
     {
-        float dist = length( float2(pos) - center );
-        //dist = sqrt( dot(float2(pos) - center, float2(pos) - center) );
+        float dist = length( float2(pos.x, pos.y) - center );
+        //dist = sqrt( dot(float2(pos.x, pos.y) - center, float2(pos.x, pos.y) - center) );
         dist = fit(dist, 0.0f, radius, 1.0f, 0.0f);
         dist = pow(dist, falloff);
 

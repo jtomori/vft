@@ -27,7 +27,7 @@ kernel complexPlane : ImageComputationKernel<ePixelWise>
 
     void process(int2 pos)
     {
-        float2 c = float2(pos) - float2(img_res)/2;
+        float2 c = float2(pos.x, pos.y) - float2(img_res.x, img_res.y)/2;
         c = zoomComplexPlane(c, zoom, exp_zoom, offset);
 
         dst() = float4(c.x, c.y, 0, 0);
