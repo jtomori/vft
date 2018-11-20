@@ -123,10 +123,15 @@ function void quad_face_split(int primnum; quad_face_split_parms weights)
 struct catmull_clark_quad_parms
 {
     float new_face_pt_weights[] = {1.0, 1.0, 1.0, 1.0};
+    float new_face_pt_weights_offset = 0.0;
     float new_edge_pt_weights[] = {6.0, 6.0, 1.0, 1.0, 1.0, 1.0};
+    float new_edge_pt_weights_offset = 0.0;
     float pt_3_pt_weights[] = {15.0, 6.0, 6.0, 6.0, 1.0, 1.0, 1.0};
+    float pt_3_pt_weights_offset = 0.0;
     float pt_4_pt_weights[] = {36.0, 6.0, 6.0, 6.0, 6.0, 1.0, 1.0, 1.0, 1.0};
+    float pt_4_pt_weights_offset = 0.0;
     float pt_5_pt_weights[] = {65.0, 6.0, 6.0, 6.0, 6.0, 6.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    float pt_5_pt_weights_offset = 0.0;
     
     int ordering_mode = 0;
 }
@@ -146,7 +151,7 @@ function void catmull_clark_quad(int primnum; catmull_clark_quad_parms weights)
         new_face_P += vector(point(0, "P", prim_pts_idx[i])) * weights.new_face_pt_weights[i];
     }
 
-    new_face_P /= sum(weights.new_face_pt_weights);
+    new_face_P /= sum(weights.new_face_pt_weights) + weights.new_face_pt_weights_offset;
 
     // add new point
     int new_face_pt = addpoint(0, new_face_P);
@@ -209,7 +214,7 @@ function void catmull_clark_quad(int primnum; catmull_clark_quad_parms weights)
                 new_edge_P += vector(point(0, "P", influence_pt_nums[i])) * weights.new_edge_pt_weights[i];
             }
 
-            new_edge_P /= sum(weights.new_edge_pt_weights);
+            new_edge_P /= sum(weights.new_edge_pt_weights) + weights.new_edge_pt_weights_offset;
 
             // add new point
             append(new_edge_pts, addpoint(0, new_edge_P));
@@ -223,7 +228,7 @@ function void catmull_clark_quad(int primnum; catmull_clark_quad_parms weights)
             vector pt_2_P = point(0, "P", pt_2);
 
             vector new_edge_P = pt_1_P * weights.new_edge_pt_weights[0] + pt_2_P * weights.new_edge_pt_weights[1];
-            new_edge_P /= weights.new_edge_pt_weights[0] + weights.new_edge_pt_weights[1];
+            new_edge_P /= weights.new_edge_pt_weights[0] + weights.new_edge_pt_weights[1] + weights.new_edge_pt_weights_offset;
 
             // add new point
             append(new_edge_pts, addpoint(0, new_edge_P));
@@ -295,11 +300,11 @@ function void catmull_clark_quad(int primnum; catmull_clark_quad_parms weights)
             }
 
             if (prim_pt_valence == 3)
-                new_orig_vertex_P /= sum(weights.pt_3_pt_weights);
+                new_orig_vertex_P /= sum(weights.pt_3_pt_weights) + weights.pt_3_pt_weights_offset;
             else if (prim_pt_valence == 4)
-                new_orig_vertex_P /= sum(weights.pt_4_pt_weights);
+                new_orig_vertex_P /= sum(weights.pt_4_pt_weights) + weights.pt_4_pt_weights_offset;
             else if (prim_pt_valence == 5)
-                new_orig_vertex_P /= sum(weights.pt_5_pt_weights);
+                new_orig_vertex_P /= sum(weights.pt_5_pt_weights) + weights.pt_5_pt_weights_offset;
             
             // translate
             if (prim_pt_valence >= 3)

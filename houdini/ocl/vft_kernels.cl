@@ -200,10 +200,10 @@ kernel void marchPerspCam(
     int i = 0;
 
     // quality settings
-    float step_size = 0.4f;
+    float step_size = 0.5f;
     float iso_limit_mult = 0.5f;
     float ray_dist = planeZ[0];
-    const int max_steps = 300;
+    const int max_steps = 1400;
     const float max_dist = 1000.0f;
 
     float iso_limit = cam_dist * 0.0001f * iso_limit_mult;  
