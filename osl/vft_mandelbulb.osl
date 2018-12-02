@@ -36,7 +36,7 @@ shader vft_mandelbulb(
         //bristorbrotIter(Z, P_in, 1.0, julia);
         //xenodreambuieIter(Z, P_in, 1.0, julia, power, 0.0, 0.0);
         //benesiIter(Z, P_in, 1.0, julia);
-        //idesIter(Z, P_in, 1.0, julia, point(1.0, 2.0, 3.0), float2(4.0, 5.0));
+        //idesIter(Z, P_in, 1.0, julia, point(1.0, 2.0, 1.0), float2(0.5, 0.5));
         iqBulbIter(Z, P_in, 1.0, julia, power, power);
 
         // orbit traps

@@ -1,0 +1,63 @@
+#include "include/vft_osl.h"
+#include "include/vft_fractals_osl.h"
+
+shader vft_mandelbulb(
+    float power = 8.0,
+    int julia_enable = 0 [[ string widget = "boolean" ]],
+    vector julia_coord = vector(0, 0, 0),
+    vector multiplier = vector(1, 2, 1),
+    vector sub_multiplier = vector(0.5, 0.5, -99999),
+    int max_iterations = 100,
+    float max_distance = 250.0,
+
+    output matrix out = 0
+)
+{
+    point P_w = P;
+    point P_o = transform("object", P_w);
+
+    point P_in = P_o;
+    point Z = P_in;
+    float4 julia = float4( julia_enable, julia_coord[0], julia_coord[1], julia_coord[2] );
+    int i = 0;
+    float z_dist = LENGTH(Z);
+
+    float orbit_coord_dist = LARGE_NUMBER;
+    float orbit_sphere_dist = LARGE_NUMBER;
+    point orbit_plane_origin = point(0.0);
+    vector orbit_plane_dist = vector(LARGE_NUMBER);
+
+    for (; i < max_iterations; i++)
+    {
+        z_dist = LENGTH(Z);
+        if (z_dist > max_distance) break;
+        
+        //mandelbulbIter(Z, P_in, 1.0, julia, power);
+        //mandelboxIter(Z, P_in, 0.1, julia, -1.5);
+        //mandelbulbPower2Iter(Z, P_in, 1.0, julia);
+        //bristorbrotIter(Z, P_in, 1.0, julia);
+        //xenodreambuieIter(Z, P_in, 1.0, julia, power, 0.0, 0.0);
+        //benesiIter(Z, P_in, 1.0, julia);
+        idesIter(Z, P_in, 1.0, julia, multiplier, float2(sub_multiplier[0], sub_multiplier[1]));
+        //iqBulbIter(Z, P_in, 1.0, julia, power, power);
+
+        // orbit traps
+        orbit_coord_dist = min(orbit_coord_dist, fabs( length2(Z - P_in) ));
+        orbit_sphere_dist = min( orbit_sphere_dist, fabs( length2(Z - point(0)) - 2.0) );
+        orbit_plane_dist[0] = min( orbit_plane_dist[0], distPointPlane(Z, vector(1.0, 0.0, 0.0), orbit_plane_origin) );
+        orbit_plane_dist[1] = min( orbit_plane_dist[1], distPointPlane(Z, vector(0.0, 1.0, 0.0), orbit_plane_origin) );
+        orbit_plane_dist[2] = min( orbit_plane_dist[2], distPointPlane(Z, vector(0.0, 0.0, 1.0), orbit_plane_origin) );
+    }
+
+    orbit_coord_dist = sqrt(orbit_coord_dist);
+    orbit_sphere_dist = sqrt(orbit_sphere_dist);
+
+    float mask = i == max_iterations ? 1 : 0;
+
+    out[0][0] = mask;
+    out[0][1] = orbit_coord_dist;
+    out[0][2] = orbit_sphere_dist;
+    out[0][3] = orbit_plane_dist[0];
+    out[1][0] = orbit_plane_dist[1];
+    out[1][1] = orbit_plane_dist[2];
+}
