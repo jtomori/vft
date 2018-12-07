@@ -158,4 +158,38 @@ float distPointPlane(vector pt, vector plane_n, vector plane_point)
     return LENGTH(pt - point_proj);
 }
 
+// returns rotation matrix specified by euler rotations in rot vector in degrees
+matrix euler_rotation(vector rot)
+{
+    vector rot_rad = radians(-rot);
+
+    float cosx = COS(rot_rad[0]);
+    float sinx = SIN(rot_rad[0]);
+    matrix x = matrix(1,            0,              0,              0,
+                      0,            cosx,           -sinx,          0,
+                      0,            sinx,          cosx,           0,
+                      0,            0,              0,              1 );
+
+    float cosy = COS(rot_rad[1]);
+    float siny = SIN(rot_rad[1]);
+    matrix y = matrix(cosy,         0,              siny,           0,
+                      0,            1,              0,              0,
+                      -siny,        0,              cosy,           0,
+                      0,            0,              0,              1 );
+
+    float cosz = COS(rot_rad[2]);
+    float sinz = SIN(rot_rad[2]);
+    matrix z = matrix(cosz,         -sinz,          0,              0,
+                      sinz,         cosz,           0,              0,
+                      0,            0,              1,              0,
+                      0,            0,              0,              1 );
+
+    matrix xform = 1;
+    xform *= x;
+    xform *= y;
+    xform *= z;
+
+    return xform;
+}
+
 #endif

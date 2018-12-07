@@ -2,7 +2,8 @@
 #include "include/vft_fractals_osl.h"
 
 shader vft_mandelbulb(
-    float power = 8.0,
+    vector translate = vector(0, 0, 0),
+    vector euluer_rotate = vector(0, 0, 0),
     int julia_enable = 0 [[ string widget = "boolean" ]],
     vector julia_coord = vector(0, 0, 0),
     int max_iterations = 100,
@@ -35,9 +36,11 @@ shader vft_mandelbulb(
         //mandelbulbPower2Iter(Z, P_in, 1.0, julia);
         //bristorbrotIter(Z, P_in, 1.0, julia);
         //xenodreambuieIter(Z, P_in, 1.0, julia, power, 0.0, 0.0);
-        //benesiIter(Z, P_in, 1.0, julia);
+        benesiIter(Z, P_in, 1.0, julia);
+        Z += translate;
+        Z = transform(euler_rotation(euluer_rotate), Z);
         //idesIter(Z, P_in, 1.0, julia, point(1.0, 2.0, 1.0), float2(0.5, 0.5));
-        iqBulbIter(Z, P_in, 1.0, julia, power, power+2.0);
+        //iqBulbIter(Z, P_in, 1.0, julia, power, power+2.0);
 
         // orbit traps
         orbit_coord_dist = min(orbit_coord_dist, fabs( length2(Z - P_in) ));
