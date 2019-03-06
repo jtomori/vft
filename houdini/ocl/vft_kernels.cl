@@ -117,12 +117,27 @@ void fractal_stack(float3* Z, float* de, const float3* P_in, int* log_lin, const
 float scene( float3 P, const int final, float* orbit_colors, float3* N, global const void* theXNoise ) {
     float dist_out;
     float orbit_closest = LARGE_NUMBER;
+    int iterations = 0;
 
     pre_transform_stack(&P, theXNoise);
 
-    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3, theXNoise);
+    float shape1 = hybrid(P, 25, 10.0f, 1.0f, final, &orbit_closest, orbit_colors, N, 3, theXNoise, &iterations);
 
     dist_out = shape1;
+
+    return dist_out;
+}
+
+float scene_fog( float3 P, const int final, float* orbit_colors, float3* N, global const void* theXNoise, const int max_iter, const float max_dist ) {
+    float dist_out;
+    float orbit_closest = LARGE_NUMBER;
+    int iterations = 0;
+
+    pre_transform_stack(&P, theXNoise);
+
+    float shape1 = hybrid(P, max_iter, max_dist, 1.0f, final, &orbit_closest, orbit_colors, N, 3, theXNoise, &iterations);
+
+    dist_out = iterations == max_iter ? 1.0f : 0.0f;
 
     return dist_out;
 }
@@ -425,4 +440,29 @@ kernel void computeSdfColors(
     vstore1(orbit_colors[6], idx, color_6);
     vstore1(orbit_colors[7], idx, color_7);
     vstore1(orbit_colors[8], idx, color_8);
+}
+
+kernel void computeFog( 
+    global const void *theXNoise, 
+    int density_stride_x, 
+    int density_stride_y, 
+    int density_stride_z, 
+    int density_stride_offset, 
+    float16 density_xformtoworld, 
+    global float* density,
+    float max_dist,
+    int max_iter
+    )
+{
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);   
+    const long idx = density_stride_offset + density_stride_x * gidx + density_stride_y * gidy + density_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+    float3 P_world = mtxPtMult(density_xformtoworld, P_vol);
+
+    float fog = 0.0f;
+    fog = scene_fog(P_world, 0, NULL, NULL, theXNoise, max_iter, max_dist);
+    vstore1(fog, idx, density);
 }

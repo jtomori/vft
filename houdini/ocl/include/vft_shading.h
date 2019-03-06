@@ -74,7 +74,7 @@ static float primitive(float3 P, const float size, const int final, float* orbit
 }
 
 // hybrid shape function - contains fractal loop, fractals combination is defined in fractals_stack(), in case of DELTA DE mode also outputs N
-static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack, global const void* theXNoise)
+static float hybrid(float3 P_in, const int max_iterations, const float max_distance, const float size, const int final, float* orbit_closest, float* orbit_colors, float3* N, const int stack, global const void* theXNoise, int* iterations)
 {
     P_in = DIV(P_in, size);
     float3 Z = P_in;
@@ -97,7 +97,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
     // fractal loop
     int i = 0;
     #pragma unroll
-    for (i = 0; i < max_iterations; i++)
+    for (; i < max_iterations; i++)
     {
         distance = LENGTH(Z);
         if (distance > max_distance) break;
@@ -119,6 +119,7 @@ static float hybrid(float3 P_in, const int max_iterations, const float max_dista
         }
     }
     distance = LENGTH(Z);
+    *iterations = i;
 
     // delta DE method
     // based on Makin/Buddhi 4-point Delta-DE formula

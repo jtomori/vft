@@ -7,7 +7,7 @@ printf "Usage:./run.sh scene_file.hip (-cpu)\n  -cpu: optional argument to run O
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../.. && pwd )"
 
 # include this project in HOUDINI_PATH
-export HOUDINI_PATH="${ROOT_DIR}/houdini:&:${HOUDINI_PATH}"
+export HOUDINI_PATH="${ROOT_DIR}/houdini:${HOUDINI_PATH}"
 
 # setup OSL
 export ARNOLD_PLUGIN_PATH="${ARNOLD_PLUGIN_PATH}:${ROOT_DIR}/osl:${ROOT_DIR}/houdini/ocl/include"
