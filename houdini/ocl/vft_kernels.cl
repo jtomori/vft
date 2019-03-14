@@ -407,15 +407,15 @@ kernel void computeSdfColors(
     int color_0_stride_z, 
     int color_0_stride_offset, 
     float16 color_0_xformtoworld, 
-    global float * color_0,
-    global float * color_1,
-    global float * color_2,
-    global float * color_3,
-    global float * color_4,
-    global float * color_5,
-    global float * color_6,
-    global float * color_7,
-    global float * color_8
+    global float* color_0,
+    global float* color_1,
+    global float* color_2,
+    global float* color_3,
+    global float* color_4,
+    global float* color_5,
+    global float* color_6,
+    global float* color_7,
+    global float* color_8
     )
 {
     const long gidx = get_global_id(0);
@@ -465,4 +465,48 @@ kernel void computeFog(
     float fog = 0.0f;
     fog = scene_fog(P_world, 0, NULL, NULL, theXNoise, max_iter, max_dist);
     vstore1(fog, idx, density);
+}
+
+kernel void computeFogColors( 
+    global const void* theXNoise,
+    int color_0_stride_x, 
+    int color_0_stride_y, 
+    int color_0_stride_z, 
+    int color_0_stride_offset, 
+    float16 color_0_xformtoworld, 
+    global float* color_0,
+    global float* color_1,
+    global float* color_2,
+    global float* color_3,
+    global float* color_4,
+    global float* color_5,
+    global float* color_6,
+    global float* color_7,
+    global float* color_8,
+    float max_dist,
+    int max_iter
+    )
+{
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);
+    const long idx = color_0_stride_offset + color_0_stride_x * gidx + color_0_stride_y * gidy + color_0_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+    float3 P_world = mtxPtMult(color_0_xformtoworld, P_vol);
+
+    float orbit_colors[ORBITS_ARRAY_LENGTH];    
+    float fog = 0.0f;
+
+    fog = scene_fog(P_world, 1, orbit_colors, NULL, theXNoise, max_iter, max_dist);
+    
+    vstore1(orbit_colors[0], idx, color_0);
+    vstore1(orbit_colors[1], idx, color_1);
+    vstore1(orbit_colors[2], idx, color_2);
+    vstore1(orbit_colors[3], idx, color_3);
+    vstore1(orbit_colors[4], idx, color_4);
+    vstore1(orbit_colors[5], idx, color_5);
+    vstore1(orbit_colors[6], idx, color_6);
+    vstore1(orbit_colors[7], idx, color_7);
+    vstore1(orbit_colors[8], idx, color_8);
 }
