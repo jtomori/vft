@@ -38,7 +38,7 @@ function float computeFog(computeFogParms parms)
         // check for exit
         r = length(z);
         orbit_volume = volumesample(1, 0, (z + parms.orbit_volume_offset) * parms.orbit_volume_scale);
-        //orbit_volume = 0;
+        orbit_volume = 0;
 
         if (r > parms.max_dist || orbit_volume < 0)
             break;

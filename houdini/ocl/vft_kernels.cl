@@ -510,3 +510,25 @@ kernel void computeFogColors(
     vstore1(orbit_colors[7], idx, color_7);
     vstore1(orbit_colors[8], idx, color_8);
 }
+
+kernel void computePoints( 
+    global const void* theXNoise, 
+    int P_length, 
+    global float* P,
+    int density_length, 
+    global float* density,
+    float max_dist,
+    int max_iter
+)
+{
+    int idx = get_global_id(0);
+    if (idx >= density_length)
+        return;
+
+    float3 P_world = vload3(idx, P);
+
+    float fog = 0.0f;
+    fog = scene_fog(P_world, 0, NULL, NULL, theXNoise, max_iter, max_dist);
+
+    vstore1(fog, idx, density);
+}
