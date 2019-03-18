@@ -10,3 +10,4 @@ img
 node_modules
 npm-debug.log
 *.oso
+/houdini/scenes/caches

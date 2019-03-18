@@ -511,6 +511,151 @@ kernel void computeFogColors(
     vstore1(orbit_colors[8], idx, color_8);
 }
 
+kernel void computeFogAndColors( 
+    global const void* theXNoise,
+    int density_stride_x,
+    int density_stride_y,
+    int density_stride_z,
+    int density_stride_offset,
+    float16 density_xformtoworld,
+    global float* density,
+    float max_dist,
+    int max_iter,
+    global float* color_0,
+    global float* color_1,
+    global float* color_2,
+    float3 orbits_select 
+    )
+{
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);   
+    const long idx = density_stride_offset + density_stride_x * gidx + density_stride_y * gidy + density_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+    float3 P_world = mtxPtMult(density_xformtoworld, P_vol);
+
+    float orbit_colors[ORBITS_ARRAY_LENGTH];
+    float fog = 0.0f;
+    fog = scene_fog(P_world, 1, orbit_colors, NULL, theXNoise, max_iter, max_dist);
+
+    vstore1(fog, idx, density);
+    vstore1(orbit_colors[ (int)orbits_select[0] ] * fog, idx, color_0);
+    vstore1(orbit_colors[ (int)orbits_select[1] ] * fog, idx, color_1);
+    vstore1(orbit_colors[ (int)orbits_select[2] ] * fog, idx, color_2);
+}
+
+kernel void computeFogAndColorsFrustum( 
+    global const void* theXNoise,
+    int density_stride_x,
+    int density_stride_y,
+    int density_stride_z,
+    int density_stride_offset,
+    global float* density,
+    float max_dist,
+    int max_iter,
+    global float* color_0,
+    global float* color_1,
+    global float* color_2,
+    float3 orbits_select,
+    int cam_xform_length,
+    global float* camXform,
+    int fov_length,
+    global float* fov,
+    int vol_res_length,
+    global float* vol_res,
+    int planes_length,
+    global float* planes
+    )
+{
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);   
+    const long idx = density_stride_offset + density_stride_x * gidx + density_stride_y * gidy + density_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+
+
+    // frustum world position setup
+    float3 P_norm = P_vol / (float3)(vol_res[0], vol_res[1], vol_res[2]);
+    P_norm.xy -= (float2)(0.5f);
+    P_norm.z = -mix(planes[0], planes[1], P_norm.z);
+
+    float width = 2.0f * TAN(fov[0] / 2.0f) * P_norm.z;
+    float height = width / (vol_res[0] / vol_res[1]);
+    float px = width / vol_res[0];
+
+    // compute scale of near img plane
+    const float16 scale_xform = mtxScale( (float3)(width - px, height - px, 1.0f) );
+
+    // read in cam world matrix
+    const float16 cam_xform = (float16)(camXform[0],camXform[1],camXform[2],camXform[3],
+                                        camXform[4],camXform[5],camXform[6],camXform[7],
+                                        camXform[8],camXform[9],camXform[10],camXform[11],
+                                        camXform[12],camXform[13],camXform[14],camXform[15]);
+
+    float16 frustum_xform = mtxIdent();
+    frustum_xform = mtxMult(frustum_xform, scale_xform);
+    frustum_xform = mtxMult(frustum_xform, cam_xform);
+
+    float3 P_world = mtxPtMult(frustum_xform, P_norm);
+
+
+    float orbit_colors[ORBITS_ARRAY_LENGTH];
+    float fog = 0.0f;
+    fog = scene_fog(P_world, 1, orbit_colors, NULL, theXNoise, max_iter, max_dist);
+    //if ( LENGTH(P_world) < 2.0f ) fog = 1.0f;
+
+    vstore1(fog, idx, density);
+    vstore1(orbit_colors[ (int)orbits_select[0] ] * fog, idx, color_0);
+    vstore1(orbit_colors[ (int)orbits_select[1] ] * fog, idx, color_1);
+    vstore1(orbit_colors[ (int)orbits_select[2] ] * fog, idx, color_2);
+}
+
+kernel void testFrustumVolume( 
+    global const void* theXNoise,
+    int density_stride_x,
+    int density_stride_y,
+    int density_stride_z,
+    int density_stride_offset,
+    float16 density_xformtoworld,
+    global float* density,
+    float max_dist,
+    int max_iter,
+    float3 orbits_select 
+    )
+{
+    const long gidx = get_global_id(0);
+    const long gidy = get_global_id(1);
+    const long gidz = get_global_id(2);
+    const long idx = density_stride_offset + density_stride_x * gidx + density_stride_y * gidy + density_stride_z * gidz;
+
+    float3 P_vol = (float3)(gidx, gidy, gidz);
+
+    float16 taper_mtx = density_xformtoworld;
+    //float16 density_xformtoworld_inverted = mtxInvert(density_xformtoworld);
+
+    if (gidx < 50) taper_mtx[8] *= -1;
+    //if (gidy > 50) taper_mtx[9] *= -1;
+
+    //density_xformtoworld_inverted = mtxInvert(density_xformtoworld_inverted);
+
+    //float3 P_taper = mtxPtMult(density_xformtoworld_inverted, P_vol);
+    //P_taper = mtxPtMult(density_xformtoworld, P_taper);
+    //P_taper = mtxPtMult(density_xformtoworld, P_taper);
+
+    float3 P_world = mtxPtMult(taper_mtx, P_vol);
+    //P_world = P_vol;
+
+    float fog = 0.0f;
+    //fog = scene_fog(P_world, 0, NULL, NULL, theXNoise, max_iter, max_dist);
+    if ( LENGTH(P_world) < 30.6f ) fog = 1.0f;
+
+    printMtxVol(taper_mtx);
+
+    vstore1(fog, idx, density);
+}
+
 kernel void computePoints( 
     global const void* theXNoise, 
     int P_length, 

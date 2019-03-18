@@ -15,6 +15,7 @@
 
 #define SIN(x) native_sin(x)
 #define COS(x) native_cos(x)
+#define TAN(x) native_tan(x)
 #define POWR(x, y) native_powr((x), (y))
 #define SQRT(x) native_sqrt(x)
 #define LOG(x) native_log(x)
