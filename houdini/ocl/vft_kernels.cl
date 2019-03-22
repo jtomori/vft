@@ -540,9 +540,9 @@ kernel void computeFogAndColors(
     fog = scene_fog(P_world, 1, orbit_colors, NULL, theXNoise, max_iter, max_dist);
 
     vstore1(fog, idx, density);
-    vstore1(orbit_colors[ (int)orbits_select[0] ] * fog, idx, color_0);
-    vstore1(orbit_colors[ (int)orbits_select[1] ] * fog, idx, color_1);
-    vstore1(orbit_colors[ (int)orbits_select[2] ] * fog, idx, color_2);
+    vstore1(orbit_colors[ (int)orbits_select.x ] * fog, idx, color_0);
+    vstore1(orbit_colors[ (int)orbits_select.y ] * fog, idx, color_1);
+    vstore1(orbit_colors[ (int)orbits_select.z ] * fog, idx, color_2);
 }
 
 kernel void computeFogAndColorsFrustum( 
@@ -607,9 +607,9 @@ kernel void computeFogAndColorsFrustum(
     //if ( LENGTH(P_world) < 2.0f ) fog = 1.0f;
 
     vstore1(fog, idx, density);
-    vstore1(orbit_colors[ (int)orbits_select[0] ] * fog, idx, color_0);
-    vstore1(orbit_colors[ (int)orbits_select[1] ] * fog, idx, color_1);
-    vstore1(orbit_colors[ (int)orbits_select[2] ] * fog, idx, color_2);
+    vstore1(orbit_colors[ (int)orbits_select.x ] * fog, idx, color_0);
+    vstore1(orbit_colors[ (int)orbits_select.y ] * fog, idx, color_1);
+    vstore1(orbit_colors[ (int)orbits_select.z ] * fog, idx, color_2);
 }
 
 kernel void testFrustumVolume( 
@@ -635,7 +635,7 @@ kernel void testFrustumVolume(
     float16 taper_mtx = density_xformtoworld;
     //float16 density_xformtoworld_inverted = mtxInvert(density_xformtoworld);
 
-    if (gidx < 50) taper_mtx[8] *= -1;
+    if (gidx < 50) taper_mtx.s8 *= -1;
     //if (gidy > 50) taper_mtx[9] *= -1;
 
     //density_xformtoworld_inverted = mtxInvert(density_xformtoworld_inverted);
@@ -676,4 +676,18 @@ kernel void computePoints(
     fog = scene_fog(P_world, 0, NULL, NULL, theXNoise, max_iter, max_dist);
 
     vstore1(fog, idx, density);
+}
+
+kernel void lorenzAttractor( 
+    int P_length, 
+    global float* P,
+    int k_length,
+    global int* k_index,
+    global float* k
+)
+{
+    int idx = get_global_id(0);
+    if (idx >= P_length)
+        return;
+
 }
