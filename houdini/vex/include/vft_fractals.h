@@ -11,14 +11,14 @@ struct computeFogParms
     vector orbit_volume_offset = {0.0, 0.0, 0.0};
 }
 
-function float computeFog(computeFogParms parms)
+function float computeFog(computeFogParms parms; vector colors)
 {
     vector z = parms.pos;
     int i = 0;
 
     float dr = 1.0;
     float r = 0.0;
-    float orbit_volume = 0.0;
+    float orbit_volume = 10000000000000000000;
         
     for (; i < parms.max_iter; i++) {
         // convert to polar coordinates
@@ -37,13 +37,13 @@ function float computeFog(computeFogParms parms)
 
         // check for exit
         r = length(z);
-        orbit_volume = volumesample(1, 0, (z + parms.orbit_volume_offset) * parms.orbit_volume_scale);
-        orbit_volume = 0;
+        orbit_volume = min(orbit_volume, volumesample(1, 0, (z + parms.orbit_volume_offset) * parms.orbit_volume_scale));
 
-        if (r > parms.max_dist || orbit_volume < 0)
+        if (r > parms.max_dist)
             break;
     }
 
+    colors.x = orbit_volume;
     return i == parms.max_iter ? 1.0 : 0.0;
 }
 
