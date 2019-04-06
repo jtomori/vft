@@ -4,7 +4,6 @@ backup
 bak
 presets
 geo
-img
 *.autosave
 *.nk~
 node_modules

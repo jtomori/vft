@@ -2,7 +2,7 @@
 version 11.1 v4
 define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
 <layout version="1.0">
-    <window x="0" y="34" w="1920" h="1138" maximized="1" screen="0">
+    <window x="1920" y="0" w="1920" h="1200" maximized="1" fullscreen="1" screen="1">
         <splitter orientation="1">
             <split size="934"/>
             <splitter orientation="1">
@@ -13,12 +13,12 @@ define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
             </splitter>
             <split size="982"/>
             <splitter orientation="2">
-                <split size="795"/>
+                <split size="840"/>
                 <dock id="" activePageId="DAG.1" focus="true">
                     <page id="DAG.1"/>
                     <page id="uk.co.thefoundry.scripteditor.1"/>
                 </dock>
-                <split size="293"/>
+                <split size="310"/>
                 <dock id="" activePageId="uk.co.thefoundry.backgroundrenderview.1">
                     <page id="Curve Editor.1"/>
                     <page id="DopeSheet.1"/>
@@ -228,7 +228,7 @@ Group {
   xpos 208
   ypos -190
  }
-set N6805d60 [stack 0]
+set N73fb270 [stack 0]
  Dot {
   name Dot7
   xpos -62
@@ -239,31 +239,31 @@ set N6805d60 [stack 0]
   xpos -125
   ypos 255
  }
-set N680dd00 [stack 0]
+set N7403210 [stack 0]
  Dot {
   name Dot13
   xpos -47
   ypos 255
  }
-set N68125b0 [stack 0]
+set N7407ac0 [stack 0]
  Dot {
   name Dot12
   xpos 68
   ypos 255
  }
-push $N6805d60
+push $N73fb270
  Dot {
   name Dot8
   xpos 242
   ypos -93
  }
-set N681b720 [stack 0]
+set N7410c30 [stack 0]
  Dot {
   name Dot2
   xpos 376
   ypos -92
  }
-push $N681b720
+push $N7410c30
  Saturation {
   saturation 0
   name Saturation1
@@ -271,7 +271,7 @@ push $N681b720
   ypos -75
   disable {{parent.SampleChan!=0}}
  }
-set N6824f40 [stack 0]
+set N741a450 [stack 0]
  BlinkScript {
   recompileCount 184
   ProgramGroup 1
@@ -292,7 +292,7 @@ set N6824f40 [stack 0]
   xpos 114
   ypos -4
  }
-push $N6824f40
+push $N741a450
  BlinkScript {
   recompileCount 131
   ProgramGroup 1
@@ -324,7 +324,7 @@ push $N6824f40
   xpos 208
   ypos 139
  }
-set N6859c20 [stack 0]
+set N744f220 [stack 0]
  MergeExpression {
   inputs 2
   expr0 A.r(B.b,B.g)
@@ -339,13 +339,13 @@ set N6859c20 [stack 0]
   xpos 376
   ypos 198
  }
-push $N681b720
+push $N7410c30
  Dot {
   name Dot1
   xpos 101
   ypos -92
  }
-push $N6859c20
+push $N744f220
  MergeExpression {
   inputs 2
   expr0 A.r(B.g,B.b)
@@ -361,7 +361,7 @@ push $N6859c20
   xpos 98
   ypos 198
  }
-push $N6859c20
+push $N744f220
  Switch {
   inputs 3
   which {{!parent.OutputMode*(1+parent.SortingDir)}}
@@ -374,13 +374,13 @@ push $N6859c20
   xpos 242
   ypos 217
  }
-set N68a8340 [stack 0]
+set N749e6a0 [stack 0]
  Dot {
   name Dot14
   xpos 123
   ypos 217
  }
-set N68acc80 [stack 0]
+set N74a2fe0 [stack 0]
  MergeExpression {
   inputs 2
   expr3 parent.SortingDir==0?A.a(B.g,B.b):A.a(B.b,B.g)
@@ -388,14 +388,14 @@ set N68acc80 [stack 0]
   xpos 89
   ypos 278
  }
-set N68b1500 [stack 0]
+set N74a7860 [stack 0]
  Dot {
   name Dot11
   xpos 123
   ypos 341
  }
-push $N68125b0
-push $N68acc80
+push $N7407ac0
+push $N74a2fe0
  Dot {
   name Dot6
   xpos 3
@@ -415,7 +415,7 @@ push $N68acc80
   xpos -31
   ypos 305
  }
-push $N680dd00
+push $N7403210
  Dot {
   name Dot9
   xpos -125
@@ -435,7 +435,7 @@ push $N680dd00
   ypos 366
   disable {{!parent.OutputAlpha}}
  }
-push $N68a8340
+push $N749e6a0
  Switch {
   inputs 2
   which {{max(0,parent.OutputMode-1)}}
@@ -448,7 +448,7 @@ push $N68a8340
   xpos 208
   ypos 451
  }
-push $N68b1500
+push $N74a7860
  Viewer {
   frame_range 1-100
   name Viewer1
@@ -499,7 +499,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N6965c30 [stack 0]
+set N755bbe0 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/dct_3_1.blink
   ProgramGroup 1
@@ -518,7 +518,7 @@ set N6965c30 [stack 0]
   xpos -835
   ypos 580
  }
-set N6978b10 [stack 0]
+set N756eaa0 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -535,7 +535,7 @@ set N6978b10 [stack 0]
   xpos -748
   ypos 625
  }
-push $N6965c30
+push $N755bbe0
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -603,7 +603,7 @@ push $N6965c30
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N6978b10
+push $N756eaa0
  Shuffle {
   red black
   green black
@@ -734,7 +734,7 @@ Group {
   xpos -835
   ypos 486
  }
-set N6a47d50 [stack 0]
+set N763dcd0 [stack 0]
  BlinkScript {
   kernelSourceFile /home/VGMTL/mborgo/Desktop/dct/idct_0_6.blink
   ProgramGroup 1
@@ -752,7 +752,7 @@ set N6a47d50 [stack 0]
   xpos -835
   ypos 580
  }
-set N6abf220 [stack 0]
+set N76b51b0 [stack 0]
  Transform {
   translate {{height} {width}}
   rotate -90
@@ -769,7 +769,7 @@ set N6abf220 [stack 0]
   xpos -748
   ypos 625
  }
-push $N6a47d50
+push $N763dcd0
  Crop {
   box {0 0 {input0.height} {input0.width}}
   reformat true
@@ -838,7 +838,7 @@ push $N6a47d50
   ypos 814
   disable {{"height == width ? 1 :0"}}
  }
-push $N6abf220
+push $N76b51b0
  Shuffle {
   red black
   green black
@@ -972,7 +972,7 @@ BlinkScript {
  xpos 376
  ypos 527
 }
-set N6bd81a0 [stack 0]
+set N77cdd00 [stack 0]
 Shuffle {
  red black
  green black
@@ -1122,7 +1122,7 @@ Reformat {
  xpos 1152
  ypos 809
 }
-push $N6bd81a0
+push $N77cdd00
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1211,8 +1211,8 @@ Constant {
  xpos 531
  ypos 664
 }
-set N6da59c0 [stack 0]
-push $N6bd81a0
+set N799b180 [stack 0]
+push $N77cdd00
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1240,7 +1240,7 @@ BlinkScript {
  xpos 474
  ypos 909
 }
-set N6daf590 [stack 0]
+set N79a4d50 [stack 0]
 Shuffle {
  red alpha
  green alpha
@@ -1250,7 +1250,7 @@ Shuffle {
  xpos 787
  ypos 985
 }
-push $N6daf590
+push $N79a4d50
 Shuffle {
  red blue
  green blue
@@ -1259,7 +1259,7 @@ Shuffle {
  xpos 703
  ypos 985
 }
-push $N6daf590
+push $N79a4d50
 Shuffle {
  red green
  blue green
@@ -1268,7 +1268,7 @@ Shuffle {
  xpos 614
  ypos 988
 }
-push $N6daf590
+push $N79a4d50
 Shuffle {
  green red
  blue red
@@ -1277,8 +1277,8 @@ Shuffle {
  xpos 525
  ypos 988
 }
-push $N6da59c0
-push $N6bd81a0
+push $N799b180
+push $N77cdd00
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1304,7 +1304,7 @@ BlinkScript {
  xpos 364
  ypos 846
 }
-set N6e1a290 [stack 0]
+set N7a0fa60 [stack 0]
 Shuffle {
  green white
  name Shuffle1
@@ -1379,7 +1379,7 @@ Grade {
  xpos 241
  ypos 1275
 }
-push $N6e1a290
+push $N7a0fa60
 Colorspace {
  colorspace_out HSV
  name Colorspace1
@@ -1427,7 +1427,7 @@ Constant {
  xpos 2705
  ypos 464
 }
-set N6f25ce0 [stack 0]
+set N7b1b4b0 [stack 0]
 BlinkScript {
  inputs 0
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/complex_plane.blink"
@@ -1445,7 +1445,7 @@ BlinkScript {
  xpos 2450
  ypos 475
 }
-set N6f34f20 [stack 0]
+set N7b2a6f0 [stack 0]
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1470,7 +1470,7 @@ BlinkScript {
  xpos 2705
  ypos 669
 }
-set N6f43b60 [stack 0]
+set N7b39340 [stack 0]
 Shuffle {
  red alpha
  green alpha
@@ -1480,7 +1480,7 @@ Shuffle {
  xpos 2860
  ypos 803
 }
-push $N6f43b60
+push $N7b39340
 Shuffle {
  red blue
  green blue
@@ -1489,7 +1489,7 @@ Shuffle {
  xpos 2776
  ypos 803
 }
-push $N6f43b60
+push $N7b39340
 Shuffle {
  red green
  blue green
@@ -1498,7 +1498,7 @@ Shuffle {
  xpos 2687
  ypos 806
 }
-push $N6f43b60
+push $N7b39340
 Shuffle {
  green red
  blue red
@@ -1507,8 +1507,8 @@ Shuffle {
  xpos 2598
  ypos 806
 }
-push $N6f25ce0
-push $N6f34f20
+push $N7b1b4b0
+push $N7b2a6f0
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1534,7 +1534,7 @@ BlinkScript {
  xpos 2450
  ypos 667
 }
-set N6fb46c0 [stack 0]
+set N7ba9e90 [stack 0]
 Shuffle {
  green white
  name Shuffle12
@@ -1608,7 +1608,7 @@ Grade {
  xpos 2314
  ypos 1095
 }
-push $N6fb46c0
+push $N7ba9e90
 Colorspace {
  colorspace_out HSV
  name Colorspace3
@@ -1681,7 +1681,7 @@ BlinkScript {
  xpos 3528
  ypos 457
 }
-set N70bb040 [stack 0]
+set N7cb0800 [stack 0]
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1709,7 +1709,7 @@ BlinkScript {
  xpos 3783
  ypos 651
 }
-set N70ec9f0 [stack 0]
+set N7ce21b0 [stack 0]
 Shuffle {
  red alpha
  green alpha
@@ -1719,7 +1719,7 @@ Shuffle {
  xpos 3938
  ypos 785
 }
-push $N70ec9f0
+push $N7ce21b0
 Shuffle {
  red blue
  green blue
@@ -1728,7 +1728,7 @@ Shuffle {
  xpos 3854
  ypos 785
 }
-push $N70ec9f0
+push $N7ce21b0
 Shuffle {
  red green
  blue green
@@ -1737,7 +1737,7 @@ Shuffle {
  xpos 3765
  ypos 788
 }
-push $N70ec9f0
+push $N7ce21b0
 Shuffle {
  green red
  blue red
@@ -1830,7 +1830,7 @@ Reformat {
  xpos 4026
  ypos 593
 }
-push $N70bb040
+push $N7cb0800
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -1857,7 +1857,7 @@ BlinkScript {
  xpos 3528
  ypos 649
 }
-set N71978f0 [stack 0]
+set N7d8d0b0 [stack 0]
 Shuffle {
  green white
  name Shuffle17
@@ -1931,7 +1931,7 @@ Grade {
  ypos 1076
  disable true
 }
-push $N71978f0
+push $N7d8d0b0
 Colorspace {
  colorspace_out HSV
  name Colorspace5
@@ -2074,15 +2074,15 @@ BlinkScript {
  rebuild ""
  complexPlane_resolution {7680 4320}
  complexPlane_initial_zoom 1400
- complexPlane_exponential_zoom {{"(frame-1) * 0.025"}}
- complexPlane_offset {0.246 -0.001}
+ complexPlane_exponential_zoom {{"(frame-1) * 0.029"}}
+ complexPlane_offset {0.481524 -0.284189}
  format "7680 4320 0 0 7680 4320 1 8k"
  rebuild_finalise ""
  name BlinkScript18
  xpos 4545
  ypos 467
 }
-set N73ce430 [stack 0]
+set N7fc3ec0 [stack 0]
 BlinkScript {
  inputs 2
  kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
@@ -2110,7 +2110,7 @@ BlinkScript {
  xpos 4800
  ypos 660
 }
-set N73dd240 [stack 0]
+set N7fd2cc0 [stack 0]
 Shuffle {
  red alpha
  green alpha
@@ -2120,7 +2120,7 @@ Shuffle {
  xpos 4955
  ypos 794
 }
-push $N73dd240
+push $N7fd2cc0
 Shuffle {
  red blue
  green blue
@@ -2129,7 +2129,7 @@ Shuffle {
  xpos 4871
  ypos 794
 }
-push $N73dd240
+push $N7fd2cc0
 Shuffle {
  red green
  blue green
@@ -2138,7 +2138,7 @@ Shuffle {
  xpos 4782
  ypos 797
 }
-push $N73dd240
+push $N7fd2cc0
 Shuffle {
  green red
  blue red
@@ -2146,6 +2146,180 @@ Shuffle {
  name Shuffle21
  xpos 4693
  ypos 797
+}
+Read {
+ inputs 0
+ file /home/juraj/Desktop/renders/sig.jpg
+ format "400 400 0 0 400 400 1 "
+ origset true
+ name Read3
+ xpos 5428
+ ypos 324
+}
+Keyer {
+ operation "luminance key"
+ range {0.2114151158 1 1 1}
+ name Keyer1
+ xpos 5428
+ ypos 421
+}
+Invert {
+ channels alpha
+ name Invert2
+ xpos 5428
+ ypos 468
+}
+Dilate {
+ channels alpha
+ size -0.5
+ name Dilate1
+ xpos 5424
+ ypos 532
+}
+Premult {
+ name Premult2
+ xpos 5428
+ ypos 605
+}
+Crop {
+ box {63 60 337 339}
+ reformat true
+ crop false
+ name Crop3
+ xpos 5428
+ ypos 635
+}
+set N8088420 [stack 0]
+push $N7fc3ec0
+BlinkScript {
+ inputs 2
+ kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
+ recompileCount 354
+ KernelDescription "2 \"mandelbrotKernel\" iterate pixelWise ff93d63b97a8178deb337586107dc5a3b3765c652b798fe3e1bb10d725756ed5 3 \"c_src\" Read Point \"c_trap\" Read Random \"dst\" Write Point 17 \"maximum_iterations\" Int 1 6AMAAA== \"mandelbrot_power\" Int 1 AgAAAA== \"julia_mode\" Int 1 AAAAAA== \"julia_coordinate\" Float 2 AAAAAAAAAAA= \"color_mode\" Int 1 AQAAAA== \"orbit_point_coordinate\" Float 2 AAAAAAAAAAA= \"orbit_line_point_1_coordinate\" Float 2 AAAAAAAAAAA= \"orbit_line_point_2_coordinate\" Float 2 AACAPwAAgD8= \"orbit_circle_coordinate\" Float 2 AACAPwAAgD8= \"orbit_circle_radius\" Float 1 AAAAQA== \"orbit_bitmap_offset\" Float 2 AAAAAAAAAAA= \"orbit_bitmap_zoom\" Float 1 AADIQg== \"initial_zoom\" Float 1 AACAPw== \"exponential_zoom\" Float 1 AAAAAA== \"exponential_zoom_anim\" Float 1 AAAAAA== \"offset\" Float 2 AAAAAAAAAAA= \"resolution\" Int 2 gAcAADgEAAA= 17 \"max_iter\" 1 1 \"mandelbrot_power\" 1 1 \"julia_mode\" 1 1 \"julia_coord_parm\" 2 1 \"color_mode\" 1 1 \"orbit_pt_parm\" 2 1 \"orbit_line_pt_1_parm\" 2 1 \"orbit_line_pt_2_parm\" 2 1 \"orbit_circle_center_parm\" 2 1 \"orbit_circle_radius\" 1 1 \"orbit_bitmap_offset\" 2 1 \"orbit_bitmap_zoom\" 1 1 \"zoom\" 1 1 \"exp_zoom\" 1 1 \"exp_zoom_anim\" 1 1 \"offset\" 2 1 \"img_res\" 2 1 1 \"c_trapconstEdgeColor\" Float 4 1 AAAAAAAAAAAAAAAAAAAAAA=="
+ kernelSource "#include \"include/vft_blink.h\"\n\n/*\nMandelbort set visualizer, it takes complex image plane as an input (e.g. generated by complex_plane.blink)\n\ncomplex numbers are stored in vec2(X, Y) type, where X is real and Y is imaginary part\n*/\n\nkernel mandelbrotKernel : ImageComputationKernel<ePixelWise>\n\{\n    Image<eRead, eAccessPoint, eEdgeNone> c_src;\n    Image<eRead, eAccessRandom, eEdgeConstant> c_trap;\n\n    Image<eWrite> dst;\n\n    param:\n        int max_iter;\n        int mandelbrot_power;\n\n        int julia_mode;\n        float2 julia_coord_parm;\n\n        int color_mode;\n\n        float2 orbit_pt_parm;\n        float2 orbit_line_pt_1_parm;\n        float2 orbit_line_pt_2_parm;\n        float2 orbit_circle_center_parm;\n        float orbit_circle_radius;\n        float2 orbit_bitmap_offset;\n        float orbit_bitmap_zoom;\n\n        float zoom;\n        float exp_zoom;\n        float exp_zoom_anim;\n        float2 offset;\n        int2 img_res;\n\n    local:\n\n    void define() \{\n        defineParam(max_iter, \"maximum_iterations\", 1000);\n        defineParam(mandelbrot_power, \"mandelbrot_power\", 2);\n\n        defineParam(julia_mode, \"julia_mode\", 0);\n        defineParam(julia_coord_parm, \"julia_coordinate\", float2(0.0f, 0.0f));\n\n        defineParam(color_mode, \"color_mode\", 1);\n\n        defineParam(orbit_pt_parm, \"orbit_point_coordinate\", float2(0.0f, 0.0f));\n        defineParam(orbit_line_pt_1_parm, \"orbit_line_point_1_coordinate\", float2(0.0f, 0.0f));\n        defineParam(orbit_line_pt_2_parm, \"orbit_line_point_2_coordinate\", float2(1.0f, 1.0f));\n        defineParam(orbit_circle_center_parm, \"orbit_circle_coordinate\", float2(1.0f, 1.0f));\n        defineParam(orbit_circle_radius, \"orbit_circle_radius\", 2.0f);\n        defineParam(orbit_bitmap_offset, \"orbit_bitmap_offset\", float2(0.0f, 0.0f));\n        defineParam(orbit_bitmap_zoom, \"orbit_bitmap_zoom\", 100.0f);\n\n        defineParam(zoom, \"initial_zoom\", 1.0f);\n        defineParam(exp_zoom, \"exponential_zoom\", 0.0f);\n        defineParam(exp_zoom_anim, \"exponential_zoom_anim\", 0.0f);\n        defineParam(offset, \"offset\", float2(0.0f, 0.0f));\n        defineParam(img_res, \"resolution\", int2(1920, 1080));\n    \}\n\n    void init() \{\n    \}\n\n    void process(int2 pos)\n    \{\n        //float2 c_my = float2(pos.x, pos.y) - float2(img_res.x, img_res.y)/2;\n        //c_my = zoomComplexPlane(c_my, zoom, exp_zoom_anim, offset);\n\n        complex c = complex(c_src(0), c_src(1));\n        //c = c_my;\n        complex z = c;\n        complex z0 = z;\n        complex z_next;\n        int i = 0;\n\n        float col_smooth = exp( -dot(z,z) );\n\n        float orbit_pt_dist = LARGE_NUMBER;\n        float orbit_coord_dist = LARGE_NUMBER;\n        float orbit_line_dist = LARGE_NUMBER;\n        float orbit_circle_dist = LARGE_NUMBER;\n\n        float2 orbit_pt = zoomComplexPlane(orbit_pt_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float4 orbit_bitmap_color = float4(0.0f);\n        float2 orbit_sample_pos = float2(0.0f);\n\n        float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n\n        if (julia_mode)\n            c = julia_coord;\n\n        for (; i < max_iter; i++)\n        \{\n            // complex iterative function\n            z_next = complex_add(complex_pow(z, mandelbrot_power), c);\n            z = z_next;\n\n            // colors\n            col_smooth += exp( -dot(z,z) );\n\n            // orbit traps\n            if (color_mode == 2)\n            \{\n                orbit_pt_dist = min(orbit_pt_dist, fabs( dot(z - orbit_pt, z - orbit_pt) ));\n                orbit_coord_dist = min(orbit_coord_dist, fabs( dot(z - z0, z - z0) ));\n                orbit_line_dist = min(orbit_line_dist, fabs( distPtLine(z, orbit_line_pt_1, orbit_line_pt_2) ));\n                orbit_circle_dist = min(orbit_circle_dist, fabs( distPtCircle(z, orbit_circle_center, orbit_circle_radius) ));\n            \}\n            else if (color_mode == 3)\n            \{\n                orbit_sample_pos = z * float2(orbit_bitmap_zoom) - orbit_bitmap_offset;\n                orbit_bitmap_color = c_trap(orbit_sample_pos.x, orbit_sample_pos.y);\n                \n                if (orbit_bitmap_color.w > 0.05)\n                    break;\n            \}\n\n            if (complex_abs(z) > 4)\n                break;\n        \}\n\n        orbit_pt_dist = sqrt(orbit_pt_dist);\n        orbit_coord_dist = sqrt(orbit_coord_dist);\n\n        float4 out_col;\n        float col_steps;\n        float vis_min;\n\n        if (color_mode == 0) // steps shading\n        \{\n            col_steps = float(i) / float(max_iter);\n            if (i == max_iter)\n                col_steps = 0.0f;\n\n            out_col = float4(col_steps, col_steps, col_steps, 1.0);\n        \}\n\n        else if (color_mode == 1) // smooth shading\n        \{\n            col_smooth /= float(max_iter);\n            \n            out_col = float4(col_smooth, col_smooth, col_smooth, 1.0);\n        \}\n\n        else if (color_mode == 2) // orbit traps\n        \{\n            out_col = float4(orbit_pt_dist, orbit_coord_dist, orbit_line_dist, orbit_circle_dist);\n        \}\n\n        else if (color_mode == 3) // bitmap orbit trap\n        \{\n            out_col = orbit_bitmap_color;\n        \}\n\n        else if (color_mode == 4) // orbit traps visualization\n        \{\n            vis_min = min(\n                sqrt( fabs( dot(float2(pos.x, pos.y) - orbit_pt_parm, float2(pos.x, pos.y) - orbit_pt_parm) )) * 0.0003f, \n                fabs( distPtLine(float2(pos.x, pos.y), orbit_line_pt_1_parm, orbit_line_pt_2_parm) ) * 0.0003f\n            );\n\n            vis_min = min(\n                vis_min,\n                fabs( distPtCircle(float2(pos.x, pos.y), orbit_circle_center_parm, orbit_circle_radius) ) * 0.0003f\n            );\n            \n            out_col = float4(vis_min, vis_min, vis_min, 1.0f);\n        \}\n\n        dst() = float4(out_col.x, out_col.y, out_col.z, out_col.w);\n    \}\n\};"
+ rebuild ""
+ mandelbrotKernel_maximum_iterations 300
+ mandelbrotKernel_mandelbrot_power 3
+ mandelbrotKernel_julia_mode 1
+ mandelbrotKernel_julia_coordinate {4848 1680}
+ mandelbrotKernel_color_mode 3
+ mandelbrotKernel_orbit_point_coordinate {-570 -505}
+ mandelbrotKernel_orbit_line_point_1_coordinate {2105 -895}
+ mandelbrotKernel_orbit_line_point_2_coordinate {-104 1304}
+ mandelbrotKernel_orbit_circle_coordinate {-65 0}
+ mandelbrotKernel_initial_zoom {{parent.BlinkScript18.complexPlane_initial_zoom(1)}}
+ mandelbrotKernel_exponential_zoom {{parent.BlinkScript18.complexPlane_exponential_zoom(1)}}
+ mandelbrotKernel_exponential_zoom_anim {{parent.BlinkScript18.complexPlane_exponential_zoom}}
+ mandelbrotKernel_offset {{parent.BlinkScript18.complexPlane_offset(1)} {parent.BlinkScript18.complexPlane_offset(1)}}
+ mandelbrotKernel_resolution {{parent.BlinkScript18.complexPlane_resolution.0} {parent.BlinkScript18.complexPlane_resolution.1}}
+ rebuild_finalise ""
+ name BlinkScript20
+ xpos 4536
+ ypos 654
+}
+set N8092210 [stack 0]
+Shuffle {
+ green white
+ name Shuffle22
+ xpos 4262
+ ypos 719
+}
+Grade {
+ channels {rgba.red -rgba.green -rgba.blue none}
+ white 4
+ multiply 0.62
+ add -0.26
+ gamma 0.55
+ black_clamp false
+ name Grade_hue3
+ xpos 4262
+ ypos 779
+}
+Grade {
+ inputs 1+1
+ channels {rgba.red -rgba.green -rgba.blue none}
+ add 0.74
+ maskChannelMask rgba.red
+ name Grade14
+ xpos 4262
+ ypos 812
+}
+Grade {
+ inputs 1+1
+ channels {rgba.red -rgba.green -rgba.blue none}
+ add 1
+ maskChannelMask rgba.red
+ name Grade15
+ xpos 4262
+ ypos 866
+}
+Grade {
+ inputs 1+1
+ channels {rgba.red -rgba.green -rgba.blue none}
+ add 1
+ maskChannelMask rgba.red
+ name Grade16
+ xpos 4262
+ ypos 910
+ disable true
+}
+Grade {
+ inputs 1+1
+ channels {rgba.red -rgba.green -rgba.blue none}
+ multiply 1.26
+ maskChannelMask rgba.red
+ mix 0.23
+ name Grade17
+ xpos 4262
+ ypos 954
+}
+Grade {
+ channels {-rgba.red rgba.green -rgba.blue none}
+ multiply 0.34
+ black_clamp false
+ name Grade_saturation3
+ xpos 4262
+ ypos 1021
+}
+Grade {
+ channels {-rgba.red -rgba.green rgba.blue none}
+ multiply 3.3
+ gamma 4.1
+ black_clamp false
+ name Grade_value3
+ xpos 4262
+ ypos 1071
+ disable true
+}
+push $N8092210
+Colorspace {
+ colorspace_out HSV
+ name Colorspace7
+ xpos 4398
+ ypos 732
+}
+ShuffleCopy {
+ inputs 2
+ red red
+ green green
+ blue blue
+ name ShuffleCopy4
+ xpos 4262
+ ypos 1125
+}
+Colorspace {
+ colorspace_in HSV
+ name Colorspace8
+ xpos 4412
+ ypos 1163
+}
+Constant {
+ inputs 0
+ color {0.5332764983 0.6583747268 0.1119323894 1}
+ color_panelDropped true
+ name Constant6
+ xpos 5051
+ ypos 1019
 }
 Read {
  inputs 0
@@ -2250,140 +2424,29 @@ Roto {
 Premult {
  name Premult1
  xpos 5239
- ypos 660
+ ypos 625
 }
-push $N73ce430
-BlinkScript {
- inputs 2
- kernelSourceFile "\[python \{os.environ\[\"BLINK_PATH\"]\}]/mandelbrot.blink"
- recompileCount 354
- KernelDescription "2 \"mandelbrotKernel\" iterate pixelWise ff93d63b97a8178deb337586107dc5a3b3765c652b798fe3e1bb10d725756ed5 3 \"c_src\" Read Point \"c_trap\" Read Random \"dst\" Write Point 17 \"maximum_iterations\" Int 1 6AMAAA== \"mandelbrot_power\" Int 1 AgAAAA== \"julia_mode\" Int 1 AAAAAA== \"julia_coordinate\" Float 2 AAAAAAAAAAA= \"color_mode\" Int 1 AQAAAA== \"orbit_point_coordinate\" Float 2 AAAAAAAAAAA= \"orbit_line_point_1_coordinate\" Float 2 AAAAAAAAAAA= \"orbit_line_point_2_coordinate\" Float 2 AACAPwAAgD8= \"orbit_circle_coordinate\" Float 2 AACAPwAAgD8= \"orbit_circle_radius\" Float 1 AAAAQA== \"orbit_bitmap_offset\" Float 2 AAAAAAAAAAA= \"orbit_bitmap_zoom\" Float 1 AADIQg== \"initial_zoom\" Float 1 AACAPw== \"exponential_zoom\" Float 1 AAAAAA== \"exponential_zoom_anim\" Float 1 AAAAAA== \"offset\" Float 2 AAAAAAAAAAA= \"resolution\" Int 2 gAcAADgEAAA= 17 \"max_iter\" 1 1 \"mandelbrot_power\" 1 1 \"julia_mode\" 1 1 \"julia_coord_parm\" 2 1 \"color_mode\" 1 1 \"orbit_pt_parm\" 2 1 \"orbit_line_pt_1_parm\" 2 1 \"orbit_line_pt_2_parm\" 2 1 \"orbit_circle_center_parm\" 2 1 \"orbit_circle_radius\" 1 1 \"orbit_bitmap_offset\" 2 1 \"orbit_bitmap_zoom\" 1 1 \"zoom\" 1 1 \"exp_zoom\" 1 1 \"exp_zoom_anim\" 1 1 \"offset\" 2 1 \"img_res\" 2 1 1 \"c_trapconstEdgeColor\" Float 4 1 AAAAAAAAAAAAAAAAAAAAAA=="
- kernelSource "#include \"include/vft_blink.h\"\n\n/*\nMandelbort set visualizer, it takes complex image plane as an input (e.g. generated by complex_plane.blink)\n\ncomplex numbers are stored in vec2(X, Y) type, where X is real and Y is imaginary part\n*/\n\nkernel mandelbrotKernel : ImageComputationKernel<ePixelWise>\n\{\n    Image<eRead, eAccessPoint, eEdgeNone> c_src;\n    Image<eRead, eAccessRandom, eEdgeConstant> c_trap;\n\n    Image<eWrite> dst;\n\n    param:\n        int max_iter;\n        int mandelbrot_power;\n\n        int julia_mode;\n        float2 julia_coord_parm;\n\n        int color_mode;\n\n        float2 orbit_pt_parm;\n        float2 orbit_line_pt_1_parm;\n        float2 orbit_line_pt_2_parm;\n        float2 orbit_circle_center_parm;\n        float orbit_circle_radius;\n        float2 orbit_bitmap_offset;\n        float orbit_bitmap_zoom;\n\n        float zoom;\n        float exp_zoom;\n        float exp_zoom_anim;\n        float2 offset;\n        int2 img_res;\n\n    local:\n\n    void define() \{\n        defineParam(max_iter, \"maximum_iterations\", 1000);\n        defineParam(mandelbrot_power, \"mandelbrot_power\", 2);\n\n        defineParam(julia_mode, \"julia_mode\", 0);\n        defineParam(julia_coord_parm, \"julia_coordinate\", float2(0.0f, 0.0f));\n\n        defineParam(color_mode, \"color_mode\", 1);\n\n        defineParam(orbit_pt_parm, \"orbit_point_coordinate\", float2(0.0f, 0.0f));\n        defineParam(orbit_line_pt_1_parm, \"orbit_line_point_1_coordinate\", float2(0.0f, 0.0f));\n        defineParam(orbit_line_pt_2_parm, \"orbit_line_point_2_coordinate\", float2(1.0f, 1.0f));\n        defineParam(orbit_circle_center_parm, \"orbit_circle_coordinate\", float2(1.0f, 1.0f));\n        defineParam(orbit_circle_radius, \"orbit_circle_radius\", 2.0f);\n        defineParam(orbit_bitmap_offset, \"orbit_bitmap_offset\", float2(0.0f, 0.0f));\n        defineParam(orbit_bitmap_zoom, \"orbit_bitmap_zoom\", 100.0f);\n\n        defineParam(zoom, \"initial_zoom\", 1.0f);\n        defineParam(exp_zoom, \"exponential_zoom\", 0.0f);\n        defineParam(exp_zoom_anim, \"exponential_zoom_anim\", 0.0f);\n        defineParam(offset, \"offset\", float2(0.0f, 0.0f));\n        defineParam(img_res, \"resolution\", int2(1920, 1080));\n    \}\n\n    void init() \{\n    \}\n\n    void process(int2 pos)\n    \{\n        //float2 c_my = float2(pos.x, pos.y) - float2(img_res.x, img_res.y)/2;\n        //c_my = zoomComplexPlane(c_my, zoom, exp_zoom_anim, offset);\n\n        complex c = complex(c_src(0), c_src(1));\n        //c = c_my;\n        complex z = c;\n        complex z0 = z;\n        complex z_next;\n        int i = 0;\n\n        float col_smooth = exp( -dot(z,z) );\n\n        float orbit_pt_dist = LARGE_NUMBER;\n        float orbit_coord_dist = LARGE_NUMBER;\n        float orbit_line_dist = LARGE_NUMBER;\n        float orbit_circle_dist = LARGE_NUMBER;\n\n        float2 orbit_pt = zoomComplexPlane(orbit_pt_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_line_pt_1 = zoomComplexPlane(orbit_line_pt_1_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_line_pt_2 = zoomComplexPlane(orbit_line_pt_2_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float2 orbit_circle_center = zoomComplexPlane(orbit_circle_center_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n        float4 orbit_bitmap_color = float4(0.0f);\n        float2 orbit_sample_pos = float2(0.0f);\n\n        float2 julia_coord = zoomComplexPlane(julia_coord_parm - float2(img_res.x, img_res.y)/2, zoom, exp_zoom, offset) - offset;\n\n        if (julia_mode)\n            c = julia_coord;\n\n        for (; i < max_iter; i++)\n        \{\n            // complex iterative function\n            z_next = complex_add(complex_pow(z, mandelbrot_power), c);\n            z = z_next;\n\n            // colors\n            col_smooth += exp( -dot(z,z) );\n\n            // orbit traps\n            if (color_mode == 2)\n            \{\n                orbit_pt_dist = min(orbit_pt_dist, fabs( dot(z - orbit_pt, z - orbit_pt) ));\n                orbit_coord_dist = min(orbit_coord_dist, fabs( dot(z - z0, z - z0) ));\n                orbit_line_dist = min(orbit_line_dist, fabs( distPtLine(z, orbit_line_pt_1, orbit_line_pt_2) ));\n                orbit_circle_dist = min(orbit_circle_dist, fabs( distPtCircle(z, orbit_circle_center, orbit_circle_radius) ));\n            \}\n            else if (color_mode == 3)\n            \{\n                orbit_sample_pos = z * float2(orbit_bitmap_zoom) - orbit_bitmap_offset;\n                orbit_bitmap_color = c_trap(orbit_sample_pos.x, orbit_sample_pos.y);\n                \n                if (orbit_bitmap_color.w > 0.05)\n                    break;\n            \}\n\n            if (complex_abs(z) > 4)\n                break;\n        \}\n\n        orbit_pt_dist = sqrt(orbit_pt_dist);\n        orbit_coord_dist = sqrt(orbit_coord_dist);\n\n        float4 out_col;\n        float col_steps;\n        float vis_min;\n\n        if (color_mode == 0) // steps shading\n        \{\n            col_steps = float(i) / float(max_iter);\n            if (i == max_iter)\n                col_steps = 0.0f;\n\n            out_col = float4(col_steps, col_steps, col_steps, 1.0);\n        \}\n\n        else if (color_mode == 1) // smooth shading\n        \{\n            col_smooth /= float(max_iter);\n            \n            out_col = float4(col_smooth, col_smooth, col_smooth, 1.0);\n        \}\n\n        else if (color_mode == 2) // orbit traps\n        \{\n            out_col = float4(orbit_pt_dist, orbit_coord_dist, orbit_line_dist, orbit_circle_dist);\n        \}\n\n        else if (color_mode == 3) // bitmap orbit trap\n        \{\n            out_col = orbit_bitmap_color;\n        \}\n\n        else if (color_mode == 4) // orbit traps visualization\n        \{\n            vis_min = min(\n                sqrt( fabs( dot(float2(pos.x, pos.y) - orbit_pt_parm, float2(pos.x, pos.y) - orbit_pt_parm) )) * 0.0003f, \n                fabs( distPtLine(float2(pos.x, pos.y), orbit_line_pt_1_parm, orbit_line_pt_2_parm) ) * 0.0003f\n            );\n\n            vis_min = min(\n                vis_min,\n                fabs( distPtCircle(float2(pos.x, pos.y), orbit_circle_center_parm, orbit_circle_radius) ) * 0.0003f\n            );\n            \n            out_col = float4(vis_min, vis_min, vis_min, 1.0f);\n        \}\n\n        dst() = float4(out_col.x, out_col.y, out_col.z, out_col.w);\n    \}\n\};"
- rebuild ""
- mandelbrotKernel_maximum_iterations 300
- mandelbrotKernel_mandelbrot_power 3
- mandelbrotKernel_julia_mode 1
- mandelbrotKernel_julia_coordinate {4537 2054}
- mandelbrotKernel_color_mode 3
- mandelbrotKernel_orbit_point_coordinate {-570 -505}
- mandelbrotKernel_orbit_line_point_1_coordinate {2105 -895}
- mandelbrotKernel_orbit_line_point_2_coordinate {-104 1304}
- mandelbrotKernel_orbit_circle_coordinate {-65 0}
- mandelbrotKernel_orbit_bitmap_offset {0 200}
- mandelbrotKernel_orbit_bitmap_zoom 600
- mandelbrotKernel_initial_zoom {{parent.BlinkScript18.complexPlane_initial_zoom(1)}}
- mandelbrotKernel_exponential_zoom {{parent.BlinkScript18.complexPlane_exponential_zoom(1)}}
- mandelbrotKernel_exponential_zoom_anim {{parent.BlinkScript18.complexPlane_exponential_zoom}}
- mandelbrotKernel_offset {{parent.BlinkScript18.complexPlane_offset(1)} {parent.BlinkScript18.complexPlane_offset(1)}}
- mandelbrotKernel_resolution {{parent.BlinkScript18.complexPlane_resolution.0} {parent.BlinkScript18.complexPlane_resolution.1}}
- rebuild_finalise ""
- name BlinkScript20
- xpos 4545
- ypos 654
+push $N8088420
+Write {
+ channels rgba
+ file /home/juraj/Desktop/renders/sig.png
+ file_type png
+ checkHashOnRead false
+ version 1
+ in_colorspace linear
+ out_colorspace linear
+ name Write5
+ xpos 5496
+ ypos 721
 }
-set N74e0d20 [stack 0]
-Shuffle {
- green white
- name Shuffle22
- xpos 4262
- ypos 719
-}
-Grade {
- channels {rgba.red -rgba.green -rgba.blue none}
- white 4
- multiply 0.62
- add -0.26
- gamma 0.55
- black_clamp false
- name Grade_hue3
- xpos 4262
- ypos 779
-}
-Grade {
- inputs 1+1
- channels {rgba.red -rgba.green -rgba.blue none}
- add 0.74
- maskChannelMask rgba.red
- name Grade14
- xpos 4262
- ypos 812
-}
-Grade {
- inputs 1+1
- channels {rgba.red -rgba.green -rgba.blue none}
- add 1
- maskChannelMask rgba.red
- name Grade15
- xpos 4262
- ypos 866
-}
-Grade {
- inputs 1+1
- channels {rgba.red -rgba.green -rgba.blue none}
- add 1
- maskChannelMask rgba.red
- name Grade16
- xpos 4262
- ypos 910
- disable true
-}
-Grade {
- inputs 1+1
- channels {rgba.red -rgba.green -rgba.blue none}
- multiply 1.26
- maskChannelMask rgba.red
- mix 0.23
- name Grade17
- xpos 4262
- ypos 954
-}
-Grade {
- channels {-rgba.red rgba.green -rgba.blue none}
- multiply 0.34
- black_clamp false
- name Grade_saturation3
- xpos 4262
- ypos 1021
-}
-Grade {
- channels {-rgba.red -rgba.green rgba.blue none}
- multiply 3.3
- gamma 4.1
- black_clamp false
- name Grade_value3
- xpos 4262
- ypos 1071
- disable true
-}
-push $N74e0d20
-Colorspace {
- colorspace_out HSV
- name Colorspace7
- xpos 4398
- ypos 732
-}
-ShuffleCopy {
- inputs 2
- red red
- green green
- blue blue
- name ShuffleCopy4
- xpos 4262
- ypos 1125
-}
-Colorspace {
- colorspace_in HSV
- name Colorspace8
- xpos 4412
- ypos 1163
-}
-Constant {
+Read {
  inputs 0
- color {0.5332764983 0.6583747268 0.1119323894 1}
- color_panelDropped true
- name Constant6
- xpos 5051
- ypos 1019
+ file /home/juraj/Desktop/renders/sig.png
+ format "400 400 0 0 400 400 1 "
+ origset true
+ name Read4
+ xpos 5600
+ ypos 412
 }
 Constant {
  inputs 0
@@ -2393,24 +2456,18 @@ Constant {
  xpos 5199
  ypos 1164
 }
-push $N74e0d20
+push $N8092210
+Blur {
+ size 6.2
+ name Blur1
+ xpos 4565
+ ypos 944
+}
 Reformat {
- filter Lanczos4
  name Reformat10
  xpos 4565
  ypos 1059
 }
-set N75e5bd0 [stack 0]
-Viewer {
- frame 1
- frame_range 1-375
- fps 25
- colour_sample_bbox {0.375 0.8218749762 0.3760416806 0.8229166865}
- name Viewer1
- xpos -109
- ypos 1858
-}
-push $N75e5bd0
 FilterErode {
  size -1
  name FilterErode1
@@ -2430,17 +2487,28 @@ Constant {
  color {0.0009105803911 0.001214108663 0.001821160782 1.000000119}
  color_panelDropped true
  name Constant7
- xpos 5096
- ypos 1099
+ xpos 5138
+ ypos 1067
 }
 Merge2 {
  inputs 2
  name Merge2
  xpos 4559
- ypos 1319
+ ypos 1320
 }
+set N82611d0 [stack 0]
+Viewer {
+ frame 1
+ frame_range 1-375
+ fps 25
+ colour_sample_bbox {-0.4900000095 0.05000000075 -0.4850000143 0.0549999997}
+ name Viewer1
+ xpos -108
+ ypos 1858
+}
+push $N82611d0
 Write {
- file /home/juraj/Desktop/renders/fract_aka_v002/img_####.jpg
+ file /home/juraj/Desktop/renders/fract_sig_v001/img_####.jpg
  file_type jpeg
  _jpeg_quality 1
  _jpeg_sub_sampling 4:4:4
