@@ -1,3 +1,14 @@
+/*
+-----------------------------------------------------------------------------
+This source file has been developed within the scope of the
+Technical Director course at Filmakademie Baden-Wuerttemberg.
+http://technicaldirector.de
+    
+Written by Juraj Tomori.
+Copyright (c) 2019 Animationsinstitut of Filmakademie Baden-Wuerttemberg
+-----------------------------------------------------------------------------
+*/
+
 #ifndef VFT_OSL
 #define VFT_OSL
 
