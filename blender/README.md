@@ -1,0 +1,1 @@
+Blender integration is being developed in [blender](/../../tree/blender) branch, because it requires some changes in OSL shaders, which were initially created for Arnold.
