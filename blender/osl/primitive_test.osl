@@ -1,0 +1,35 @@
+// sphere: position, radius
+float sphere( vector P, float rad )
+{
+    float dist = length(P) - rad;
+    return dist;
+}
+
+shader vft_mandelbulb(
+    int primitive = 0 [[ string widget = "popup", string options = "Sphere|Box|Rounded Box|Torus|Cone" ]],
+    float sphere_size = 1.0,
+    vector box_size_vec = vector(1, 2, 3),
+    float box_roundness = 1.0,
+    float torus_radius = 1.0,
+    float torus_thickness = 1.0,
+    float cone_radius_x = 1.0,
+    float cone_radius_y = 1.0,
+
+    output float dist = 0.0
+)
+{
+    vector Z = P;
+
+    if (primitive == 0)
+        dist = sphere(Z, sphere_size);
+    // else if (primitive == 1)
+        // dist = box(Z, float3(box_size_vec[0], box_size_vec[1], box_size_vec[2]));
+    // else if (primitive == 2)
+        // dist = roundBox(Z, float3(box_size_vec[0], box_size_vec[1], box_size_vec[2]), box_roundness);
+    // else if (primitive == 3)
+        // dist = torus(Z, float2(torus_radius, torus_thickness));
+    // else if (primitive == 4)
+        // dist = cone(Z, float2(cone_radius_x, cone_radius_y));
+    
+    dist = dist < 1.0 ? 1.0 : 0.0;
+}

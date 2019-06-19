@@ -1,0 +1,89 @@
+// a cell noise function that takes two parameters
+float cnoise(float a, float b){
+ return noise("cell",vector(a,b,0));
+}
+
+// return the relative position of a value in a slot given the upper
+// boundary an the slot number.
+// m : the upper boundary
+// i : the slot number
+// n : the number of slots
+// value: the value
+// offset: the offset of the lower boundary of the slot with index 0
+// width: the width of each slot
+// varw: the variance of the width
+// seed: a random seed
+
+float relvalue(float m, float i, float n, float value, 
+               float offset, float width, float varw, float seed){
+
+  float mp=0;
+  float ri = i; // parameters are passed by reference so if we alter them it has effect outside
+  float val = value;
+  float last = m;
+  ri -= 1;
+  if( ri < 0 ){
+    ri = n - 1;
+    last += 1;
+    val += 1;
+  }
+  mp = offset + ri * width + (cnoise(ri,seed)-0.5)*varw;
+  return (val - mp)/(last - mp);
+}
+
+// return the slot that a value belongs to and its 
+// relative position within the slot
+// value : a value between [0,1]
+// n     : the number of slots 
+// var   : the variance of the position of the slot boundaries
+// seed  : a random seed, allows you to pick a pattern
+// rel   : will recive the relative position of the value within
+//         a slot
+
+float slot(float value, float n, float var, float seed, 
+           output float rel){
+           
+  float dw = 1.0/n;
+  float dw2 = dw/2;
+  float varw = dw * var;
+  float i;
+
+  float m,mn;
+  
+  for(i=0; i<n; i++){
+    m = dw2 + i * dw + (cnoise(i,seed)-0.5)*varw;
+    if(value < m){
+      rel = relvalue(m, i, n, value, dw2, dw, varw, seed);
+      return i;
+    }
+  }
+  i = 0;
+  mn = 1 + dw2 + i * dw + (cnoise(i,seed)-0.5)*varw;
+  rel = (value - m)/(mn - m);    
+  return i;
+}
+
+// divides a coordinate space (a uv map) in vertical strips
+// and divides these strips in smaller slots.
+// for each slot created it returns uv coordinates that span that
+// slot exactly, i.e. each slot has uv coordinates in the range [0,1]
+// additionally it returns a unique random value for each slot.
+
+shader strips(
+  vector Pos=P, // plug in the uv cooords here
+  int Seed=42,  // change the resulting pattern
+  float Var=0,  // the variance in width and position
+  int Nu=5,     // number of subdivisions in the xdir
+  int Nv=5,     // number of subdivision in the ydir
+
+  output vector UV=0, // the new uv coordinates for each slot
+  output float Fac=0  // a random value unique for each slot
+){
+  vector uv = 0;
+  // slot number and relative value in the x direction
+  uv[0] = slot(Pos[0], Nu, Var, Seed         , UV[0]);
+  // slot number and relative value in the y direction
+  uv[1] = slot(Pos[1], Nv, Var, Seed+uv[0]*Nv, UV[1]);
+  // a random value for each indivual slot
+  Fac = noise("cell",uv,(float)Seed);
+}
