@@ -19,7 +19,9 @@ shader vft_mandelbulb(
     int max_iterations = 100,
     float max_distance = 250.0,
 
-    output matrix out = 0
+    output float mask = 0,
+    output vector orbits_1 = vector(0, 0, 0),
+    output vector orbits_2 = vector(0, 0, 0)
 )
 {
     point P_w = P;
@@ -61,12 +63,14 @@ shader vft_mandelbulb(
     orbit_coord_dist = sqrt(orbit_coord_dist);
     orbit_sphere_dist = sqrt(orbit_sphere_dist);
 
-    float mask = i == max_iterations ? 1 : 0;
+    mask = i == max_iterations ? 1 : 0;
+    orbits_1 = vector(orbit_coord_dist, orbit_sphere_dist, orbit_plane_dist[0]);
+    orbits_2 = vector(orbit_plane_dist[1], orbit_plane_dist[2], 0.0);
 
-    out[0][0] = mask;
-    out[0][1] = orbit_coord_dist;
-    out[0][2] = orbit_sphere_dist;
-    out[0][3] = orbit_plane_dist[0];
-    out[1][0] = orbit_plane_dist[1];
-    out[1][1] = orbit_plane_dist[2];
+    // out[0][0] = mask;
+    // out[0][1] = orbit_coord_dist;
+    // out[0][2] = orbit_sphere_dist;
+    // out[0][3] = orbit_plane_dist[0];
+    // out[1][0] = orbit_plane_dist[1];
+    // out[1][1] = orbit_plane_dist[2];
 }
