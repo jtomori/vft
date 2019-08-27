@@ -120,7 +120,7 @@ class GenerateKernel(object):
     """
     def __init__(self):
         self.vft_root_path = self.getVftRootFromPath( hou.getenv("HOUDINI_PATH") )
-        self.vft_kernels_path = os.path.join(self.vft_root_path, "ocl/vft_kernels.cl")
+        self.vft_kernels_path = os.path.join(self.vft_root_path, "ocl", "vft_kernels.cl")
 
         self.vft_kernels = None
         self.vft_kernels_parsed = None
@@ -136,17 +136,29 @@ class GenerateKernel(object):
         this might not work on Windows
         extracts path to VFT from os-style paths string
         """
-        paths = path.replace(";",":").split(":")
         
+        paths = None
+        # This is only for windows
+        if os.name == 'nt':
+            paths = path.split(";")
+            # It's worth noting here that even if the paths in the houdini.env file have \ on Windows, they will get converted to / when using hou.getenv("HOUDINI_PATH"). Let's force convert them to \
+            paths = [path.replace('/', '\\') for path in paths]
+
+        else: # This is for non-windows OS
+            paths = path.replace(";",":").split(":")
+
         # this will need to be changed if git repository name changes
-        pattern = os.sep + "raymarching" + os.sep + "houdini"
+        patterns = []
+        patterns.append(os.sep + "vft-master" + os.sep + "houdini")
+        patterns.append(os.sep + "vft" + os.sep + "houdini")
 
         # find pattern in list of paths
         vft_root = ""
         for path in paths:
-            if pattern in path:
-                vft_root = path
-                break
+            for pattern in patterns:
+                if pattern in path:
+                    vft_root = path
+                    break
         
         return vft_root
     
